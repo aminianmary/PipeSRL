@@ -48,6 +48,8 @@ public class AveragedPerceptron  implements Serializable {
         this.reverseLabelMap = reverseLabelMap;
     }
 
+    public String[] getLabelMap() {return labelMap;}
+
     public void learnInstance(List<String> features, String label) {
         int argmax = argmax(features, false);
         int gold = reverseLabelMap.get(label);
@@ -138,6 +140,24 @@ public class AveragedPerceptron  implements Serializable {
 
         return score;
     }
+
+    //TODO check if this function works properly -- also check with Sadegh
+    public Double[] score(List<String> features) {
+        Double[] labelScores = new Double[labelMap.length] ;
+
+        for (int labelIdx=0;labelIdx< labelMap.length; labelIdx++)
+        {
+            double score=0.;
+            HashMap<String, Double> w = avgWeights[labelIdx];
+            for (String feat : features) {
+                if (w.containsKey(feat))
+                    score += w.get(feat);
+            }
+            labelScores[labelIdx]= score;
+        }
+        return labelScores;
+    }
+
 
     private int argmax(List<String> features, HashMap<String,Double> realValuedFeatures, boolean decode) {
         HashMap<String, Double>[] map = decode ? avgWeights : weights;
