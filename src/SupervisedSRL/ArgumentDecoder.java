@@ -55,8 +55,10 @@ public class ArgumentDecoder {
             // retrieve candidates for the current word
             String[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", 93);
             List<String> features = Arrays.asList(featVector);
-            double score0 = aiClassifier.score(features, "0");
-            double score1 = aiClassifier.score(features, "1");
+
+            double[] scores = aiClassifier.score(features);
+            double score0 = scores[0];
+            double score1 = scores[1];
 
             // build an intermediate beam
             TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();
@@ -108,7 +110,7 @@ public class ArgumentDecoder {
             // retrieve candidates for the current word
             String[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", 93);
             List<String> features = Arrays.asList(featVector);
-            double score1 = aiClassifier.score(features, "1");
+            double score1 = aiClassifier.score(features)[1];
 
             if (score1 >= 0) {
                 highestScoreAISeq.put(wordIdx, 1);
@@ -145,7 +147,7 @@ public class ArgumentDecoder {
                 String[] featVector = FeatureExtractor.extractFeatures(pa.getPredicate(), wordIdx, sentence, "AC", 93);
                 List<String> features = Arrays.asList(featVector);
 
-                Double[] labelScores = acClassifier.score(features);
+                double[] labelScores = acClassifier.score(features);
 
                 // build an intermediate beam
                 TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();

@@ -18,8 +18,8 @@ import java.util.zip.GZIPOutputStream;
 
 
 public class AveragedPerceptron  implements Serializable {
-    private HashMap<String, Double>[] weights;
-    private HashMap<String, Double>[] avgWeights;
+    private HashMap<String, double[]> weights;
+    private HashMap<String, double[]> avgWeights;
     private String[] labelMap;
     private HashMap<String, Integer> reverseLabelMap;
     private int iteration;
@@ -29,14 +29,12 @@ public class AveragedPerceptron  implements Serializable {
 
     public AveragedPerceptron(HashSet<String> possibleLabels) {
         this.iteration = 1;
-        weights = new HashMap[possibleLabels.size()];
-        avgWeights = new HashMap[possibleLabels.size()];
+        weights = new HashMap<String, double[]>();
+        avgWeights = new HashMap<String, double[]>();
         labelMap = new String[possibleLabels.size()];
         reverseLabelMap = new HashMap<String, Integer>();
         int i=0;
         for (String label:possibleLabels) {
-            weights[i] = new HashMap<String, Double>();
-            avgWeights[i] = new HashMap<String, Double>();
             labelMap[i] = label;
             reverseLabelMap.put(label, i);
             i++;
@@ -45,7 +43,7 @@ public class AveragedPerceptron  implements Serializable {
     }
 
 
-    private AveragedPerceptron(HashMap<String, Double>[] avgWeights, String[] labelMap,
+    private AveragedPerceptron(HashMap<String, double[]> avgWeights, String[] labelMap,
                                HashMap<String, Integer> reverseLabelMap) {
         this.avgWeights = avgWeights;
         this.labelMap = labelMap;
@@ -62,11 +60,11 @@ public class AveragedPerceptron  implements Serializable {
         int gold = reverseLabelMap.get(label);
         if (argmax != gold) {
             updateWeight(argmax, gold, features);
-            if(reverseLabelMap.size()==2)
-            confusionMatrix[argmax][gold]++;
-        }else {
+            if (reverseLabelMap.size() == 2)
+                confusionMatrix[argmax][gold]++;
+        } else {
             correct++;
-            if(reverseLabelMap.size()==2)
+            if (reverseLabelMap.size() == 2)
                 confusionMatrix[gold][gold]++;
         }
         iteration++;
@@ -103,12 +101,20 @@ public class AveragedPerceptron  implements Serializable {
     }
 
     private void updateWeight(int label, String feature, double change) {
-        if (!weights[label].containsKey(feature)) {
-            weights[label].put(feature, change);
-            avgWeights[label].put(feature, iteration * change);
+        if (!weights.containsKey(feature)) {
+            double[] subWeights = new double[labelMap.length];
+            subWeights[label] = change;
+            weights.put(feature, subWeights);
+
+            double[] avgSubWeights = new double[labelMap.length];
+            avgSubWeights[label] = iteration * change;
+            avgWeights.put(feature, avgSubWeights);
         } else {
-            weights[label].put(feature, weights[label].get(feature) + change);
-            avgWeights[label].put(feature, avgWeights[label].get(feature) + iteration * change);
+            double[] subWeights = weights.get(feature);
+            subWeights[label] += change;
+
+            double[] avgSubWeights = avgWeights.get(feature);
+            avgSubWeights[label] += iteration * change;
         }
     }
 
@@ -122,94 +128,90 @@ public class AveragedPerceptron  implements Serializable {
     }
 
     private int argmax(List<String> features, boolean decode) {
-        HashMap<String, Double>[] map = decode ? avgWeights : weights;
+        HashMap<String, double[]> map = decode ? avgWeights : weights;
         double max = Double.NEGATIVE_INFINITY;
         int argmax = 0;
 
-        for (int i = 0; i < map.length; i++) {
-            double score = 0.0;
+        double[] score = new double[labelMap.length];
 
-            HashMap<String, Double> w = map[i];
-            for (String feat : features) {
-                if (w.containsKey(feat))
-                    score += w.get(feat);
+        for (String feat : features) {
+            if (map.containsKey(feat)) {
+                double[] w = map.get(feat);
+                for (int i = 0; i < w.length; i++)
+                    score[i] += w[i];
             }
+        }
 
-            if (score > max) {
-                max = score;
+        for (int i = 0; i < score.length; i++) {
+            if (score[i] > max) {
                 argmax = i;
+                max = score[i];
             }
-
         }
 
         return argmax;
     }
 
-    public double score(List<String> features, String label) {
-        double score = 0.0;
+    public double[] score(List<String> features) {
+        double[] score = new double[labelMap.length];
 
-        HashMap<String, Double> w = avgWeights[reverseLabelMap.get(label)];
         for (String feat : features) {
-            if (w.containsKey(feat))
-                score += w.get(feat);
+            if (avgWeights.containsKey(feat)) {
+                double[] w = avgWeights.get(feat);
+                for (int i = 0; i < w.length; i++)
+                    score[i] += w[i];
+            }
         }
-
         return score;
     }
 
-    //TODO check if this function works properly -- also check with Sadegh
-    public Double[] score(List<String> features) {
-        Double[] labelScores = new Double[labelMap.length] ;
-
-        for (int labelIdx=0;labelIdx< labelMap.length; labelIdx++)
-        {
-            double score=0.;
-            HashMap<String, Double> w = avgWeights[labelIdx];
-            for (String feat : features) {
-                if (w.containsKey(feat))
-                    score += w.get(feat);
-            }
-            labelScores[labelIdx]= score;
-        }
-        return labelScores;
-    }
 
 
+    //todo check if used!
     private int argmax(List<String> features, HashMap<String,Double> realValuedFeatures, boolean decode) {
-        HashMap<String, Double>[] map = decode ? avgWeights : weights;
+        HashMap<String, double[]> map = decode ? avgWeights : weights;
         double max = Double.NEGATIVE_INFINITY;
         int argmax = 0;
 
-        for (int i = 0; i < map.length; i++) {
-            double score = 0.0;
 
-            HashMap<String, Double> w = map[i];
-            for (String feat : features) {
-                if (w.containsKey(feat))
-                    score += w.get(feat);
-            }
-            for(String feat:realValuedFeatures.keySet()){
-                if (w.containsKey(feat))
-                    score += w.get(feat)*realValuedFeatures.get(feat);
-            }
+        double[] score = new double[labelMap.length];
 
-            if (score > max) {
-                max = score;
-                argmax = i;
+        for (String feat : features) {
+            if (map.containsKey(feat)) {
+                double[] w = map.get(feat);
+                for (int i = 0; i < w.length; i++)
+                    score[i] += w[i];
+            }
+        }
+        for (String feat : realValuedFeatures.keySet()) {
+            if (map.containsKey(feat)) {
+                double[] w = map.get(feat);
+                for (int i = 0; i < w.length; i++)
+                    score[i] += w[i] * realValuedFeatures.get(feat);
             }
         }
 
+
+        for (int i = 0; i < score.length; i++) {
+            if (score[i] >= max) {
+                argmax = i;
+                max = score[i];
+            }
+        }
         return argmax;
     }
 
     public void saveModel(String filePath) throws Exception {
-        HashMap<String, Double>[] newAvgMap = new HashMap[labelMap.length];
-        for (int i = 0; i < newAvgMap.length; i++) {
-            newAvgMap[i] = new HashMap<String, Double>();
-            for (String feat : weights[i].keySet()) {
-                newAvgMap[i]
-                        .put(feat, weights[i].get(feat) - (avgWeights[i].get(feat) / iteration));
+        HashMap<String, double[]> newAvgMap = new HashMap<String, double[]>();
+
+        for (String feat : weights.keySet()) {
+            double[] w = weights.get(feat);
+            double[] aw = avgWeights.get(feat);
+            double[] naw = new double[labelMap.length];
+            for (int i = 0; i < labelMap.length; i++) {
+                naw[i] = w[i] - (aw[i] / iteration);
             }
+            newAvgMap.put(feat, naw);
         }
 
         FileOutputStream fos = new FileOutputStream(filePath);
@@ -225,8 +227,8 @@ public class AveragedPerceptron  implements Serializable {
         FileInputStream fis = new FileInputStream(filePath);
         GZIPInputStream gz = new GZIPInputStream(fis);
         ObjectInput reader = new ObjectInputStream(gz);
-        HashMap<String, Double>[] newAvgWeight =
-                (HashMap<String, Double>[]) reader.readObject();
+        HashMap<String, double[]> newAvgWeight =
+                (HashMap<String, double[]>) reader.readObject();
         String[] labelMap = (String[]) reader.readObject();
         HashMap<String, Integer> reverseLabelMap = (HashMap<String, Integer>) reader.readObject();
 
