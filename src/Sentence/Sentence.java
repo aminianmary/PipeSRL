@@ -149,10 +149,12 @@ public class Sentence {
     public ArrayList<String> getDepPath(int source, int target) {
         ArrayList<String> visited = new ArrayList<String>();
 
-        if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(target).size() > 0) {
+        if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(source).size() > 0) {
             for (int child : reverseDepHeads.get(source)) {
-                if (child == target)
+                if (child == target) {
+                    visited.add(depLabels[child]);
                     break;
+                }
                 else {
                     visited.add(depLabels[child]);
                     getDepPath(child, target);
@@ -167,10 +169,12 @@ public class Sentence {
     public ArrayList<String> getPOSPath(int source, int target) {
         ArrayList<String> visited = new ArrayList<String>();
 
-        if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(target).size() > 0) {
+        if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(source).size() > 0) {
             for (int child : reverseDepHeads.get(source)) {
-                if (child == target)
+                if (child == target) {
+                    visited.add(posTags[child]);
                     break;
+                }
                 else {
                     visited.add(posTags[child]);
                     getDepPath(child, target);

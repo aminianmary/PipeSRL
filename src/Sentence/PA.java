@@ -57,4 +57,14 @@ public class PA {
 
         return predArgDepTuples;
     }
+
+    public String obtainArgumentType (int argIndex)
+    {
+        for (Argument arg:ams)
+        {
+            if (arg.getIndex()==argIndex)
+                return arg.getType();
+        }
+        return "";
+    }
 }

@@ -173,7 +173,7 @@ public class PD {
                 String plabel= pa.getPredicateLabel();
                 String ppos= sentencePOSTags[pIdx];
 
-                String[] pdfeats = FeatureExtractor.extractFeatures(pa.getPredicate(), new Argument(),sentence, "PD", 11);
+                String[] pdfeats = FeatureExtractor.extractFeatures(pa.getPredicate(), -1 ,sentence, "PD", 11);
                 pLexiconEntry ple= new pLexiconEntry(plabel, pdfeats);
 
                 if (!pLexicon.containsKey(plem))
