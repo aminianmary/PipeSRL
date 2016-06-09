@@ -56,7 +56,7 @@ public class PD {
     public static void train (List<String> trainSentencesInCONLLFormat,int numberOfTrainingIterations, String modelDir)
             throws Exception
     {
-
+    int pdFeatSize =11;
         //creates lexicon of all predicates in the train set
         HashMap<String,  HashMap<String, HashSet<pLexiconEntry>>> trainPLexicon =
                 buildPredicateLexicon(trainSentencesInCONLLFormat);
@@ -71,7 +71,7 @@ public class PD {
                 HashSet<pLexiconEntry> featVectors= trainPLexicon.get(plem).get(ppos);
                 HashSet<String> labelSet= getLabels (featVectors);
 
-                AveragedPerceptron ap = new AveragedPerceptron(labelSet);
+                AveragedPerceptron ap = new AveragedPerceptron(labelSet, pdFeatSize);
 
                 //System.out.print("training model for predicate/pos -->"+ plem+"|"+ppos+"\n");
                 for (int i=0; i< numberOfTrainingIterations; i++)
@@ -80,10 +80,9 @@ public class PD {
                     for (pLexiconEntry ple: trainPLexicon.get(plem).get(ppos))
                     {
                         //train average perceptron
-                        List<String> featVecs= Arrays.asList(ple.getPdfeats());
                         String plabel= ple.getPlabel();
 
-                        ap.learnInstance(featVecs, plabel);
+                        ap.learnInstance(ple.getPdfeats(), plabel);
                     }
                 }
 
@@ -119,7 +118,6 @@ public class PD {
                 {
                     numOfTestExamples++;
 
-                    List<String> featVec= Arrays.asList(ple.getPdfeats());
                     String plabel = ple.getPlabel();
 
                     //System.out.println("Loading model for "+plem+"_"+ppos+"...");
@@ -128,7 +126,7 @@ public class PD {
                     if (f1.exists() && !f1.isDirectory())
                     {
                         AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);
-                        String prediction = classifier.predict(featVec);
+                        String prediction = classifier.predict(ple.getPdfeats());
                         if (prediction.equals(plabel))
                             correct++;
                         //else

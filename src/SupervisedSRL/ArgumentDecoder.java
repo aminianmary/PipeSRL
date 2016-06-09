@@ -20,20 +20,20 @@ public class ArgumentDecoder {
     int[][] aiConfusionMatrix = new int[2][2];
     HashMap<Integer, int[]> acConfusionMatrix = new HashMap<Integer, int[]>();
 
-    public ArgumentDecoder(AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier, HashSet<String> acLabelSet) {
+    public ArgumentDecoder(AveragedPerceptron aiClassifier/*, AveragedPerceptron acClassifier, HashSet<String> acLabelSet*/) {
 
         aiConfusionMatrix[0][0] = 0;
         aiConfusionMatrix[0][1] = 0;
         aiConfusionMatrix[1][0] = 0;
         aiConfusionMatrix[1][1] = 0;
 
-        for (int k = 0; k < acLabelSet.size() + 1; k++) {
-            int[] acGoldLabels = new int[acLabelSet.size() + 1];
-            this.acConfusionMatrix.put(k, acGoldLabels);
-        }
+      //  for (int k = 0; k < acLabelSet.size() + 1; k++) {
+       //     int[] acGoldLabels = new int[acLabelSet.size() + 1];
+       //     this.acConfusionMatrix.put(k, acGoldLabels);
+       // }
 
         this.aiClassifier = aiClassifier;
-        this.acClassifier = acClassifier;
+      //  this.acClassifier = acClassifier;
     }
 
 
@@ -54,7 +54,7 @@ public class ArgumentDecoder {
 
             // retrieve candidates for the current word
             String[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", 93);
-            List<String> features = Arrays.asList(featVector);
+            String[] features = featVector;
 
             double[] scores = aiClassifier.score(features);
             double score0 = scores[0];
@@ -109,8 +109,7 @@ public class ArgumentDecoder {
 
             // retrieve candidates for the current word
             String[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", 93);
-            List<String> features = Arrays.asList(featVector);
-            double score1 = aiClassifier.score(features)[1];
+            double score1 = aiClassifier.score(featVector)[1];
 
             if (score1 >= 0) {
                 highestScoreAISeq.put(wordIdx, 1);
@@ -145,9 +144,7 @@ public class ArgumentDecoder {
 
                 // retrieve candidates for the current word
                 String[] featVector = FeatureExtractor.extractFeatures(pa.getPredicate(), wordIdx, sentence, "AC", 93);
-                List<String> features = Arrays.asList(featVector);
-
-                double[] labelScores = acClassifier.score(features);
+                double[] labelScores = acClassifier.score(featVector);
 
                 // build an intermediate beam
                 TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();
@@ -219,7 +216,7 @@ public class ArgumentDecoder {
 
     private void compareWithGold(PA pa, HashMap<Integer, Integer> highestScorePrediction) {
 
-        HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
+//todo        HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
 
         ArrayList<Argument> goldArgs = pa.getArguments();
         HashSet<Integer> goldArgsIndices = getArgIndices(goldArgs);
@@ -308,8 +305,8 @@ public class ArgumentDecoder {
 
             double precision = 100. * (double) tp / total_prediction;
             double recall = 100. * (double) tp / total_gold;
-            System.out.println("Precision of label " + predicatedLabel + ": " + precision);
-            System.out.println("Recall of label " + predicatedLabel + ": " + recall);
+         //   System.out.println("Precision of label " + predicatedLabel + ": " + precision);
+        //    System.out.println("Recall of label " + predicatedLabel + ": " + recall);
         }
     }
 

@@ -31,17 +31,17 @@ public class Pipeline {
         String modelDir = args[1];
         int numOfTrainingIterations = 5;
         String aiModelPath = Train.trainAI(trainSentencesInCONLLFormat, numOfTrainingIterations, modelDir);
-        Object[] acModelObj = Train.trainAC(trainSentencesInCONLLFormat, numOfTrainingIterations, modelDir);
+     //   Object[] acModelObj = Train.trainAC(trainSentencesInCONLLFormat, numOfTrainingIterations, modelDir);
 
-        String acModelPath = (String) acModelObj[0];
-        HashSet<String> acLabelSet = (HashSet<String>) acModelObj[1];
+       // String acModelPath = (String) acModelObj[0];
+     //   HashSet<String> acLabelSet = (HashSet<String>) acModelObj[1];
 
         //AI and AC decoding
         int aiMaxBeamSize = Integer.parseInt(args[2]);
         int acMaxBeamSize = Integer.parseInt(args[3]);
 
-        ArgumentDecoder argumentDecoder = new ArgumentDecoder(AveragedPerceptron.loadModel(aiModelPath),
-                AveragedPerceptron.loadModel(acModelPath), acLabelSet);
+        ArgumentDecoder argumentDecoder = new ArgumentDecoder(AveragedPerceptron.loadModel(aiModelPath)/*,
+                AveragedPerceptron.loadModel(acModelPath), acLabelSet*/);
 
         testSize = 0;
         //making prediction over test sentences
