@@ -8,21 +8,28 @@ import Sentence.Argument;
 import Sentence.PA;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.Pair;
+import com.sun.tools.classfile.StackMapTable_attribute;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.ArrayUtils;
 import ml.AveragedPerceptron;
+import sun.awt.AWTAccessor;
 
 /**
  * Created by Maryam Aminian on 5/23/16.
  */
 public class Train {
 
-    public static String trainAI(List<String> trainSentencesInCONLLFormat, int numberOfTrainingIterations, String modelDir)
+    public static String trainAI(List<String> trainSentencesInCONLLFormat,
+                                 List<String> devSentencesInCONLLFormat,
+                                 int numberOfTrainingIterations,
+                                 String modelDir, int numOfFeatures,
+                                 int aiMaxBeamSize)
             throws Exception {
         HashSet<String> labelSet = new HashSet<String>();
         labelSet.add("1");
         labelSet.add("0");
 
-        AveragedPerceptron ap = new AveragedPerceptron(labelSet, 93);
+        AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfFeatures);
 
         //training averaged perceptron
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
@@ -31,7 +38,7 @@ public class Train {
             int dataSize = 0;
             int s = 0;
             for(String sentence: trainSentencesInCONLLFormat) {
-                Object[] instances = obtainTrainInstance(sentence, "AI", 93);
+                Object[] instances = obtainTrainInstance4AI (sentence, numOfFeatures);
                 ArrayList<String[]> featVectors = (ArrayList<String[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
@@ -58,9 +65,31 @@ public class Train {
             System.out.println("AI Recall: " + (double) aiTP / (aiTP + aiFN));
             ap.correct = 0;
             ap.confusionMatrix = new int[2][2];
+
+            //saving the model generated in this iteration for making prediction on dev data
+            System.out.print("\nSaving model...");
+            String modelPath = modelDir + "/AI.model."+iter;
+            ap.saveModel(modelPath);
+            System.out.println("Done!");
+
+            System.out.println("****** DEV RESULTS ******");
+            //making prediction over dev sentences
+            System.out.println("Making prediction on dev data started...");
+            ArgumentDecoder argumentDecoder = new ArgumentDecoder(AveragedPerceptron.loadModel(modelDir + "/AI.model."+iter));
+
+            for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
+
+                if (d%1000==0)
+                    System.out.println(d+"/"+devSentencesInCONLLFormat.size());
+
+                Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d));
+                argumentDecoder.predictAI (sentence, aiMaxBeamSize, numOfFeatures);
+            }
+
+            argumentDecoder.computePrecisionRecall("AI");
         }
 
-        System.out.print("\nSaving model...");
+        System.out.print("\nSaving final model...");
         String modelPath = modelDir + "/AI.model";
         ap.saveModel(modelPath);
         System.out.println("Done!");
@@ -69,14 +98,13 @@ public class Train {
     }
 
 
-    public static Object[] trainAC(List<String> trainSentencesInCONLLFormat, int numberOfTrainingIterations, String modelDir)
+    public static String trainAC(List<String> trainSentencesInCONLLFormat, HashSet<String> labelSet,
+                                   int numberOfTrainingIterations,
+                                   String modelDir, int numOfFeatures)
             throws Exception {
 
         //building train instances
-
-
-        HashSet<String> labelSet = new HashSet<String>();
-        AveragedPerceptron ap = new AveragedPerceptron(labelSet, 93);
+        AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfFeatures);
 
         //training average perceptron
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
@@ -84,15 +112,13 @@ public class Train {
            int dataSize = 0;
             int s = 0;
             for(String sentence: trainSentencesInCONLLFormat) {
-                Object[] instances = obtainTrainInstance(sentence, "AC", 93);
+                Object[] instances = obtainTrainInstance4AC(sentence, numOfFeatures);
                 s++;
                 ArrayList<String[]> featVectors = (ArrayList<String[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
                 for (int d = 0; d < featVectors.size(); d++) {
                     ap.learnInstance(featVectors.get(d), labels.get(d));
                     dataSize++;
-                    labelSet.add(labels.get(d));
-
                 }
                 s++;
                 if (s % 1000 == 0)
@@ -109,11 +135,11 @@ public class Train {
         ap.saveModel(modelPath);
         System.out.println("Done!");
 
-        return new Object[]{modelPath, labelSet};
+        return modelPath;
     }
 
 
-    private static Object[] obtainTrainInstances(List<String> sentencesInCONLLFormat, String state, int numOfFeatures) {
+    private static Object[] obtainTrainInstances (List<String> sentencesInCONLLFormat, String state, int numOfFeatures) {
         ArrayList<String[]> featVectors = new ArrayList<String[]>();
         ArrayList<String> labels = new ArrayList<String>();
 
@@ -163,7 +189,8 @@ public class Train {
     }
 
 
-    private static Object[] obtainTrainInstance(String sentenceInCONLLFormat, String state, int numOfFeatures) {
+    private static Object[] obtainTrainInstance4AI (String sentenceInCONLLFormat, int numOfFeatures) {
+        String state= "AI";
         ArrayList<String[]> featVectors = new ArrayList<String[]>();
         ArrayList<String> labels = new ArrayList<String>();
 
@@ -179,16 +206,39 @@ public class Train {
                 if (wordIdx != currentP.getIndex()) {
                     String[] featVector = FeatureExtractor.extractFeatures(currentP, wordIdx,
                             sentence, state, numOfFeatures);
-                    String label = "";
 
-                    if (state.equals("AI"))
-                        label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
-                    else
-                        label = pa.obtainArgumentType(wordIdx);
-
+                    String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
                     featVectors.add(featVector);
                     labels.add(label);
                 }
+            }
+        }
+
+        return new Object[]{featVectors, labels};
+    }
+
+
+    private static Object[] obtainTrainInstance4AC (String sentenceInCONLLFormat, int numOfFeatures) {
+        String state= "AC";
+        ArrayList<String[]> featVectors = new ArrayList<String[]>();
+        ArrayList<String> labels = new ArrayList<String>();
+
+        Sentence sentence = new Sentence(sentenceInCONLLFormat);
+        ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        String[] sentenceWords = sentence.getWords();
+
+        for (PA pa : pas) {
+            Predicate currentP = pa.getPredicate();
+            ArrayList<Argument> currentArgs = pa.getArguments();
+            //extract features for arguments (not all words)
+            for (Argument arg: currentArgs) {
+                int argIdx= arg.getIndex();
+                String[] featVector = FeatureExtractor.extractFeatures(currentP, argIdx,
+                        sentence, state, numOfFeatures);
+
+                String label = arg.getType();
+                featVectors.add(featVector);
+                labels.add(label);
             }
         }
 
@@ -245,6 +295,27 @@ public class Train {
         }
 
         return new Object[]{sampledFeatVectors, sampledLabels};
+    }
+
+    public static HashSet<String> obtainLabels (List<String> sentences) {
+        System.out.println("Getting set of labels...");
+        HashSet<String> labels = new HashSet<String>();
+
+        int counter = 0;
+        for (String sentence : sentences) {
+            counter++;
+            if (counter % 1000 == 0)
+                System.out.println(counter + "/" + sentences.size());
+
+            String[] tokens = sentence.trim().split("\n");
+            for (String token : tokens) {
+                String[] fields= token.split("\t");
+                for (int k=14 ; k< fields.length; k++)
+                    if (!fields[k].equals("_"))
+                        labels.add(fields[k]);
+            }
+        }
+        return labels;
     }
 
 }

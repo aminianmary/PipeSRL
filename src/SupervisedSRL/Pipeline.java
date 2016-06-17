@@ -6,6 +6,7 @@ import util.IO;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -14,47 +15,47 @@ import java.util.List;
  * Created by monadiab on 5/25/16.
  */
 public class Pipeline {
-    public static int testSize = 0;
+    public static int devSize = 0;
 
     public static void main(String[] args) throws Exception {
 
         //getting train/test sentences
-        String inputFile = args[0];
-        ArrayList<String> sentencesInCONLLFormat = IO.readCoNLLFile(inputFile);
-        int totalNumOfSentences = sentencesInCONLLFormat.size();
-        int trainSize = (int) Math.floor(0.8 * totalNumOfSentences);
+        String trainData = args[0];
+        String devData = args[1];
 
-        List<String> trainSentencesInCONLLFormat = sentencesInCONLLFormat.subList(0, trainSize);
-        List<String> testSentencesInCONLLFormat = sentencesInCONLLFormat.subList(trainSize, totalNumOfSentences);
+        List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
+        List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
+        HashSet<String> argLabels = Train.obtainLabels(trainSentencesInCONLLFormat);
 
         //training AI and AC model
-        String modelDir = args[1];
+        String modelDir = args[2];
+        int aiMaxBeamSize = Integer.parseInt(args[3]);
+        int acMaxBeamSize = Integer.parseInt(args[4]);
         int numOfTrainingIterations = 5;
-        String aiModelPath = Train.trainAI(trainSentencesInCONLLFormat, numOfTrainingIterations, modelDir);
-     //   Object[] acModelObj = Train.trainAC(trainSentencesInCONLLFormat, numOfTrainingIterations, modelDir);
+        int numOfFeatures = 249;
+        String aiModelPath = Train.trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat,
+                numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
 
-       // String acModelPath = (String) acModelObj[0];
-     //   HashSet<String> acLabelSet = (HashSet<String>) acModelObj[1];
+        String acModelPath = Train.trainAC(trainSentencesInCONLLFormat, argLabels,
+                numOfTrainingIterations, modelDir, numOfFeatures);
 
         //AI and AC decoding
-        int aiMaxBeamSize = Integer.parseInt(args[2]);
-        int acMaxBeamSize = Integer.parseInt(args[3]);
+        ArgumentDecoder argumentDecoder = new ArgumentDecoder(AveragedPerceptron.loadModel(aiModelPath),
+                AveragedPerceptron.loadModel(acModelPath), argLabels);
 
-        ArgumentDecoder argumentDecoder = new ArgumentDecoder(AveragedPerceptron.loadModel(aiModelPath)/*,
-                AveragedPerceptron.loadModel(acModelPath), acLabelSet*/);
 
-        testSize = 0;
-        //making prediction over test sentences
+        devSize = 0;
+        //making prediction over tes sentences
         System.out.println("Decoding started...");
         for (int d = 0; d < trainSentencesInCONLLFormat.size(); d++) {
-            if (d%1000==0)
-                System.out.println(d+"/"+trainSentencesInCONLLFormat.size());
+            if (d % 1000 == 0)
+                System.out.println(d + "/" + trainSentencesInCONLLFormat.size());
 
             Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d));
-            argumentDecoder.predict(sentence, aiMaxBeamSize, acMaxBeamSize);
+            argumentDecoder.predict(sentence, aiMaxBeamSize, acMaxBeamSize, numOfFeatures);
         }
-        System.out.println("test size: "+testSize);
+        System.out.println("dev size: " + devSize);
+        argumentDecoder.computePrecisionRecall("AC");
 
-        argumentDecoder.computePrecisionRecall();
     }
 }

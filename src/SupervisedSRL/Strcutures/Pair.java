@@ -53,8 +53,10 @@ public class Pair<T1, T2> implements Comparable, Cloneable, Serializable {
 
     @Override
     public int compareTo(Object o) {
-        if (equals(o))
-            return 0;
-        return hashCode() - o.hashCode();
+        Pair pair = (Pair) o;
+        double diff = (Double) first - (Double) pair.first ;
+        if (diff > 0)
+            return 2;
+        return -2;
     }
 }

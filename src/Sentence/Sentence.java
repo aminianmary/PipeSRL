@@ -1,5 +1,7 @@
 package Sentence;
 
+import apple.laf.JRSUIUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -146,17 +148,25 @@ public class Sentence {
         }
     }
 
-    public ArrayList<String> getDepPath(int source, int target) {
-        ArrayList<String> visited = new ArrayList<String>();
+
+    public TreeSet<String> getDepPath(int source, int target) {
+        TreeSet<String> visited = new TreeSet<String>();
 
         if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(source).size() > 0) {
             for (int child : reverseDepHeads.get(source)) {
                 if (child == target) {
-                    visited.add(depLabels[child]);
+                    if (child > source)
+                        visited.add(depLabels[child]+"_L");
+                    else
+                        visited.add(depLabels[child]+"_R");
                     break;
                 }
                 else {
-                    visited.add(depLabels[child]);
+                    if (child > source)
+                        visited.add(depLabels[child] + "_L");
+                    else
+                        visited.add(depLabels[child] + "_R");
+
                     getDepPath(child, target);
                 }
             }
@@ -166,17 +176,24 @@ public class Sentence {
     }
 
 
-    public ArrayList<String> getPOSPath(int source, int target) {
-        ArrayList<String> visited = new ArrayList<String>();
+    public TreeSet<String> getPOSPath(int source, int target) {
+        TreeSet<String> visited = new TreeSet<String>();
 
         if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(source).size() > 0) {
             for (int child : reverseDepHeads.get(source)) {
                 if (child == target) {
-                    visited.add(posTags[child]);
+                    if (child > source)
+                        visited.add(posTags[child]+"_L");
+                    else
+                        visited.add(posTags[child]+"_R");
                     break;
                 }
                 else {
-                    visited.add(posTags[child]);
+                    if (child > source)
+                        visited.add(posTags[child]+"_L");
+                    else
+                        visited.add(posTags[child]+"_R");
+
                     getDepPath(child, target);
                 }
             }
