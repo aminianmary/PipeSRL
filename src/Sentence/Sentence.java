@@ -99,6 +99,8 @@ public class Sentence {
         posTags = new String[numTokens];
         feats = new String[numTokens];
         lemmas = new String[numTokens];
+
+        // todo change to TreeSet<Integer>[]; if not exists then = null
         reverseDepHeads = new HashMap<Integer, TreeSet<Integer>>();
         predicateArguments = new PAs();
 
@@ -149,7 +151,9 @@ public class Sentence {
     }
 
 
+    // todo be a member for Predicate (L/R show as bit, POS as int; finally with a StringBuilder concat them with space)
     public TreeSet<String> getDepPath(int source, int target) {
+        // todo make it arraylist
         TreeSet<String> visited = new TreeSet<String>();
 
         if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(source).size() > 0) {
@@ -175,8 +179,10 @@ public class Sentence {
         return visited;
     }
 
-
+    // todo be a member for Predicate (L/R show as bit, POS as int; finally with a StringBuilder concat them with space)
     public TreeSet<String> getPOSPath(int source, int target) {
+
+        // todo make it arraylist
         TreeSet<String> visited = new TreeSet<String>();
 
         if (reverseDepHeads.containsKey(source) && reverseDepHeads.get(source).size() > 0) {
@@ -194,7 +200,7 @@ public class Sentence {
                     else
                         visited.add(posTags[child]+"_R");
 
-                    getDepPath(child, target);
+                    getPOSPath(child, target);
                 }
             }
 

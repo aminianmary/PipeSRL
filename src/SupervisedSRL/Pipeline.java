@@ -32,7 +32,7 @@ public class Pipeline {
         int aiMaxBeamSize = Integer.parseInt(args[3]);
         int acMaxBeamSize = Integer.parseInt(args[4]);
         int numOfTrainingIterations = 5;
-        int numOfFeatures = 249;
+        int numOfFeatures = 188;
         String aiModelPath = Train.trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat,
                 numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
 

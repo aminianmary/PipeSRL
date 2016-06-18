@@ -9,11 +9,14 @@ import java.util.TreeSet;
  */
 public class StringUtils {
 
+    // todo
     public static String convertPathArrayIntoString(TreeSet<String> depPathArray)
     {
+        // todo StringBuilder
         String depPath= "";
         for (String dep: depPathArray)
             depPath += dep+"\t";
+        //todo find .replaceAll("\t","_") in all occurrences and remove them!
         return depPath.trim().replaceAll("\t","_");
     }
 
@@ -22,6 +25,7 @@ public class StringUtils {
         String output="";
         for (String element: collection)
             output+= element+"\t";
+        //todo find .replaceAll("\t",del) in all occurrences and remove them!
         return output.trim().replaceAll("\t",del);
     }
 

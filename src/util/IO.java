@@ -15,9 +15,8 @@ public class IO {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(coNLLFile)));
         ArrayList<String> sentences = new ArrayList<String>();
         String line2read = "";
-        String sentence = "";
         int counter=0;
-
+        StringBuilder sentence = new StringBuilder();
         while ((line2read = reader.readLine()) != null) {
             if (line2read.equals("")) //sentence break
             {
@@ -28,10 +27,13 @@ public class IO {
                 else if (counter%10000==0)
                     System.out.print(".");
 
-                sentences.add(sentence);
-                sentence = "";
+                String senText = sentence.toString().trim();
+                if(senText.length()>0)
+                    sentences.add(senText);
+                sentence = new StringBuilder();
             } else {
-                sentence += line2read + "\n";
+                sentence.append(line2read);
+                sentence.append("\n");
             }
         }
         return sentences;

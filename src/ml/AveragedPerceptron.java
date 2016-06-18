@@ -15,11 +15,12 @@ import java.util.zip.GZIPOutputStream;
  * Time: 11:15 AM
  * To report any bugs or problems contact rasooli@cs.columbia.edu
  */
-
-
 public class AveragedPerceptron  implements Serializable {
+    // todo change every String to Object
     private HashMap<String, double[]>[] weights;
     private HashMap<String, double[]>[] avgWeights;
+
+    // todo Keep these as strings
     private String[] labelMap;
     private HashMap<String, Integer> reverseLabelMap;
     private int iteration;
@@ -143,6 +144,7 @@ public class AveragedPerceptron  implements Serializable {
         return score;
     }
 
+    // todo can copy this to the new class "ModelInformation" and just add writeObject(indexMaps)
     public void saveModel(String filePath) throws Exception {
         HashMap<String, double[]>[] newAvgMap = new HashMap[weights.length];
 
