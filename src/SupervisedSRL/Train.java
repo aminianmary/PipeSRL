@@ -97,6 +97,83 @@ public class Train {
         return modelPath;
     }
 
+    //this function is used to test if we combine ai and ac modules
+    public static String train(List<String> trainSentencesInCONLLFormat,
+                                 List<String> devSentencesInCONLLFormat,
+                                 int numberOfTrainingIterations,
+                                 String modelDir, int numOfFeatures,
+                                 HashSet<String> labelSet,
+                                int maxBeamSize)
+            throws Exception {
+
+        AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfFeatures);
+
+        //training averaged perceptron
+        for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
+            System.out.print("iteration:" + iter + "...\n");
+            int negInstances = 0;
+            int dataSize = 0;
+            int s = 0;
+            for(String sentence: trainSentencesInCONLLFormat) {
+                Object[] instances = obtainTrainInstance (sentence, numOfFeatures);
+                ArrayList<String[]> featVectors = (ArrayList<String[]>) instances[0];
+                ArrayList<String> labels = (ArrayList<String>) instances[1];
+
+                for (int d = 0; d < featVectors.size(); d++) {
+                    ap.learnInstance(featVectors.get(d), labels.get(d));
+                    if (labels.get(d).equals("0"))
+                        negInstances++;
+                    dataSize++;
+
+                }
+                s++;
+                if(s%1000==0)
+                    System.out.print(s+"...");
+            }
+            System.out.print(s+"\n");
+
+            double ac = 100. * (double) ap.correct /dataSize;
+            System.out.println("data size:"+ dataSize +" neg_instances: "+negInstances+" accuracy: " + ac);
+            int aiTP =  ap.confusionMatrix[1][1];
+            int aiFP =  ap.confusionMatrix[1][0];
+            int aiFN =  ap.confusionMatrix[0][1];
+
+            System.out.println("AI Precision: " + (double) aiTP / (aiTP + aiFP));
+            System.out.println("AI Recall: " + (double) aiTP / (aiTP + aiFN));
+            ap.correct = 0;
+            ap.confusionMatrix = new int[2][2];
+
+            //saving the model generated in this iteration for making prediction on dev data
+            System.out.print("\nSaving model...");
+            String modelPath = modelDir + "/AI.model."+iter;
+            ap.saveModel(modelPath);
+            System.out.println("Done!");
+
+            System.out.println("****** DEV RESULTS ******");
+            //making prediction over dev sentences
+            System.out.println("Making prediction on dev data started...");
+            ArgumentDecoder argumentDecoder = new ArgumentDecoder(AveragedPerceptron.loadModel(modelDir + "/AI.model."+iter));
+
+            for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
+
+                if (d%1000==0)
+                    System.out.println(d+"/"+devSentencesInCONLLFormat.size());
+
+                Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d));
+                argumentDecoder.predictAI (sentence, maxBeamSize, numOfFeatures);
+            }
+
+            argumentDecoder.computePrecisionRecall("AI");
+        }
+
+        System.out.print("\nSaving final model...");
+        String modelPath = modelDir + "/combined.model";
+        ap.saveModel(modelPath);
+        System.out.println("Done!");
+
+        return modelPath;
+    }
+
 
     public static String trainAC(List<String> trainSentencesInCONLLFormat, HashSet<String> labelSet,
                                    int numberOfTrainingIterations,
@@ -218,6 +295,36 @@ public class Train {
     }
 
 
+    //function is used in tesintg ai-ac modules combination
+    private static Object[] obtainTrainInstance (String sentenceInCONLLFormat, int numOfFeatures) {
+        String state= "AI";
+        ArrayList<String[]> featVectors = new ArrayList<String[]>();
+        ArrayList<String> labels = new ArrayList<String>();
+
+        Sentence sentence = new Sentence(sentenceInCONLLFormat);
+        ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        String[] sentenceWords = sentence.getWords();
+
+        for (PA pa : pas) {
+            Predicate currentP = pa.getPredicate();
+            ArrayList<Argument> currentArgs = pa.getArguments();
+
+            for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
+                if (wordIdx != currentP.getIndex()) {
+                    String[] featVector = FeatureExtractor.extractFeatures(currentP, wordIdx,
+                            sentence, state, numOfFeatures);
+
+                    String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : isArgument(wordIdx, currentArgs);
+                    featVectors.add(featVector);
+                    labels.add(label);
+                }
+            }
+        }
+
+        return new Object[]{featVectors, labels};
+    }
+
+
     private static Object[] obtainTrainInstance4AC (String sentenceInCONLLFormat, int numOfFeatures) {
         String state= "AC";
         ArrayList<String[]> featVectors = new ArrayList<String[]>();
@@ -225,7 +332,6 @@ public class Train {
 
         Sentence sentence = new Sentence(sentenceInCONLLFormat);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
-        String[] sentenceWords = sentence.getWords();
 
         for (PA pa : pas) {
             Predicate currentP = pa.getPredicate();
