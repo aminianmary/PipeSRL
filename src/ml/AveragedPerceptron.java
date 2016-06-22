@@ -17,8 +17,8 @@ import java.util.zip.GZIPOutputStream;
  */
 public class AveragedPerceptron  implements Serializable {
     // todo change every String to Object
-    private HashMap<String, double[]>[] weights;
-    private HashMap<String, double[]>[] avgWeights;
+    private HashMap<Object, double[]>[] weights;
+    private HashMap<Object, double[]>[] avgWeights;
 
     // todo Keep these as strings
     private String[] labelMap;
@@ -34,8 +34,8 @@ public class AveragedPerceptron  implements Serializable {
         avgWeights = new HashMap[featureTemplateSize];
 
         for(int i=0;i<featureTemplateSize;i++){
-            weights[i] = new HashMap<String, double[]>();
-            avgWeights[i] = new HashMap<String, double[]>();
+            weights[i] = new HashMap<Object, double[]>();
+            avgWeights[i] = new HashMap<Object, double[]>();
         }
         labelMap = new String[possibleLabels.size()];
         reverseLabelMap = new HashMap<String, Integer>();
@@ -49,19 +49,25 @@ public class AveragedPerceptron  implements Serializable {
     }
 
 
-    private AveragedPerceptron(HashMap<String, double[]>[] avgWeights, String[] labelMap,
+    public AveragedPerceptron(HashMap<Object, double[]>[] avgWeights, String[] labelMap,
                                HashMap<String, Integer> reverseLabelMap) {
         this.avgWeights = avgWeights;
         this.labelMap = labelMap;
         this.reverseLabelMap = reverseLabelMap;
     }
 
+    public HashMap<Object, double[]>[] getWeights() {return weights;}
+
+    public HashMap<Object, double[]>[] getAvgWeights() {return avgWeights;}
+
+    public int getIteration() {return iteration;}
+
     public String[] getLabelMap() {return labelMap;}
 
     public HashMap<String, Integer> getReverseLabelMap() {return reverseLabelMap;}
 
 
-    public void learnInstance(String[] features, String label) {
+    public void learnInstance(Object[] features, String label) {
         int argmax = argmax(features, false);
         int gold = reverseLabelMap.get(label);
         if (argmax != gold) {
@@ -76,14 +82,14 @@ public class AveragedPerceptron  implements Serializable {
         iteration++;
     }
 
-    private void updateWeight(int argmax, int gold, String[] features) {
+    private void updateWeight(int argmax, int gold, Object[] features) {
         for (int i=0;i<features.length;i++) {
             updateWeight(argmax,i, features[i], -1);
             updateWeight(gold,i, features[i], 1);
         }
     }
 
-    private void updateWeight(int label, int featIndex, String feature, double change) {
+    private void updateWeight(int label, int featIndex, Object feature, double change) {
         if (!weights[featIndex].containsKey(feature)) {
             double[] subWeights = new double[labelMap.length];
             subWeights[label] = change;
@@ -102,12 +108,12 @@ public class AveragedPerceptron  implements Serializable {
     }
 
 
-    public String predict(String[] features) {
+    public String predict(Object[] features) {
         return labelMap[argmax(features, true)];
     }
 
-    private int argmax(String[] features, boolean decode) {
-        HashMap<String, double[]>[] map = decode ? avgWeights : weights;
+    private int argmax(Object[] features, boolean decode) {
+        HashMap<Object, double[]>[] map = decode ? avgWeights : weights;
         double max = Double.NEGATIVE_INFINITY;
         int argmax = 0;
 
@@ -131,7 +137,7 @@ public class AveragedPerceptron  implements Serializable {
         return argmax;
     }
 
-    public double[] score(String[] features) {
+    public double[] score(Object[] features) {
         double[] score = new double[labelMap.length];
 
         for (int f=0;f<features.length;f++) {
@@ -146,11 +152,11 @@ public class AveragedPerceptron  implements Serializable {
 
     // todo can copy this to the new class "ModelInformation" and just add writeObject(indexMaps)
     public void saveModel(String filePath) throws Exception {
-        HashMap<String, double[]>[] newAvgMap = new HashMap[weights.length];
+        HashMap<Object, double[]>[] newAvgMap = new HashMap[weights.length];
 
         for(int f=0;f<weights.length;f++) {
-            newAvgMap[f] = new HashMap<String, double[]>();
-            for (String feat : weights[f].keySet()) {
+            newAvgMap[f] = new HashMap<Object, double[]>();
+            for (Object feat : weights[f].keySet()) {
                 double[] w = weights[f].get(feat);
                 double[] aw = avgWeights[f].get(feat);
                 double[] naw = new double[labelMap.length];
@@ -170,12 +176,13 @@ public class AveragedPerceptron  implements Serializable {
         writer.close();
     }
 
+
     public static AveragedPerceptron loadModel(String filePath) throws Exception {
         FileInputStream fis = new FileInputStream(filePath);
         GZIPInputStream gz = new GZIPInputStream(fis);
         ObjectInput reader = new ObjectInputStream(gz);
-        HashMap<String, double[]>[] newAvgWeight =
-                (HashMap<String, double[]>[]) reader.readObject();
+        HashMap<Object, double[]>[] newAvgWeight =
+                (HashMap<Object, double[]>[]) reader.readObject();
         String[] labelMap = (String[]) reader.readObject();
         HashMap<String, Integer> reverseLabelMap = (HashMap<String, Integer>) reader.readObject();
 

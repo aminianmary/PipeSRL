@@ -1,6 +1,8 @@
 import Sentence.Argument;
 import Sentence.PA;
 import Sentence.Sentence;
+import SupervisedSRL.Strcutures.IndexMap;
+
 import java.io.*;
 import java.util.*;
 
@@ -17,6 +19,8 @@ public class extract_argument_combination_classes {
         String propBankFile= args[0];
         String output_dir_path= args[1];
         boolean justCoreRoles= Boolean.parseBoolean(args[2]);
+
+        final IndexMap indexMap= new IndexMap(propBankFile);
 
         //output files
         String predArgLabelFile= output_dir_path+ "predArgLabel.out";
@@ -52,10 +56,11 @@ public class extract_argument_combination_classes {
                     System.out.println(sentenceCounter);
 
 
-                Sentence sen = new Sentence(sentence, sentence);
+                Sentence sen = new Sentence(sentence, indexMap);
 
                 //extracts data for treeLSTM
-                ArrayList<String> treeLSTM_format_sentence =StanfordTreeLSTM.generateData4StanfordTreeLSTM(sen,justCoreRoles);
+                ArrayList<String> treeLSTM_format_sentence =StanfordTreeLSTM.generateData4StanfordTreeLSTM(sen,
+                        indexMap,justCoreRoles);
                 StanfordTreeLSTM.updateVocab(sen);
 
 
@@ -64,8 +69,8 @@ public class extract_argument_combination_classes {
                 treeLSTM_dep_parents_writer.write(treeLSTM_format_sentence.get(1)+"\n");
                 treeLSTM_dep_rels_writer.write(treeLSTM_format_sentence.get(2)+"\n");
                 treeLSTM_dep_labels_writer.write(treeLSTM_format_sentence.get(3)+"\n");
-                StanfordTreeLSTM.writeVocab(treeLSTM_vocab, false);
-                StanfordTreeLSTM.writeVocab(treeLSTM_vocab_cased, true);
+                StanfordTreeLSTM.writeVocab(treeLSTM_vocab /*, false*/);
+                StanfordTreeLSTM.writeVocab(treeLSTM_vocab_cased /*, true*/);
 
 
                 //keep the sentence for tracking later
@@ -73,7 +78,7 @@ public class extract_argument_combination_classes {
 
 
                 //ArrayList<String> labels =extractPredicateArgumentLabel(sen, true, true);
-                ArrayList<HashSet<String>> labels= extractPredicateArgumentLabel_unorderedFormat(sen, false, true);
+                ArrayList<HashSet<String>> labels= extractPredicateArgumentLabel_unorderedFormat(sen, indexMap, false, true);
                 //updatePredArgLabelFreqDic(labels, sentenceCounter);
                 updatePredArgLabelFreqDic_unorderedFormat(labels, sentenceCounter);
 
@@ -106,12 +111,14 @@ public class extract_argument_combination_classes {
     }
 
     public static ArrayList<String> extractPredicateArgumentLabel (Sentence sen,
+                                                                   IndexMap indexMap,
                                                                    boolean justMainPredicate,
                                                                    boolean justCoreRoles) {
 
+        String[] int2stringMap = indexMap.getInt2stringMap();
         ArrayList<String> argumentLabels = new ArrayList<String>();
         ArrayList<PA> pas = sen.getPredicateArguments().getPredicateArgumentsAsArray();
-        String[] posTags = sen.getPosTags();
+        int[] posTags = sen.getPosTags();
 
         if (justMainPredicate == true) {
             boolean seenTheMainPredicate= false;
@@ -129,7 +136,7 @@ public class extract_argument_combination_classes {
 
                     seenTheMainPredicate= true;
 
-                    if (posTags[predicateIndex].startsWith("VB")) {
+                    if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
 
                         ArrayList<Argument> arguments= pa.getArguments();
                         boolean isAnyArgumentSeenAfterPredicate =isAnyArgumentSeenAfterPredicate(arguments);
@@ -196,7 +203,7 @@ public class extract_argument_combination_classes {
                 int predicateIndex = pa.getPredicateIndex();
 
                 //make sure predicate is a verb (conll08 data contains nominal predicates from NomaBank too)
-                if (posTags[predicateIndex].startsWith("VB")) {
+                if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
 
                     ArrayList<Argument> arguments= pa.getArguments();
                     boolean isAnyArgumentSeenAfterPredicate =isAnyArgumentSeenAfterPredicate(arguments);
@@ -259,12 +266,14 @@ public class extract_argument_combination_classes {
     }
 
     public static ArrayList<HashSet<String>> extractPredicateArgumentLabel_unorderedFormat (Sentence sen,
+                                                                                            IndexMap indexMap,
                                                                                             boolean justMainPredicate,
                                                                                             boolean justCoreRoles) {
 
+        String[] int2stringMap= indexMap.getInt2stringMap();
         ArrayList<HashSet<String>> argumentLabels = new ArrayList<HashSet<String>>();
         ArrayList<PA> pas = sen.getPredicateArguments().getPredicateArgumentsAsArray();
-        String[] posTags = sen.getPosTags();
+        int[] posTags = sen.getPosTags();
 
         if (justMainPredicate == true) {
             boolean seenTheMainPredicate= false;
@@ -281,7 +290,7 @@ public class extract_argument_combination_classes {
 
                     seenTheMainPredicate= true;
 
-                    if (posTags[predicateIndex].startsWith("VB")) {
+                    if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
 
                         ArrayList<Argument> arguments= pa.getArguments();
 
@@ -311,7 +320,7 @@ public class extract_argument_combination_classes {
                 int predicateIndex = pa.getPredicateIndex();
 
                 //make sure predicate is a verb (conll08 data contains nominal predicates from NomaBank too)
-                if (posTags[predicateIndex].startsWith("VB")) {
+                if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
 
                     ArrayList<Argument> arguments= pa.getArguments();
                     for (Argument ar : arguments) {

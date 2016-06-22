@@ -1,6 +1,7 @@
 import Sentence.Argument;
 import Sentence.PA;
 import Sentence.Sentence;
+import SupervisedSRL.Strcutures.IndexMap;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -17,20 +18,22 @@ import java.util.HashSet;
  */
 public class StanfordTreeLSTM {
 
-    static HashSet<String> vocab= new HashSet<String>();
+    static HashSet<Integer> vocab= new HashSet<Integer>();
 
-    public static ArrayList<String> generateData4StanfordTreeLSTM (Sentence sen, boolean justCoreRoles) {
+    public static ArrayList<String> generateData4StanfordTreeLSTM (Sentence sen, IndexMap indexMap, boolean justCoreRoles) {
+
+        String[] int2stringMap = indexMap.getInt2stringMap();
 
         ArrayList<PA> pas_list = sen.getPredicateArguments().getPredicateArgumentsAsArray();
-        String[] posTags = sen.getPosTags();
-        String[] words= sen.getWords();
-        String[] depRels = sen.getDepLabels();
+        int[] posTags = sen.getPosTags();
+        int[] words= sen.getWords();
+        int[] depRels = sen.getDepLabels();
         String[] depParents= sen.getDepHeads_as_str();
 
-        String sentences2write="";
-        String depRels2write="";
-        String depParents2write="";
-        String depLabels2write="";
+        StringBuilder sentences2write= new StringBuilder();
+        StringBuilder depRels2write= new StringBuilder();
+        StringBuilder depParents2write= new StringBuilder();
+        StringBuilder depLabels2write= new StringBuilder();
 
         if (pas_list.size()>0)
         {
@@ -38,12 +41,14 @@ public class StanfordTreeLSTM {
             for (PA pa : pas_list) {
 
                 int predicateIndex = pa.getPredicateIndex();
+                for (int k=1; k< words.length; k++)
+                    sentences2write.append(words[k]+" ");
+                for (int k=1; k< depRels.length; k++)
+                    depRels2write.append(depRels[k]+" ");
+                for (int k=1; k< depParents.length; k++)
+                    depParents2write.append(depParents[k]+" ");
 
-                sentences2write+= String.join(" ", Arrays.copyOfRange(words, 1, words.length)).trim()+"\n";
-                depRels2write+= String.join(" ",Arrays.copyOfRange(depRels, 1, depRels.length)).trim()+"\n";
-                depParents2write+= String.join(" ", Arrays.copyOfRange(depParents, 1, depParents.length)).trim()+"\n";
-
-                if (posTags[predicateIndex].startsWith("VB")) {
+                if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
 
                     String srl_label="";
                     String test_label="";
@@ -74,13 +79,19 @@ public class StanfordTreeLSTM {
                                 srl_label+= "0 "; //neutral
                         }
                     }
-                    depLabels2write+= String.join(" ",Arrays.copyOfRange(srl_label.split(" "),1,words.length)).trim()+"\n";
+
+                    for (int k=1; k<words.length; k++)
+                        depLabels2write.append(srl_label.split(" ")[k]+" ");
+
                 }else
                 {
                     String srl_label="";
                     for (int wordIndex=0; wordIndex< words.length; wordIndex++)
                         srl_label+= "0 ";
-                    depLabels2write+= String.join(" ",Arrays.copyOfRange(srl_label.split(" "),1,words.length)).trim()+"\n";
+
+                    for (int k=1; k<words.length; k++)
+                        depLabels2write.append(srl_label.split(" ")[k]+" ");
+
                 }
             }
         }else
@@ -90,18 +101,23 @@ public class StanfordTreeLSTM {
             for (int wordIndex=0; wordIndex< words.length; wordIndex++)
                 srl_label+= "0 ";
 
-            depLabels2write+= String.join(" ",Arrays.copyOfRange(srl_label.split(" "),1,words.length)).trim()+"\n";
-            sentences2write+= String.join(" ", Arrays.copyOfRange(words, 1, words.length)).trim()+"\n";
-            depRels2write+= String.join(" ",Arrays.copyOfRange(depRels, 1, depRels.length)).trim()+"\n";
-            depParents2write+= String.join(" ", Arrays.copyOfRange(depParents, 1, depParents.length)).trim()+"\n";
+            for (int k=1; k< words.length; k++)
+                sentences2write.append(words[k]+" ");
+            for (int k=1; k< depRels.length; k++)
+                depRels2write.append(depRels[k]+" ");
+            for (int k=1; k< depParents.length; k++)
+                depParents2write.append(depParents[k]+" ");
+            for (int k=1; k<words.length; k++)
+                depLabels2write.append(srl_label.split(" ")[k]+" ");
+
         }
 
 
         ArrayList<String> writables= new ArrayList<String>();
-        writables.add(sentences2write.trim());
-        writables.add(depParents2write.trim());
-        writables.add(depRels2write.trim());
-        writables.add(depLabels2write.trim());
+        writables.add(sentences2write.toString().trim());
+        writables.add(depParents2write.toString().trim());
+        writables.add(depRels2write.toString().trim());
+        writables.add(depLabels2write.toString().trim());
 
         return writables;
     }
@@ -142,25 +158,25 @@ public class StanfordTreeLSTM {
     }
 
     public static void updateVocab (Sentence sen){
-        String[] words= Arrays.copyOfRange(sen.getWords(), 1,sen.getWords().length);
-        for (String word:words)
+        int[] words= Arrays.copyOfRange(sen.getWords(), 1,sen.getWords().length);
+        for (int word:words)
         {
             if (!vocab.contains(word))
                 vocab.add(word);
         }
     }
 
-    public static void writeVocab(String filePath, boolean cased) throws IOException{
+    public static void writeVocab(String filePath /*, boolean cased*/) throws IOException{
         BufferedWriter treeLSTM_vocab_writer= new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
-        for (String word: vocab)
+        for (int word: vocab)
         {
-            if (cased)
+            /*if (cased)*/
                 treeLSTM_vocab_writer.write(word+"\n");
-            else
+            /*else
             {
                 String word_cased= word.toLowerCase();
                 treeLSTM_vocab_writer.write(word_cased + "\n");
-            }
+            }*/
         }
 
         treeLSTM_vocab_writer.flush();

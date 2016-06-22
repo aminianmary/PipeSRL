@@ -10,23 +10,27 @@ import java.util.TreeSet;
 public class StringUtils {
 
     // todo
-    public static String convertPathArrayIntoString(TreeSet<String> depPathArray)
+    public static String convertPathArrayIntoString(ArrayList<Integer> depPathArray)
     {
         // todo StringBuilder
-        String depPath= "";
-        for (String dep: depPathArray)
-            depPath += dep+"\t";
+        StringBuilder depPath= new StringBuilder();
+        for (int dep: depPathArray) {
+            depPath.append(dep);
+            depPath.append("\t");
+        }
         //todo find .replaceAll("\t","_") in all occurrences and remove them!
-        return depPath.trim().replaceAll("\t","_");
+        return depPath.toString().trim();
     }
 
     public static String join(Collection<String> collection, String del)
     {
-        String output="";
-        for (String element: collection)
-            output+= element+"\t";
+        StringBuilder output= new StringBuilder();
+        for (String element: collection) {
+            output.append(element);
+            output.append("\t");
+        }
         //todo find .replaceAll("\t",del) in all occurrences and remove them!
-        return output.trim().replaceAll("\t",del);
+        return output.toString().trim();
     }
 
 }

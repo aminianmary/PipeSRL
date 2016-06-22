@@ -1,14 +1,12 @@
 package SupervisedSRL;
 
+import SupervisedSRL.Strcutures.IndexMap;
 import ml.AveragedPerceptron;
 import Sentence.Sentence;
 import util.IO;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -17,8 +15,8 @@ import java.util.List;
 public class Pipeline {
     public static int devSize = 0;
 
-    /*
-    public static void main(String[] args) throws Exception {
+
+     public static void main(String[] args) throws Exception {
 
         //getting train/test sentences
         String trainData = args[0];
@@ -28,16 +26,18 @@ public class Pipeline {
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = Train.obtainLabels(trainSentencesInCONLLFormat);
 
+        final IndexMap indexMap = new IndexMap(trainData);
+
         //training AI and AC model
         String modelDir = args[2];
         int aiMaxBeamSize = Integer.parseInt(args[3]);
         int acMaxBeamSize = Integer.parseInt(args[4]);
         int numOfTrainingIterations = 5;
         int numOfFeatures = 188;
-        String aiModelPath = Train.trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat,
+        String aiModelPath = Train.trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
                 numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
 
-        String acModelPath = Train.trainAC(trainSentencesInCONLLFormat, argLabels,
+        String acModelPath = Train.trainAC(trainSentencesInCONLLFormat, argLabels, indexMap,
                 numOfTrainingIterations, modelDir, numOfFeatures);
 
         //AI and AC decoding
@@ -52,15 +52,15 @@ public class Pipeline {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + trainSentencesInCONLLFormat.size());
 
-            Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d));
-            argumentDecoder.predict(sentence, aiMaxBeamSize, acMaxBeamSize, numOfFeatures);
+            Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d), indexMap);
+            argumentDecoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfFeatures);
         }
         System.out.println("dev size: " + devSize);
         argumentDecoder.computePrecisionRecall("AC");
 
     }
-    */
 
+     /*
     //this main function is used for ai-ac modules combined
     public static void main(String[] args) throws Exception {
 
@@ -70,6 +70,8 @@ public class Pipeline {
 
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
+
+        final IndexMap indexMap = new IndexMap(trainData);
 
         HashSet<String> argLabels = Train.obtainLabels(trainSentencesInCONLLFormat);
         argLabels.add("0");
@@ -94,11 +96,12 @@ public class Pipeline {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + trainSentencesInCONLLFormat.size());
 
-            Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d));
+            Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d), indexMap);
             argumentDecoder.predict_combined(sentence, acMaxBeamSize, numOfFeatures);
         }
         System.out.println("dev size: " + devSize);
         argumentDecoder.computePrecisionRecall("AC");
 
-    }
+    }*/
+
 }

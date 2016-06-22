@@ -105,4 +105,8 @@ public class IndexMap implements Serializable {
         return new Object[]{posTags, depRels, words};
     }
 
+    public int getNullIdx() {return nullIdx;}
+
+    public int getUnknownIdx() {return unknownIdx;}
+
 }

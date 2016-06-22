@@ -1,5 +1,6 @@
 package Projection;
 import Sentence.*;
+import SupervisedSRL.Strcutures.IndexMap;
 import util.IO;
 
 import java.io.*;
@@ -29,7 +30,7 @@ public class Project {
 
     static int sentences_wo_enough_alignment=0;
 
-    static HashMap<String, HashMap<String, Integer>> depRel_dist_in_projection= new HashMap<String, HashMap<String, Integer>>();
+    static HashMap<Integer, HashMap<String, Integer>> depRel_dist_in_projection= new HashMap<Integer, HashMap<String, Integer>>();
 
     public static void main(String args[]) throws IOException
     {
@@ -53,6 +54,8 @@ public class Project {
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDic= alignment.getSourceTargetAlignmentDic();
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDicReverse= alignment.getTargetSourceAlignmentDic();
 
+        final IndexMap indexMap= new IndexMap(sourceFile);
+
 
         ArrayList<String> sourceSents= IO.readCoNLLFile(sourceFile);
         ArrayList<String> targetSents= IO.readCoNLLFile(targetFile);
@@ -70,13 +73,13 @@ public class Project {
                 String sourceSent_GD = sourceSents_GD.get(idx);
                 String targetSent_GD = targetSents_GD.get(idx);
 
-                Sentence sourceSentObj = new Sentence(sourceSent, sourceSent_GD);
-                Sentence targetSentObj = new Sentence(targetSent, targetSent_GD);
+                Sentence sourceSentObj = new Sentence(sourceSent, indexMap);
+                Sentence targetSentObj = new Sentence(targetSent, indexMap);
 
                 //do projection for sentences with alignment for > 0.9 of source words
                 //if (alignmentDic.get(idx).keySet().size() >= (0.9* sourceSentObj.getWords().length)) {
                 PAs targetProjectedPAs = projectSRLTagsFromSource2Target(sourceSentObj, targetSentObj,
-                        alignmentDic.get(idx), projectedFileWriter);
+                        alignmentDic.get(idx), indexMap, projectedFileWriter);
 
                 compareTags(targetProjectedPAs, sourceSentObj, targetSentObj, alignmentDicReverse.get(idx));
 
@@ -136,9 +139,11 @@ public class Project {
 
     public static PAs projectSRLTagsFromSource2Target (Sentence sourceSent, Sentence targetSent,
                                                         HashMap<Integer, Integer> sentenceAlignmentDic,
-                                                        BufferedWriter projectedFileWriter) throws IOException
+                                                       IndexMap indexMap,
+                                                       BufferedWriter projectedFileWriter) throws IOException
     {
 
+        String[] int2stringMap= indexMap.getInt2stringMap();
         ArrayList<PA> sourcePredicateArguments= sourceSent.getPredicateArguments().getPredicateArgumentsAsArray();
         ArrayList<PA> projectedPredicateArguments= new ArrayList<PA>();
 
@@ -146,27 +151,27 @@ public class Project {
         TreeMap<Integer, TreeMap<Integer, String>> projectedArgIndices= new TreeMap<Integer, TreeMap<Integer, String>>();
 
 
-        String[] sourceWords= sourceSent.getWords();
-        String[] sourcePOSTags= sourceSent.getPosTags();
+        int[] sourceWords= sourceSent.getWords();
+        int[] sourcePOSTags= sourceSent.getPosTags();
 
-        String[] targetWords= targetSent.getWords();
-        String[] targetPOSTags= targetSent.getPosTags();
+        int[] targetWords= targetSent.getWords();
+        int[] targetPOSTags= targetSent.getPosTags();
 
         for (PA pa: sourcePredicateArguments)
         {
             int pIdx= pa.getPredicateIndex();
-            String pPOS= sourcePOSTags[pIdx];
+            int pPOS= sourcePOSTags[pIdx];
             //just project verbal predicates to target verbs (as it's the case in German supervised data)
 
-            if (pPOS.startsWith("V")) {
+            if (int2stringMap[pPOS].startsWith("V")) {
                 int pIndex = pa.getPredicateIndex();
                 if (sentenceAlignmentDic.containsKey(pIndex)) {
 
                     int targetPIndex = sentenceAlignmentDic.get(pIndex);
-                    String targetPPOS = targetSent.getPosTags()[targetPIndex];
-                    String targetPWord= targetSent.getWords()[targetPIndex];
+                    int targetPPOS = targetSent.getPosTags()[targetPIndex];
+                    int targetPWord= targetSent.getWords()[targetPIndex];
 
-                    if (targetPPOS.contains("V"))
+                    if (int2stringMap[targetPPOS].contains("V"))
                     {
                         Predicate projectedPred = new Predicate(targetPIndex, pa.getPredicateLabel());
                         projectedPIndices.put(targetPIndex, pa.getPredicateLabel());
@@ -181,7 +186,7 @@ public class Project {
                             if (sentenceAlignmentDic.containsKey(aIndex)) {
 
                                 int targetArgIndex = sentenceAlignmentDic.get(aIndex);
-                                String targetArgPOS= targetPOSTags[targetArgIndex];
+                                int targetArgPOS= targetPOSTags[targetArgIndex];
 
                                 Argument projectedArg = new Argument(targetArgIndex, aType);
 
@@ -257,8 +262,8 @@ public class Project {
         int[] sourceDepHeads= sourceSent.getDepHeads();
         int[] targetDepHeads= targetSent.getDepHeads();
 
-        String[] sourceDepLabels = sourceSent.getDepLabels();
-        String[] targetDepLabels= targetSent.getDepLabels();
+        int[] sourceDepLabels = sourceSent.getDepLabels();
+        int[] targetDepLabels= targetSent.getDepLabels();
 
         //getting tp rate for predicate (ignoring the true label/just considering index)
         for (PA projectPA: projectedTags.getPredicateArgumentsAsArray())
@@ -299,15 +304,15 @@ public class Project {
                         int source_pIndex= targetSourceSentenceAlignmentDic.get(target_pIndex);
                         int source_aIndex= targetSourceSentenceAlignmentDic.get(target_aIndex);
 
-                        String targetSynFunc="";
-                        String sourceSynFunc="";
+                        int targetSynFunc= 0;
+                        int sourceSynFunc= 0;
 
                         if (targetDepHeads[target_aIndex]== target_pIndex)
                             targetSynFunc= targetDepLabels[target_aIndex];
                         if (sourceDepHeads[source_aIndex]== source_pIndex)
                             sourceSynFunc= sourceDepLabels[source_aIndex];
 
-                        if (targetSynFunc.equals(sourceSynFunc)) {
+                        if (targetSynFunc == sourceSynFunc) {
                             similarSynFunc_tp++;
 
                             if (!depRel_dist_in_projection.containsKey(targetSynFunc)) {
@@ -338,15 +343,15 @@ public class Project {
                         int source_pIndex= targetSourceSentenceAlignmentDic.get(target_pIndex);
                         int source_aIndex= targetSourceSentenceAlignmentDic.get(target_aIndex);
 
-                        String targetSynFunc="";
-                        String sourceSynFunc="";
+                        int targetSynFunc=0;
+                        int sourceSynFunc=0;
 
                         if (targetDepHeads[target_aIndex]== target_pIndex)
                             targetSynFunc= targetDepLabels[target_aIndex];
                         if (sourceDepHeads[source_aIndex]== source_pIndex)
                             sourceSynFunc= sourceDepLabels[source_aIndex];
 
-                        if (targetSynFunc.equals(sourceSynFunc)) {
+                        if (targetSynFunc == sourceSynFunc) {
                             similarSynFunc_fp++;
 
                             if (!depRel_dist_in_projection.containsKey(targetSynFunc)) {

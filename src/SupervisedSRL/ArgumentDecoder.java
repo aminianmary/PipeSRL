@@ -3,6 +3,8 @@ package SupervisedSRL;
 import Sentence.*;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.BeamElement;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Pair;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.file.FSInfo;
@@ -50,6 +52,28 @@ public class ArgumentDecoder {
     }
 
 
+    public ArgumentDecoder(ModelInfo modelInfo, String state)
+    {
+        if (state.equals("AI"))
+        {
+            aiConfusionMatrix[0][0] = 0;
+            aiConfusionMatrix[0][1] = 0;
+            aiConfusionMatrix[1][0] = 0;
+            aiConfusionMatrix[1][1] = 0;
+            this.aiClassifier = modelInfo.getClassifier();
+        }else
+        {
+            this.acClassifier = modelInfo.getClassifier();
+            Set<String> acLabelSet=  acClassifier.getReverseLabelMap().keySet();
+
+            for (int k = 0; k < acLabelSet.size()+1; k++) {
+                int[] acGoldLabels = new int[acLabelSet.size()+1];
+                this.acConfusionMatrix.put(k, acGoldLabels);
+            }
+        }
+    }
+
+
     public ArgumentDecoder(AveragedPerceptron classifier, HashSet<String> acLabelSet, String state) {
 
         if (state.equals("combined"))
@@ -64,13 +88,13 @@ public class ArgumentDecoder {
 
 
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
-            (Sentence sentence, PA pa, int maxBeamSize, int numOfFeatures)
+            (Sentence sentence, PA pa, IndexMap indexMap, int maxBeamSize, int numOfFeatures)
 
     {
         ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
         currentBeam.add(new Pair<Double, ArrayList<Integer>>(0., new ArrayList<Integer>()));
 
-        String[] sentenceWords = sentence.getWords();
+        int[] sentenceWords = sentence.getWords();
         Predicate currentPr = pa.getPredicate();
 
         // Gradual building of the beam
@@ -79,7 +103,7 @@ public class ArgumentDecoder {
                 continue;
 
             // retrieve candidates for the current word
-            String[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", numOfFeatures);
+            Object[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", numOfFeatures, indexMap);
 
             double[] scores = aiClassifier.score(featVector);
             double score0 = scores[0];
@@ -120,9 +144,9 @@ public class ArgumentDecoder {
 
 
     //getting highest score AI candidate without Beam Search
-    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, PA pa, int numOfFeatures)
+    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, PA pa, IndexMap indexMap, int numOfFeatures)
     {
-        String[] sentenceWords = sentence.getWords();
+        int[] sentenceWords = sentence.getWords();
         Predicate currentPr = pa.getPredicate();
         HashMap<Integer, Integer> highestScoreAISeq = new HashMap<Integer, Integer>();
 
@@ -133,7 +157,7 @@ public class ArgumentDecoder {
             Pipeline.devSize++;
 
             // retrieve candidates for the current word
-            String[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", numOfFeatures);
+            Object[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", numOfFeatures, indexMap);
             double score1 = aiClassifier.score(featVector)[1];
 
             if (score1 >= 0) {
@@ -146,7 +170,7 @@ public class ArgumentDecoder {
 
 
     private ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getBestACCandidates
-            (Sentence sentence, PA pa,
+            (Sentence sentence, PA pa, IndexMap indexMap,
              ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates,
              int maxBeamSize, int numOfFeatures)
 
@@ -167,7 +191,7 @@ public class ArgumentDecoder {
             for (int wordIdx : aiCandidate.second) {
 
                 // retrieve candidates for the current word
-                String[] featVector = FeatureExtractor.extractFeatures(pa.getPredicate(), wordIdx, sentence, "AC", numOfFeatures);
+                Object[] featVector = FeatureExtractor.extractFeatures(pa.getPredicate(), wordIdx, sentence, "AC", numOfFeatures, indexMap);
                 double[] labelScores = acClassifier.score(featVector);
 
                 // build an intermediate beam
@@ -206,7 +230,7 @@ public class ArgumentDecoder {
 
     //this function is used to test ai-ac combination
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestCandidates
-            (Sentence sentence, PA pa,
+            (Sentence sentence, PA pa, IndexMap indexMap,
              int maxBeamSize, int numOfFeatures)
 
     {
@@ -222,7 +246,7 @@ public class ArgumentDecoder {
                 continue;
 
                 // retrieve candidates for the current word
-                String[] featVector = FeatureExtractor.extractFeatures(pa.getPredicate(), wordIdx, sentence, "AC", numOfFeatures);
+                Object[] featVector = FeatureExtractor.extractFeatures(pa.getPredicate(), wordIdx, sentence, "AC", numOfFeatures, indexMap);
                 double[] labelScores = acClassifier.score(featVector);
 
                 // build an intermediate beam
@@ -565,14 +589,14 @@ public class ArgumentDecoder {
 
 
 
-    public void predictAI (Sentence sentence, int aiMaxBeamSize, int numOfFeatures) throws Exception {
+    public void predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize, int numOfFeatures) throws Exception {
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : pas) {
 
             // get best k argument assignment candidates
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pa, aiMaxBeamSize, numOfFeatures);
+            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pa, indexMap, aiMaxBeamSize, numOfFeatures);
             //todo change it to beam search
-            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pa, numOfFeatures);
+            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pa, indexMap, numOfFeatures);
             //comparing with gold argument (assuming the predicate is given) --> updates two confusion matrices
             compareWithGold(pa, "AI", highestScorePrediction2);
         }
@@ -580,18 +604,21 @@ public class ArgumentDecoder {
     }
 
 
-    public void predict(Sentence sentence, int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures) throws Exception {
+    public void predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures) throws Exception {
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : pas) {
 
             // get best k argument assignment candidates
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pa, aiMaxBeamSize, numOfFeatures);
+            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pa, indexMap,
+                    aiMaxBeamSize, numOfFeatures);
 
             // get best <=l argument label for each of these k assignments
-            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence, pa, aiCandidates, acMaxBeamSize, numOfFeatures);
+            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence, pa,
+                    indexMap, aiCandidates, acMaxBeamSize, numOfFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
 
-            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pa, numOfFeatures);
+            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pa,
+                    indexMap, numOfFeatures);
             //comparing with gold argument (assuming the predicate is given) --> updates two confusion matrices
             compareWithGold(pa, "AC", highestScorePrediction);
         }
@@ -599,11 +626,11 @@ public class ArgumentDecoder {
 
 
     //this function is used to test ai-ac modules combination
-    public void predict_combined(Sentence sentence, int maxBeamSize, int numOfFeatures) throws Exception {
+    public void predict_combined(Sentence sentence, IndexMap indexMap, int maxBeamSize, int numOfFeatures) throws Exception {
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : pas) {
             // get best k argument labels
-            ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pa, maxBeamSize, numOfFeatures);
+            ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pa, indexMap, maxBeamSize, numOfFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication_combined(candidates, pa.getPredicateIndex());
             //comparing with gold argument (assuming the predicate is given) --> updates two confusion matrices
             compareWithGold_combined(pa, "AC", highestScorePrediction);

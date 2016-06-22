@@ -39,7 +39,7 @@ public class PADependencyTuple implements Comparable {
                 return false;
             if (PADepTuple.argIndex != argIndex)
                 return false;
-            if (!PADepTuple.srl.equals(srl))
+            if (PADepTuple.srl != srl)
                 return false;
             return true;
         }
@@ -56,7 +56,7 @@ public class PADependencyTuple implements Comparable {
     @Override
     public int hashCode() {
         int hash = 0;
-        hash^= srl.hashCode()* predIndex * argIndex;
+        hash^= srl.hashCode() * predIndex * argIndex;
         return hash;
     }
 

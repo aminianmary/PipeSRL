@@ -11,7 +11,7 @@ public class Argument {
 
     public Argument(){
         index=-1;
-        type="null";
+        type= "";
         seenBeforePredicate = true;
     }
 
