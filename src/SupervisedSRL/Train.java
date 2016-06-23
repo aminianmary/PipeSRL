@@ -72,8 +72,7 @@ public class Train {
             //saving the model generated in this iteration for making prediction on dev data
             System.out.print("\nSaving model...");
             String modelPath = modelDir + "/AI.model."+iter;
-            ModelInfo modelInfo = new ModelInfo(ap,indexMap);
-            modelInfo.saveModel(modelPath);
+            ModelInfo.saveModel(ap, indexMap, modelPath);
             //ap.saveModel(modelPath);
             System.out.println("Done!");
 
@@ -98,8 +97,7 @@ public class Train {
         System.out.print("\nSaving final model...");
         String modelPath = modelDir + "/AI.model";
         //ap.saveModel(modelPath);
-        ModelInfo modelInfo = new ModelInfo(ap,indexMap);
-        modelInfo.saveModel(modelPath);
+        ModelInfo.saveModel(ap, indexMap,modelPath);
         System.out.println("Done!");
 
         return modelPath;
@@ -142,8 +140,7 @@ public class Train {
         System.out.print("\nSaving model...");
         String modelPath = modelDir + "/AC.model";
         //ap.saveModel(modelPath);
-        ModelInfo modelInfo = new ModelInfo(ap,indexMap);
-        modelInfo.saveModel(modelPath);
+        ModelInfo.saveModel(ap, indexMap, modelPath);
         System.out.println("Done!");
 
         return modelPath;
@@ -197,12 +194,12 @@ public class Train {
             ap.correct = 0;
             ap.confusionMatrix = new int[2][2];
 
+            /*
             //saving the model generated in this iteration for making prediction on dev data
             System.out.print("\nSaving model...");
             String modelPath = modelDir + "/AI.model."+iter;
             //ap.saveModel(modelPath);
-            ModelInfo modelInfo = new ModelInfo(ap, indexMap);
-            modelInfo.saveModel(modelPath);
+            ModelInfo.saveModel(ap, indexMap, modelPath);
             System.out.println("Done!");
 
             System.out.println("****** DEV RESULTS ******");
@@ -221,13 +218,13 @@ public class Train {
             }
 
             argumentDecoder.computePrecisionRecall("AI");
+            */
         }
 
         System.out.print("\nSaving final model...");
         String modelPath = modelDir + "/combined.model";
         //ap.saveModel(modelPath);
-        ModelInfo modelInfo = new ModelInfo(ap, indexMap);
-        modelInfo.saveModel(modelPath);
+        ModelInfo.saveModel(ap, indexMap, modelPath);
         System.out.println("Done!");
 
         return modelPath;

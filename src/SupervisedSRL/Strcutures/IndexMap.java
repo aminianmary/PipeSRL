@@ -30,17 +30,21 @@ public class IndexMap implements Serializable {
         {
             if (!string2intMap.containsKey(posTag)) {
                 string2intMap.put(posTag, index);
-
+                index++;
             }
         }
         for (String depRel: depRels)
         {
-            if (!string2intMap.containsKey(depRel))
+            if (!string2intMap.containsKey(depRel)) {
                 string2intMap.put(depRel, index);
+                index++;
+            }
         }
         for (String word: words) {
-            if (!string2intMap.containsKey(word))
+            if (!string2intMap.containsKey(word)) {
                 string2intMap.put(word, index);
+                index++;
+            }
         }
         //building int2stringMap
         int2stringMap= new String[string2intMap.size()];
@@ -64,6 +68,8 @@ public class IndexMap implements Serializable {
         HashSet<String> words = new HashSet<String>();
 
         while ((line2read= reader.readLine())!= null) {
+            if (line2read.equals(""))
+                continue;
             String[] splitLine= line2read.split("\t");
             String id = splitLine[0];
             String form= splitLine[1];

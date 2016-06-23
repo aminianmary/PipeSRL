@@ -9,23 +9,18 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Created by monadiab on 6/22/16.
+ * Created by Maryam Aminian on 6/22/16.
  */
 public class ModelInfo {
 
     AveragedPerceptron classifier;
     IndexMap indexMap;
 
-    public ModelInfo(AveragedPerceptron classifier, IndexMap indexMap)
-    {
-        this.classifier= classifier;
-        this.indexMap= indexMap;
-    }
 
     public AveragedPerceptron getClassifier() {return classifier;}
 
 
-    public void saveModel(String filePath) throws Exception {
+    public static void saveModel(AveragedPerceptron classifier, IndexMap indexMap, String filePath) throws Exception {
 
         HashMap<Object, double[]>[] weights = classifier.getWeights();
         HashMap<Object, double[]>[] avgWeights = classifier.getAvgWeights();

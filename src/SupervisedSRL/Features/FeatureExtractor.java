@@ -21,7 +21,7 @@ public class FeatureExtractor {
                                            IndexMap indexMap) {
 
         // todo object; int; respectively
-        Object[] features = new String[length];
+        Object[] features = new Object [length];
         int[] sentenceDepLabels = sentence.getDepLabels();
         int[] sentenceDepHeads = sentence.getDepHeads();
         int[] sentenceWords = sentence.getWords();
@@ -796,7 +796,7 @@ public class FeatureExtractor {
                                       int[] sentenceDepLabels) {
         StringBuilder subCat = new StringBuilder();
         TreeSet<Integer> subCatElements= new TreeSet<Integer>();
-        if (!sentenceReverseDepHeads[pIdx].equals(null)) {
+        if (sentenceReverseDepHeads[pIdx] != null) {
             for (int child : sentenceReverseDepHeads[pIdx])
                 subCatElements.add(sentenceDepLabels[child]);
         }
@@ -812,7 +812,7 @@ public class FeatureExtractor {
                                      int[] collection) {
         StringBuilder childSet = new StringBuilder();
         TreeSet<Integer> children= new TreeSet<Integer>();
-        if (!sentenceReverseDepHeads[pIdx].equals(null)) {
+        if (sentenceReverseDepHeads[pIdx] != null) {
             for (int child : sentenceReverseDepHeads[pIdx])
                 children.add(collection[child]);
         }
@@ -824,25 +824,25 @@ public class FeatureExtractor {
     }
 
     private static int getLeftMostDependentIndex(int aIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
-        if (!sentenceReverseDepHeads[aIdx].equals(null))
+        if (sentenceReverseDepHeads[aIdx] != null)
             return sentenceReverseDepHeads[aIdx].last();
         return -1;
     }
 
     private static int getRightMostDependentIndex(int aIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
-        if (!sentenceReverseDepHeads[aIdx].equals(null))
+        if (sentenceReverseDepHeads[aIdx] != null)
             return sentenceReverseDepHeads[aIdx].first();
         return -1;
     }
 
     private static int getLeftSiblingIndex(int aIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
-        if (!sentenceReverseDepHeads[aIdx].equals(null) && sentenceReverseDepHeads[aIdx].higher(aIdx) != null)
+        if (sentenceReverseDepHeads[aIdx] != null && sentenceReverseDepHeads[aIdx].higher(aIdx) != null)
             return sentenceReverseDepHeads[aIdx].higher(aIdx);
         return -1;
     }
 
     private static int getRightSiblingIndex(int aIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
-        if (!sentenceReverseDepHeads[aIdx].equals(null) && sentenceReverseDepHeads[aIdx].lower(aIdx) != null)
+        if (sentenceReverseDepHeads[aIdx] != null && sentenceReverseDepHeads[aIdx].lower(aIdx) != null)
             return sentenceReverseDepHeads[aIdx].lower(aIdx);
         return -1;
     }

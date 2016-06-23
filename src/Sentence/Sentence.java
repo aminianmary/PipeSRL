@@ -49,7 +49,7 @@ public class Sentence {
             posTags[index] = wordMap.get(fields[5]);
             lemmas[index] = wordMap.get(fields[3]);
 
-            if (!reverseDepHeads[depHead].equals(null)){
+            if (reverseDepHeads[depHead] == null){
                 TreeSet<Integer> children= new TreeSet<Integer>();
                 children.add(index);
                 reverseDepHeads[depHead] = children;
@@ -88,7 +88,7 @@ public class Sentence {
         int left = 1;
         ArrayList<Integer> visited = new ArrayList<Integer>();
 
-        if (!reverseDepHeads[source].equals(null)) {
+        if (reverseDepHeads[source] != null) {
             for (int child : reverseDepHeads[source]) {
                 if (child == target) {
                     if (child > source)
@@ -118,7 +118,7 @@ public class Sentence {
         int left = 1;
         ArrayList<Integer> visited = new ArrayList<Integer>();
 
-        if (!reverseDepHeads[source].equals(null)) {
+        if (reverseDepHeads[source] != null) {
             for (int child : reverseDepHeads[source]) {
                 if (child == target) {
                     if (child > source)

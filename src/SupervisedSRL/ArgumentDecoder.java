@@ -35,20 +35,21 @@ public class ArgumentDecoder {
     }
 
 
-    public ArgumentDecoder(AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier, HashSet<String> acLabelSet) {
+    public ArgumentDecoder(AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier) {
+
+        this.aiClassifier = aiClassifier;
+        this.acClassifier = acClassifier;
 
         aiConfusionMatrix[0][0] = 0;
         aiConfusionMatrix[0][1] = 0;
         aiConfusionMatrix[1][0] = 0;
         aiConfusionMatrix[1][1] = 0;
+        Set<String> acLabelSet = acClassifier.getReverseLabelMap().keySet();
 
         for (int k = 0; k < acLabelSet.size()+1; k++) {
             int[] acGoldLabels = new int[acLabelSet.size()+1];
             this.acConfusionMatrix.put(k, acGoldLabels);
         }
-
-        this.aiClassifier = aiClassifier;
-        this.acClassifier = acClassifier;
     }
 
 
@@ -72,6 +73,25 @@ public class ArgumentDecoder {
             }
         }
     }
+
+
+    public ArgumentDecoder(ModelInfo aiModelInfo, ModelInfo acModelInfo) {
+
+        this.aiClassifier = aiModelInfo.getClassifier();
+        this.acClassifier = acModelInfo.getClassifier();
+
+        aiConfusionMatrix[0][0] = 0;
+        aiConfusionMatrix[0][1] = 0;
+        aiConfusionMatrix[1][0] = 0;
+        aiConfusionMatrix[1][1] = 0;
+
+        Set<String> acLabelSet = acClassifier.getReverseLabelMap().keySet();
+        for (int k = 0; k < acLabelSet.size() + 1; k++) {
+            int[] acGoldLabels = new int[acLabelSet.size() + 1];
+            this.acConfusionMatrix.put(k, acGoldLabels);
+        }
+    }
+
 
 
     public ArgumentDecoder(AveragedPerceptron classifier, HashSet<String> acLabelSet, String state) {
