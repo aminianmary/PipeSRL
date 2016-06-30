@@ -20,7 +20,7 @@ public class Sentence {
     PAs predicateArguments;
 
 
-    public Sentence(String sentence, IndexMap indexMap) {
+    public Sentence(String sentence, IndexMap indexMap, boolean decode) {
         HashMap<String, Integer> wordMap = indexMap.getString2intMap();
         String[] tokens = sentence.trim().split("\n");
 
@@ -42,12 +42,33 @@ public class Sentence {
 
             int index = Integer.parseInt(fields[0]);
             int depHead = Integer.parseInt(fields[9]);
-
-            words[index] = wordMap.get(fields[1]);
             depHeads[index] = depHead;
-            depLabels[index] = wordMap.get(fields[11]);
-            posTags[index] = wordMap.get(fields[5]);
-            lemmas[index] = wordMap.get(fields[3]);
+
+            if (decode==false) {
+                words[index] = wordMap.get(fields[1]);
+                depLabels[index] = wordMap.get(fields[11]);
+                posTags[index] = wordMap.get(fields[5]);
+                lemmas[index] = wordMap.get(fields[3]);
+            }else
+            {
+                if (wordMap.containsKey(fields[1]))
+                    words[index] = wordMap.get(fields[1]);
+                else
+                    words[index] = indexMap.getUnknownIdx();
+                if (wordMap.containsKey(fields[11]))
+                    depLabels[index] = wordMap.get(fields[11]);
+                else
+                    depLabels[index] = indexMap.getUnknownIdx();
+
+                if (wordMap.containsKey(fields[5]))
+                    posTags[index] = wordMap.get(fields[5]);
+                else
+                    posTags[index] = indexMap.getUnknownIdx();
+                if (wordMap.containsKey(fields[3]))
+                    lemmas[index] = wordMap.get(fields[3]);
+                else
+                    lemmas[index] = indexMap.getUnknownIdx();
+            }
 
             if (reverseDepHeads[depHead] == null){
                 TreeSet<Integer> children= new TreeSet<Integer>();

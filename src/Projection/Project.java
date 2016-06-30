@@ -73,8 +73,9 @@ public class Project {
                 String sourceSent_GD = sourceSents_GD.get(idx);
                 String targetSent_GD = targetSents_GD.get(idx);
 
-                Sentence sourceSentObj = new Sentence(sourceSent, indexMap);
-                Sentence targetSentObj = new Sentence(targetSent, indexMap);
+                boolean decode = false;
+                Sentence sourceSentObj = new Sentence(sourceSent, indexMap, false);
+                Sentence targetSentObj = new Sentence(targetSent, indexMap, false);
 
                 //do projection for sentences with alignment for > 0.9 of source words
                 //if (alignmentDic.get(idx).keySet().size() >= (0.9* sourceSentObj.getWords().length)) {

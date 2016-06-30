@@ -70,24 +70,25 @@ public class Train {
             ap.confusionMatrix = new int[2][2];
 
             //saving the model generated in this iteration for making prediction on dev data
-            System.out.print("\nSaving model...");
-            String modelPath = modelDir + "/AI.model."+iter;
-            ModelInfo.saveModel(ap, indexMap, modelPath);
+            //System.out.print("\nSaving model...");
+            //String modelPath = modelDir + "/AI.model."+iter;
             //ap.saveModel(modelPath);
+            //ModelInfo.saveModel(ap, indexMap, modelPath);
             System.out.println("Done!");
 
             System.out.println("****** DEV RESULTS ******");
             //making prediction over dev sentences
             System.out.println("Making prediction on dev data started...");
             //ArgumentDecoder argumentDecoder = new ArgumentDecoder(AveragedPerceptron.loadModel(modelDir + "/AI.model."+iter));
-            ArgumentDecoder argumentDecoder = new ArgumentDecoder(new ModelInfo(modelPath), "AI");
+            ArgumentDecoder argumentDecoder = new ArgumentDecoder(ap.calculateAvgWeights());
 
+            boolean decode = true;
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
                 if (d%1000==0)
                     System.out.println(d+"/"+devSentencesInCONLLFormat.size());
 
-                Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d), indexMap);
+                Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(d), indexMap, decode);
                 argumentDecoder.predictAI (sentence, indexMap, aiMaxBeamSize, numOfFeatures);
             }
 
@@ -96,8 +97,8 @@ public class Train {
 
         System.out.print("\nSaving final model...");
         String modelPath = modelDir + "/AI.model";
-        //ap.saveModel(modelPath);
-        ModelInfo.saveModel(ap, indexMap,modelPath);
+        ap.saveModel(modelPath);
+        //ModelInfo.saveModel(ap, indexMap,modelPath);
         System.out.println("Done!");
 
         return modelPath;
@@ -139,8 +140,8 @@ public class Train {
 
         System.out.print("\nSaving model...");
         String modelPath = modelDir + "/AC.model";
-        //ap.saveModel(modelPath);
-        ModelInfo.saveModel(ap, indexMap, modelPath);
+        ap.saveModel(modelPath);
+        //ModelInfo.saveModel(ap, indexMap, modelPath);
         System.out.println("Done!");
 
         return modelPath;
@@ -237,12 +238,13 @@ public class Train {
         ArrayList<String> labels = new ArrayList<String>();
 
         int counter=0;
+        boolean decode = false;
         for (String sentenceInCONLLFormat : sentencesInCONLLFormat) {
             counter++;
             if (counter%1000==0)
                 System.out.println(counter+"/"+sentencesInCONLLFormat.size());
 
-            Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
+            Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
             ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
             int[] sentenceWords = sentence.getWords();
 
@@ -286,8 +288,8 @@ public class Train {
         String state= "AI";
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
-
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
+        boolean decode = false;
+        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
 
@@ -316,8 +318,8 @@ public class Train {
         String state= "AI";
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
-
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
+        boolean decode = false;
+        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
 
@@ -345,8 +347,8 @@ public class Train {
         String state= "AC";
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
-
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
+        boolean decode = false;
+        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, false);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
         for (PA pa : pas) {

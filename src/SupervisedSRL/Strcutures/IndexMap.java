@@ -1,5 +1,7 @@
 package SupervisedSRL.Strcutures;
 
+import com.sun.tools.classfile.Synthetic_attribute;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +52,8 @@ public class IndexMap implements Serializable {
         int2stringMap= new String[string2intMap.size()];
         for (String str: string2intMap.keySet())
             int2stringMap[string2intMap.get(str)] = str;
+
+        System.out.print("Size of index Map: "+ string2intMap.size()+"\n");
 
     }
 

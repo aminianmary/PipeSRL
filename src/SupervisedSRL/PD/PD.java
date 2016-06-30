@@ -159,10 +159,10 @@ public class PD {
         HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> pLexicon=
                 new HashMap<Integer, HashMap<Integer, HashSet<pLexiconEntry>>>();
 
-
+        boolean decode = false;
         for (int senID=0; senID< sentencesInCONLLFormat.size(); senID++)
         {
-            Sentence sentence= new Sentence(sentencesInCONLLFormat.get(senID), indexMap);
+            Sentence sentence= new Sentence(sentencesInCONLLFormat.get(senID), indexMap, decode);
 
             ArrayList<PA> pas= sentence.getPredicateArguments().getPredicateArgumentsAsArray();
             int[] sentenceLemmas= sentence.getLemmas();

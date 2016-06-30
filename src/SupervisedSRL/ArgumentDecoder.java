@@ -174,7 +174,6 @@ public class ArgumentDecoder {
         for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
             if (wordIdx == currentPr.getIndex())
                 continue;
-            Pipeline.devSize++;
 
             // retrieve candidates for the current word
             Object[] featVector = FeatureExtractor.extractFeatures(currentPr, wordIdx, sentence, "AI", numOfFeatures, indexMap);

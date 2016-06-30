@@ -55,8 +55,8 @@ public class extract_argument_combination_classes {
                 if (sentenceCounter%100==0)
                     System.out.println(sentenceCounter);
 
-
-                Sentence sen = new Sentence(sentence, indexMap);
+                boolean decode = false;
+                Sentence sen = new Sentence(sentence, indexMap, decode);
 
                 //extracts data for treeLSTM
                 ArrayList<String> treeLSTM_format_sentence =StanfordTreeLSTM.generateData4StanfordTreeLSTM(sen,
