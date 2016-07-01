@@ -45,7 +45,7 @@ public class FeatureExtractor {
 
        // String voice = sentence.getVoice(pIdx);
 
-        if (state.equals("AI") || state.equals("AC")) {
+        if (state.equals("AI") || state.equals("AC") || state.equals("joint")) {
             int leftMostDependentIndex = getLeftMostDependentIndex(aIdx, sentenceReverseDepHeads);
             int rightMostDependentIndex = getRightMostDependentIndex(aIdx, sentenceReverseDepHeads);
             int lefSiblingIndex = getLeftSiblingIndex(aIdx, sentenceReverseDepHeads);

@@ -31,7 +31,7 @@ public class PD {
         try
         {
         */
-            //read train and test sentences
+            //read trainJoint and test sentences
             ArrayList<String> sentencesInCONLLFormat  = IO.readCoNLLFile(inputFile);
 
             int totalNumOfSentences= sentencesInCONLLFormat.size();
@@ -60,7 +60,7 @@ public class PD {
             throws Exception
     {
     int pdFeatSize =11;
-        //creates lexicon of all predicates in the train set
+        //creates lexicon of all predicates in the trainJoint set
         HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> trainPLexicon =
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap);
 
@@ -82,7 +82,7 @@ public class PD {
                     //System.out.print("iteration:" + i + "...");
                     for (pLexiconEntry ple: trainPLexicon.get(plem).get(ppos))
                     {
-                        //train average perceptron
+                        //trainJoint average perceptron
                         String plabel= ple.getPlabel();
 
                         ap.learnInstance(ple.getPdfeats(), plabel);

@@ -6,12 +6,10 @@ import SupervisedSRL.Strcutures.BeamElement;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Pair;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.file.FSInfo;
-import com.sun.tools.javac.jvm.ClassWriter;
-import com.sun.tools.javac.util.ArrayUtils;
 import ml.AveragedPerceptron;
+import util.IO;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -25,13 +23,24 @@ public class ArgumentDecoder {
     int[][] aiConfusionMatrix = new int[2][2];
     HashMap<Integer, int[]> acConfusionMatrix = new HashMap<Integer, int[]>();
 
-    public ArgumentDecoder(AveragedPerceptron aiClassifier) {
+    public ArgumentDecoder(AveragedPerceptron classifier, String state) {
 
-        aiConfusionMatrix[0][0] = 0;
-        aiConfusionMatrix[0][1] = 0;
-        aiConfusionMatrix[1][0] = 0;
-        aiConfusionMatrix[1][1] = 0;
-        this.aiClassifier = aiClassifier;
+        if (state.equals("AI")) {
+            aiConfusionMatrix[0][0] = 0;
+            aiConfusionMatrix[0][1] = 0;
+            aiConfusionMatrix[1][0] = 0;
+            aiConfusionMatrix[1][1] = 0;
+            this.aiClassifier = classifier;
+        }else if (state.equals("joint"))
+        {
+            Set<String> acLabelSet = classifier.getReverseLabelMap().keySet();
+
+            for (int k = 0; k < acLabelSet.size(); k++) {
+                int[] acGoldLabels = new int[acLabelSet.size()];
+                this.acConfusionMatrix.put(k, acGoldLabels);
+            }
+            this.acClassifier = classifier;
+        }
     }
 
 
@@ -53,58 +62,53 @@ public class ArgumentDecoder {
     }
 
 
-    public ArgumentDecoder(ModelInfo modelInfo, String state)
+    public static void decode (ArgumentDecoder argumentDecoder, IndexMap indexMap, String devData,
+                        int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures) throws Exception
     {
-        if (state.equals("AI"))
-        {
-            aiConfusionMatrix[0][0] = 0;
-            aiConfusionMatrix[0][1] = 0;
-            aiConfusionMatrix[1][0] = 0;
-            aiConfusionMatrix[1][1] = 0;
-            this.aiClassifier = modelInfo.getClassifier();
-        }else
-        {
-            this.acClassifier = modelInfo.getClassifier();
-            Set<String> acLabelSet=  acClassifier.getReverseLabelMap().keySet();
+        DecimalFormat format = new DecimalFormat("##.00");
 
-            for (int k = 0; k < acLabelSet.size()+1; k++) {
-                int[] acGoldLabels = new int[acLabelSet.size()+1];
-                this.acConfusionMatrix.put(k, acGoldLabels);
-            }
+        System.out.println("Decoding started (on dev data)...");
+        long startTime  = System.currentTimeMillis();
+        boolean decode= true;
+        List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
+
+        for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
+            if (d % 1000 == 0)
+                System.out.println(d + "/" + devSentencesInCONLLFormat.size());
+
+            Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
+            argumentDecoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfFeatures);
         }
+        argumentDecoder.computePrecisionRecall("AC");
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time for decoding: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+
     }
 
 
-    public ArgumentDecoder(ModelInfo aiModelInfo, ModelInfo acModelInfo) {
+    public static void decode (ArgumentDecoder argumentDecoder, IndexMap indexMap, String devData,
+                               int maxBeamSize, int numOfFeatures) throws Exception
+    {
+        DecimalFormat format = new DecimalFormat("##.00");
 
-        this.aiClassifier = aiModelInfo.getClassifier();
-        this.acClassifier = acModelInfo.getClassifier();
+        System.out.println("Decoding started (on dev data)...");
+        long startTime  = System.currentTimeMillis();
+        boolean decode= true;
+        List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
 
-        aiConfusionMatrix[0][0] = 0;
-        aiConfusionMatrix[0][1] = 0;
-        aiConfusionMatrix[1][0] = 0;
-        aiConfusionMatrix[1][1] = 0;
+        for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
+            if (d % 1000 == 0)
+                System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
-        Set<String> acLabelSet = acClassifier.getReverseLabelMap().keySet();
-        for (int k = 0; k < acLabelSet.size() + 1; k++) {
-            int[] acGoldLabels = new int[acLabelSet.size() + 1];
-            this.acConfusionMatrix.put(k, acGoldLabels);
+            Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
+            argumentDecoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures);
         }
+        argumentDecoder.computePrecisionRecall("joint");
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time for decoding: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+
     }
 
-
-
-    public ArgumentDecoder(AveragedPerceptron classifier, HashSet<String> acLabelSet, String state) {
-
-        if (state.equals("combined"))
-        {
-            for (int k = 0; k < acLabelSet.size(); k++) {
-                int[] acGoldLabels = new int[acLabelSet.size()];
-                this.acConfusionMatrix.put(k, acGoldLabels);
-            }
-            this.acClassifier = classifier;
-        }
-    }
 
 
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
@@ -247,6 +251,7 @@ public class ArgumentDecoder {
         return finalACCandidates;
     }
 
+
     //this function is used to test ai-ac combination
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestCandidates
             (Sentence sentence, PA pa, IndexMap indexMap,
@@ -346,8 +351,29 @@ public class ArgumentDecoder {
     }
 
 
+    private HashMap<Integer, Integer> getHighestScorePredication
+            (ArrayList<Pair<Double, ArrayList<Integer>>> candidates) {
+
+        TreeSet<Pair<Double, ArrayList<Integer>>> sortedCandidates = new TreeSet<Pair<Double, ArrayList<Integer>>>(candidates);
+        Pair<Double, ArrayList<Integer>> highestScorePair = sortedCandidates.pollLast();
+
+        //after finding highest score sequence in the list of candidates
+        HashMap<Integer, Integer> wordIndexLabelMap = new HashMap<Integer, Integer>();
+        ArrayList<Integer> highestScoreSeq = new ArrayList<Integer>();
+
+        highestScoreSeq = highestScorePair.second;
+
+        for (int k = 0; k < highestScoreSeq.size(); k++) {
+            wordIndexLabelMap.put(k, highestScoreSeq.get(k));
+        }
+
+        return wordIndexLabelMap;
+    }
+
+
+
     //this function is used to test ai-ac modules combined
-    private HashMap<Integer, Integer> getHighestScorePredication_combined
+    private HashMap<Integer, Integer> getHighestScorePredicationJoint
             (ArrayList<Pair<Double, ArrayList<Integer>>> candidates, int pIndex) {
 
         TreeSet<Pair<Double, ArrayList<Integer>>> acCandidates4ThisSeq = new TreeSet<Pair<Double, ArrayList<Integer>>>(candidates);
@@ -369,6 +395,7 @@ public class ArgumentDecoder {
 
         return wordIndexLabelMap;
     }
+
 
 
     private void compareWithGold(PA pa, String state, HashMap<Integer, Integer> highestScorePrediction) {
@@ -418,7 +445,7 @@ public class ArgumentDecoder {
 
 
 
-    private void compareWithGold_combined(PA pa, String state, HashMap<Integer, Integer> highestScorePrediction) {
+    private void compareWithGoldJoint(PA pa, HashMap<Integer, Integer> highestScorePrediction) {
 
         ArrayList<Argument> goldArgs = pa.getArguments();
         HashMap<Integer, String> goldArgMap = getGoldArgMap(goldArgs);
@@ -436,31 +463,28 @@ public class ArgumentDecoder {
         aiConfusionMatrix[1][0] += exclusivePredicatedArgIndices.size();
         aiConfusionMatrix[0][1] += exclusiveGoldArgIndices.size();
 
-        if (state.equals("AC")) {
-            HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
-            for (int predictedArgIdx : highestScorePrediction.keySet()) {
-                int predictedLabel = highestScorePrediction.get(predictedArgIdx);
-                if (goldArgMap.containsKey(predictedArgIdx)) {
-                    //ai_tp --> (ac_tp/ac_fp)
-                    int goldLabel = reverseLabelMap.get(goldArgMap.get(predictedArgIdx));
-                    acConfusionMatrix.get(predictedLabel)[goldLabel]++;
-                } else {
-                    //ai_fp --> ac_fp
-                    acConfusionMatrix.get(predictedLabel)[reverseLabelMap.get("0")]++;
-                }
-            }
-
-            //update acConfusionMatrix for false negatives
-            for (int goldArgIdx : goldArgMap.keySet()) {
-                if (!highestScorePrediction.containsKey(goldArgIdx)) {
-                    //ai_fn --> ac_fn
-                    int goldLabel = reverseLabelMap.get(goldArgMap.get(goldArgIdx));
-                    acConfusionMatrix.get(reverseLabelMap.get("0"))
-                            [goldLabel]++;
-                }
+        HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
+        for (int predictedArgIdx : highestScorePrediction.keySet()) {
+            int predictedLabel = highestScorePrediction.get(predictedArgIdx);
+            if (goldArgMap.containsKey(predictedArgIdx)) {
+                //ai_tp --> (ac_tp/ac_fp)
+                int goldLabel = reverseLabelMap.get(goldArgMap.get(predictedArgIdx));
+                acConfusionMatrix.get(predictedLabel)[goldLabel]++;
+            } else {
+                //ai_fp --> ac_fp
+                acConfusionMatrix.get(predictedLabel)[reverseLabelMap.get("0")]++;
             }
         }
 
+        //update acConfusionMatrix for false negatives
+        for (int goldArgIdx : goldArgMap.keySet()) {
+            if (!highestScorePrediction.containsKey(goldArgIdx)) {
+                //ai_fn --> ac_fn
+                int goldLabel = reverseLabelMap.get(goldArgMap.get(goldArgIdx));
+                acConfusionMatrix.get(reverseLabelMap.get("0"))
+                        [goldLabel]++;
+            }
+        }
     }
 
 
@@ -497,7 +521,7 @@ public class ArgumentDecoder {
         System.out.println("AI Recall: " + format.format((double) aiTP / (aiTP + aiFN)));
         System.out.println("*********************************************");
 
-        if (state.equals("AC")) {
+        if (state.equals("AC") || state.equals("joint")) {
             String[] labelMap = acClassifier.getLabelMap();
             int total_ac_predictions = 0;
             int total_tp=0;
@@ -546,78 +570,16 @@ public class ArgumentDecoder {
     }
 
 
-
-    public void computePrecisionRecall_combined(String state) {
-        DecimalFormat format = new DecimalFormat("##.00");
-        //binary classification
-        int aiTP = aiConfusionMatrix[1][1];
-        int aiFP = aiConfusionMatrix[1][0];
-        int aiFN = aiConfusionMatrix[0][1];
-        int total_ai_predictions = aiTP + aiFP;
-
-        System.out.println("Total AI prediction " + total_ai_predictions);
-        System.out.println("AI Precision: " +format.format((double) aiTP / (aiTP + aiFP)));
-        System.out.println("AI Recall: " + format.format((double) aiTP / (aiTP + aiFN)));
-        System.out.println("*********************************************");
-
-        if (state.equals("AC")) {
-            String[] labelMap = acClassifier.getLabelMap();
-            int total_ac_predictions = 0;
-            int total_tp=0;
-            int total_gold=0;
-
-            //multi-class classification
-            for (int predicatedLabel : acConfusionMatrix.keySet()) {
-
-                int tp = acConfusionMatrix.get(predicatedLabel)[predicatedLabel]; //element on the diagonal
-                total_tp += tp;
-
-                int total_prediction = 0;
-                for (int element : acConfusionMatrix.get(predicatedLabel))
-                    total_prediction += element;
-
-                total_ac_predictions += total_prediction;
-
-                int total_gold_4_this_label = 0;
-
-                for (int pLabel : acConfusionMatrix.keySet())
-                    total_gold_4_this_label += acConfusionMatrix.get(pLabel)[predicatedLabel];
-
-                total_gold += total_gold_4_this_label;
-
-                double precision = 100. * (double) tp / total_prediction;
-                double recall = 100. * (double) tp / total_gold_4_this_label;
-                System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
-                System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
-            }
-
-            System.out.println("*********************************************");
-            System.out.println("Total AC prediction " + format.format(total_ac_predictions));
-            System.out.println("Total number of tp: "+ format.format(total_tp));
-
-            double micro_precision = 100. * (double) total_tp / total_ac_predictions;
-            double micro_recall = 100. * (double) total_tp / total_gold;
-            double FScore = (2 * micro_precision * micro_recall ) / (micro_precision+ micro_recall);
-
-            System.out.println("Micro Precision: " + format.format(micro_precision));
-            System.out.println("Micro Recall: " + format.format(micro_recall));
-            System.out.println("Averaged F1-score: " + format.format(FScore));
-        }
-
-    }
-
-
-
     public void predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize, int numOfFeatures) throws Exception {
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : pas) {
 
             // get best k argument assignment candidates
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pa, indexMap, aiMaxBeamSize, numOfFeatures);
-            //todo change it to beam search
-            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pa, indexMap, numOfFeatures);
+            HashMap<Integer, Integer> highestScorePrediction  = getHighestScorePredication(aiCandidates);
+
             //comparing with gold argument (assuming the predicate is given) --> updates two confusion matrices
-            compareWithGold(pa, "AI", highestScorePrediction2);
+            compareWithGold(pa, "AI", highestScorePrediction);
         }
 
     }
@@ -645,14 +607,14 @@ public class ArgumentDecoder {
 
 
     //this function is used to test ai-ac modules combination
-    public void predict_combined(Sentence sentence, IndexMap indexMap, int maxBeamSize, int numOfFeatures) throws Exception {
+    public void predictJoint(Sentence sentence, IndexMap indexMap, int maxBeamSize, int numOfFeatures) throws Exception {
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : pas) {
             // get best k argument labels
             ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pa, indexMap, maxBeamSize, numOfFeatures);
-            HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication_combined(candidates, pa.getPredicateIndex());
+            HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredicationJoint(candidates, pa.getPredicateIndex());
             //comparing with gold argument (assuming the predicate is given) --> updates two confusion matrices
-            compareWithGold_combined(pa, "AC", highestScorePrediction);
+            compareWithGoldJoint(pa, highestScorePrediction);
         }
     }
 
