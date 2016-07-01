@@ -10,6 +10,7 @@ public class Predicate {
     int predicateIndex;
     String predicateLabel;
 
+
     public Predicate(){
         predicateIndex= -1;
         predicateLabel= "";
