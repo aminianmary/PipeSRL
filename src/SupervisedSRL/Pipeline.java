@@ -1,13 +1,7 @@
 package SupervisedSRL;
 
-import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;
-import Sentence.Sentence;
-import util.IO;
-
-import java.io.IOException;
-import java.util.*;
 
 
 /**
@@ -24,7 +18,8 @@ public class Pipeline {
          boolean trainJoint = Boolean.parseBoolean(args[3]);
          int aiMaxBeamSize = Integer.parseInt(args[4]);
          int acMaxBeamSize = Integer.parseInt(args[5]);
-         int numOfTrainingIterations = Integer.parseInt(args[6]);;
+         int numOfTrainingIterations = Integer.parseInt(args[6]);
+         String outputFile = args[7];
          int numOfFeatures = 188;
 
          Train train= new Train();
@@ -34,8 +29,8 @@ public class Pipeline {
              modelPaths[0] =train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
              ModelInfo modelInfo = new ModelInfo(modelPaths[0]);
 
-             ArgumentDecoder.decode(new ArgumentDecoder(modelInfo.getClassifier(), "joint"), modelInfo.getIndexMap(),
-                     devData, aiMaxBeamSize, numOfFeatures);
+             Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"), modelInfo.getIndexMap(),
+                     devData, aiMaxBeamSize, numOfFeatures, outputFile);
 
          }
          else {
@@ -45,9 +40,27 @@ public class Pipeline {
 
              AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
              AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[1]);
-             ArgumentDecoder.decode(new ArgumentDecoder(aiClassifier, acClassifier),
-                     aiModelInfo.getIndexMap(), devData, aiMaxBeamSize, acMaxBeamSize, numOfFeatures);
+             Decoder.decode(new Decoder(aiClassifier, acClassifier),
+                     aiModelInfo.getIndexMap(),
+                     devData, acClassifier.getLabelMap(),
+                     aiMaxBeamSize, acMaxBeamSize,
+                     numOfFeatures, modelDir, outputFile);
          }
 
+
+         /*
+         String aiModelPath = args[0];
+         String acModelPath = args[1];
+         String devData = args[2];
+         int aiMaxBeamSize = Integer.parseInt(args[3]);
+         int acMaxBeamSize = Integer.parseInt(args[4]);
+         int numOfFeatures = 188;
+
+         ModelInfo aiModelInfo = new ModelInfo(aiModelPath);
+         AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
+         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
+         ArgumentDecoder.decode(new ArgumentDecoder(aiClassifier, acClassifier),
+                 aiModelInfo.getIndexMap(), devData, aiMaxBeamSize, acMaxBeamSize, numOfFeatures);
+         */
      }
 }

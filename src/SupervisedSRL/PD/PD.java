@@ -2,6 +2,7 @@ package SupervisedSRL.PD;
 
 import Sentence.Sentence;
 import Sentence.PA;
+import Sentence.PAs;
 import Sentence.Argument;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
@@ -9,10 +10,11 @@ import jdk.nashorn.internal.runtime.ECMAException;
 import ml.AveragedPerceptron;
 import util.IO;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by Maryam Aminian on 5/19/16.
@@ -20,39 +22,34 @@ import java.util.concurrent.ExecutionException;
  */
 public class PD {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
 
-        String inputFile= args[0];
-        String modelDir= args[1];
+        String inputFile = args[0];
+        String modelDir = args[1];
 
-        final IndexMap indexMap= new IndexMap(inputFile);
+        final IndexMap indexMap = new IndexMap(inputFile);
 
-        /*
-        try
-        {
-        */
-            //read trainJoint and test sentences
-            ArrayList<String> sentencesInCONLLFormat  = IO.readCoNLLFile(inputFile);
+        //read trainJoint and test sentences
+        ArrayList<String> sentencesInCONLLFormat = IO.readCoNLLFile(inputFile);
 
-            int totalNumOfSentences= sentencesInCONLLFormat.size();
-            int trainSize= (int) Math.floor(0.8 * totalNumOfSentences);
+        int totalNumOfSentences = sentencesInCONLLFormat.size();
+        int trainSize = (int) Math.floor(0.8 * totalNumOfSentences);
 
-            List<String> train= sentencesInCONLLFormat.subList(0, trainSize);
-            List<String> test= sentencesInCONLLFormat.subList(trainSize, totalNumOfSentences);
+        List<String> train = sentencesInCONLLFormat.subList(0, trainSize);
+        List<String> test = sentencesInCONLLFormat.subList(trainSize, totalNumOfSentences);
 
-            //training
-            train(train, indexMap, 10, modelDir);
+        //training
+        train(train, indexMap, 10, modelDir);
 
-            //prediction
-            predict(test, indexMap, modelDir);
-
-
-        /*
-        }catch (Exception e)
-        {
-            e.printStackTrace();
+        //prediction
+        HashMap<Integer, String>[] predictions= new HashMap[test.size()];
+        System.out.println("Prediction started...");
+        for (int senIdx=0; senIdx<test.size(); senIdx++) {
+            boolean decode = true;
+            Sentence sentence = new Sentence(test.get(senIdx), indexMap, decode);
+            predictions[senIdx] = predict(sentence, indexMap, modelDir);
         }
-        */
+
     }
 
 
@@ -99,56 +96,26 @@ public class PD {
     }
 
 
-    public static void predict (List<String> testSentencesInCONLLFormat, IndexMap indexMap, String modelDir) throws Exception
-    {
-
-        HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> testPLexicon =
-                buildPredicateLexicon(testSentencesInCONLLFormat, indexMap);
-
-        int correct=0;
-        int numOfTestExamples=0;
-        int numOfUnseenPredicates=0;
-
-        System.out.println("Prediction started...");
+    public static HashMap<Integer, String> predict (Sentence sentence, IndexMap indexMap, String modelDir) throws Exception {
         File f1;
-
-        for (int plem: testPLexicon.keySet())
-        {
-            for (int ppos: testPLexicon.get(plem).keySet())
-            {
-                HashSet<pLexiconEntry> featVecs= testPLexicon.get(plem).get(ppos);
-                for (pLexiconEntry ple: featVecs)
-                {
-                    numOfTestExamples++;
-
-                    String plabel = ple.getPlabel();
-
-                    //System.out.println("Loading model for "+plem+"_"+ppos+"...");
-                    f1= new File(modelDir+"/"+plem+"_"+ppos);
-
-                    if (f1.exists() && !f1.isDirectory())
-                    {
-                        AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);
-                        String prediction = classifier.predict(ple.getPdfeats());
-                        if (prediction.equals(plabel))
-                            correct++;
-                        //else
-                            //System.out.println(plem + "\t" + ppos + "->" + prediction);
-                    }else {
-                        //System.out.println("model file does not exist for " + plem + "_" + ppos + "\nThus, predicate won't recieve a label");
-                        numOfUnseenPredicates++;
-                    }
-                }
+        ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        int[] sentenceLemmas = sentence.getLemmas();
+        int[] sentencePOSTags = sentence.getPosTags();
+        HashMap<Integer, String> predictions = new HashMap<Integer, String>();
+        for (PA pa : pas) {
+            int pIdx = pa.getPredicateIndex();
+            String pLabel = pa.getPredicateLabel();
+            int plem = sentenceLemmas[pIdx];
+            int ppos = sentencePOSTags[pIdx];
+            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, pLabel , -1, sentence, "PD", 11, indexMap);
+            f1 = new File(modelDir + "/" + plem + "_" + ppos);
+            if (f1.exists() && !f1.isDirectory()) {
+                AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);
+                String prediction = classifier.predict(pdfeats);
+                predictions.put(pIdx, prediction);
             }
         }
-
-        System.out.println("Prediction Done!");
-
-        System.out.println(correct+"\t"+numOfTestExamples);
-        System.out.println(100*(float)correct/numOfTestExamples+"%");
-
-        System.out.println("num Of Unseen Predicates: "+ numOfUnseenPredicates);
-
+        return predictions;
     }
 
 
@@ -175,7 +142,7 @@ public class PD {
                 String plabel= pa.getPredicateLabel();
                 int ppos= sentencePOSTags[pIdx];
 
-                Object[] pdfeats = FeatureExtractor.extractFeatures(pa.getPredicate(), -1 ,sentence, "PD", 11, indexMap);
+                Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, plabel, -1 ,sentence, "PD", 11, indexMap);
                 pLexiconEntry ple= new pLexiconEntry(plabel, pdfeats);
 
                 if (!pLexicon.containsKey(plem))
@@ -213,6 +180,5 @@ public class PD {
 
         return labelSet;
     }
-
 
 }

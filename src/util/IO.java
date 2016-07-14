@@ -1,10 +1,15 @@
 package util;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import Sentence.Sentence;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Prediction;
+import apple.laf.JRSUIUtils;
+
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  * Created by monadiab on 4/12/16.
@@ -104,6 +109,59 @@ public class IO {
         return new Object[]{sentences_conll, sentences_words};
     }
 
+
+    public static void writePredictionsInCoNLLFormat (ArrayList<ArrayList<String>> sentencesForOutput,
+                                                     TreeMap<Integer, Prediction>[] predictedPAs,
+                                                      String[] labelMap,
+                                                      String outputFile)
+            throws IOException
+    {
+        BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile)));
+        for (int d=0; d< sentencesForOutput.size(); d++)
+        {
+            ArrayList<String> sentenceForOutput = sentencesForOutput.get(d);
+            TreeMap<Integer, Prediction> predictionForThisSentence = predictedPAs[d];
+
+            for (int wordIdx=0; wordIdx< sentenceForOutput.size(); wordIdx++)
+            {
+                int realWordIdx = wordIdx+1;
+                //for each word in the sentence
+                outputWriter.write(sentenceForOutput.get(wordIdx)+"\t");  //filling fields 0-11
+
+                if (predictionForThisSentence.containsKey(realWordIdx)) {
+                    Prediction prediction = predictionForThisSentence.get(realWordIdx);
+                    //this is a predicate
+                    outputWriter.write("Y\t"); //filed 12
+                    outputWriter.write(prediction.getPredicateLabel()); //field 13
+                }else
+                {
+                    //this is not a predicate
+                    outputWriter.write("_\t"); //filed 12
+                    outputWriter.write("_"); //field 13
+                }
+
+
+                //checking if this word has been an argument for other predicates or not (fields 14-end)
+                for (int pIdx:predictionForThisSentence.keySet())
+                {
+                    HashMap<Integer, Integer> argumentLabels = predictionForThisSentence.get(pIdx).getArgumentLabels();
+                    if (argumentLabels.containsKey(realWordIdx))
+                        //word is an argument
+                        outputWriter.write("\t"+labelMap[argumentLabels.get(realWordIdx)]);
+                    else
+                        //word is not an argument for this predicate
+                        outputWriter.write("\t_");
+                }
+
+                outputWriter.write("\n");
+            }
+            outputWriter.write("\n\n");
+        }
+        outputWriter.flush();
+        outputWriter.close();
+    }
+
+
     public static String formatString2Conll (String input)
     {
         String ConllFormatString="";
@@ -114,5 +172,22 @@ public class IO {
         }
 
         return ConllFormatString;
+    }
+
+
+    public static ArrayList<String> getSentenceForOutput (String sentenceInCoNLLFormat)
+    {
+        String[] lines = sentenceInCoNLLFormat.split("\n");
+        ArrayList<String> sentenceForOutput = new ArrayList<String>();
+        for (String line:lines)
+        {
+            String[] fields = line.split("\t");
+            String filedsForOutput = "";
+            //we just need the first 12 fields. The rest of filed must be filled based on what system predicted
+            for (int k=0; k< 12; k++)
+                filedsForOutput += fields[k]+"\t";
+            sentenceForOutput.add(filedsForOutput.trim());
+        }
+        return sentenceForOutput;
     }
 }

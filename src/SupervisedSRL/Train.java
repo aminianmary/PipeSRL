@@ -8,6 +8,7 @@ import Sentence.Predicate;
 import Sentence.Argument;
 import Sentence.PA;
 import SupervisedSRL.Features.FeatureExtractor;
+import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;
@@ -28,6 +29,9 @@ public class Train {
         HashSet<String> argLabels = obtainLabels(trainSentencesInCONLLFormat);
 
         final IndexMap indexMap = new IndexMap(trainData);
+
+        //training PD module
+        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
 
         //training AI and AC models separately
         String aiModelPath = trainAI(trainSentencesInCONLLFormat, indexMap,
@@ -53,9 +57,12 @@ public class Train {
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = obtainLabels(trainSentencesInCONLLFormat);
         argLabels.add("0");
+        final IndexMap indexMap = new IndexMap(trainData);
+
+        //training PD module
+        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
 
         AveragedPerceptron ap = new AveragedPerceptron(argLabels, numOfFeatures);
-        final IndexMap indexMap = new IndexMap(trainData);
 
         //training averaged perceptron
         long startTime = 0;
@@ -91,7 +98,7 @@ public class Train {
             System.out.println("Making prediction on dev data started...");
             startTime = System.currentTimeMillis();
             boolean decode = true;
-            ArgumentDecoder argumentDecoder = new ArgumentDecoder(ap.calculateAvgWeights(), "joint");
+            Decoder decoder = new Decoder(ap.calculateAvgWeights(), "joint");
 
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
@@ -99,10 +106,10 @@ public class Train {
                     System.out.println(d+"/"+devSentencesInCONLLFormat.size());
 
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
-                argumentDecoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures);
+                decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures);
             }
 
-            argumentDecoder.computePrecisionRecall("joint");
+            decoder.computePrecisionRecall("joint");
             endTime = System.currentTimeMillis();
             System.out.println("Total time for decoding on dev data: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
@@ -276,12 +283,13 @@ public class Train {
             int[] sentenceWords = sentence.getWords();
 
             for (PA pa : pas) {
-                Predicate currentP = pa.getPredicate();
+                int pIdx = pa.getPredicateIndex();
+                String pLabel = pa.getPredicateLabel();
                 ArrayList<Argument> currentArgs = pa.getArguments();
 
                 for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                    if (wordIdx != currentP.getIndex()) {
-                        Object[] featVector = FeatureExtractor.extractFeatures(currentP, wordIdx,
+                    if (wordIdx != pIdx) {
+                        Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx,
                                 sentence, state, numOfFeatures, indexMap);
                         String label = "";
 
@@ -321,12 +329,13 @@ public class Train {
         int[] sentenceWords = sentence.getWords();
 
         for (PA pa : pas) {
-            Predicate currentP = pa.getPredicate();
+            int pIdx = pa.getPredicateIndex();
+            String pLabel = pa.getPredicateLabel();
             ArrayList<Argument> currentArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                if (wordIdx != currentP.getIndex()) {
-                    Object[] featVector = FeatureExtractor.extractFeatures(currentP, wordIdx,
+                if (wordIdx != pIdx) {
+                    Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx,
                             sentence, state, numOfFeatures, indexMap);
 
                     String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
@@ -350,12 +359,13 @@ public class Train {
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
         for (PA pa : pas) {
-            Predicate currentP = pa.getPredicate();
+            int pIdx = pa.getPredicateIndex();
+            String pLabel = pa.getPredicateLabel();
             ArrayList<Argument> currentArgs = pa.getArguments();
             //extract features for arguments (not all words)
             for (Argument arg: currentArgs) {
                 int argIdx= arg.getIndex();
-                Object[] featVector = FeatureExtractor.extractFeatures(currentP, argIdx,
+                Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, argIdx,
                         sentence, state, numOfFeatures, indexMap);
 
                 String label = arg.getType();
@@ -380,12 +390,13 @@ public class Train {
         int[] sentenceWords = sentence.getWords();
 
         for (PA pa : pas) {
-            Predicate currentP = pa.getPredicate();
+            int pIdx = pa.getPredicateIndex();
+            String pLabel = pa.getPredicateLabel();
             ArrayList<Argument> currentArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                if (wordIdx != currentP.getIndex()) {
-                    Object[] featVector = FeatureExtractor.extractFeatures(currentP, wordIdx,
+                if (wordIdx != pIdx) {
+                    Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx,
                             sentence, state, numOfFeatures, indexMap);
 
                     String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : isArgument(wordIdx, currentArgs);

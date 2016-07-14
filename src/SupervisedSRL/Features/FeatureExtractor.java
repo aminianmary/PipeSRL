@@ -17,7 +17,7 @@ import java.util.Set;
 public class FeatureExtractor {
 
     // todo Object[]
-    public static Object[] extractFeatures(Predicate p, int aIdx, Sentence sentence, String state, int length,
+    public static Object[] extractFeatures(int pIdx, String pSense, int aIdx, Sentence sentence, String state, int length,
                                            IndexMap indexMap) {
 
         // todo object; int; respectively
@@ -30,12 +30,10 @@ public class FeatureExtractor {
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
 
         //predicate features
-        int pIdx = p.getIndex();
         int pw = sentenceWords[pIdx];
         int ppos = sentencePOSTags[pIdx];
         int plem = sentenceLemmas[pIdx];
         int pdeprel = sentenceDepLabels[pIdx];
-        String psense = p.getLabel();
         int pprw = sentenceWords[sentenceDepHeads[pIdx]];
         int pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
         String pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels);
@@ -75,7 +73,7 @@ public class FeatureExtractor {
             features[index++] = ppos;
             features[index++] = plem;
             features[index++] = pdeprel;
-            features[index++] = psense;
+            features[index++] = pSense;
             features[index++] = pprw;
             features[index++] = pprpos;
             features[index++] = pdepsubcat;
@@ -300,86 +298,86 @@ public class FeatureExtractor {
             //psense_aw.append(psense);
             //psense_aw.append(" ");
             //psense_aw.append(aw);
-            String psense_aw = psense + " " + aw;
+            String psense_aw = pSense + " " + aw;
             features[index++] = psense_aw;
             //StringBuilder psense_apos = new StringBuilder();
             //psense_apos.append(psense);
             //psense_apos.append(" ");
             //psense_apos.append(apos);
-            String psense_apos = psense +" "+apos;
+            String psense_apos = pSense +" "+apos;
             features[index++] = psense_apos;
             //StringBuilder psense_adeprel = new StringBuilder();
             //psense_adeprel.append(psense);
             //psense_adeprel.append(" ");
             //psense_adeprel.append(adeprel);
-            String psense_adeprel = psense + " "+ adeprel;
+            String psense_adeprel = pSense + " "+ adeprel;
             features[index++] = psense_adeprel;
             //StringBuilder psense_deprelpath = new StringBuilder();
             //psense_deprelpath.append(psense);
             //psense_deprelpath.append(" ");
             //psense_deprelpath.append(deprelpath);
-            String psense_deprelpath = psense + " "+ deprelpath;
+            String psense_deprelpath = pSense + " "+ deprelpath;
             features[index++] = psense_deprelpath;
             //StringBuilder psense_pospath = new StringBuilder();
             //psense_pospath.append(psense);
             //psense_pospath.append(" ");
             //psense_pospath.append(pospath);
-            String psense_pospath = psense + " "+ pospath;
+            String psense_pospath = pSense + " "+ pospath;
             features[index++] = psense_pospath;
             //StringBuilder psense_position = new StringBuilder();
             //psense_position.append(psense);
             //psense_position.append(" ");
             //psense_position.append(position);
-            String psense_position = psense + " " +position;
+            String psense_position = pSense + " " +position;
             features[index++] = psense_position;
             //StringBuilder psense_leftw = new StringBuilder();
             //psense_leftw.append(psense);
             //psense_leftw.append(" ");
             //psense_leftw.append(leftw);
-            String psense_leftw = psense + " " + leftw;
+            String psense_leftw = pSense + " " + leftw;
             features[index++] = psense_leftw;
             //StringBuilder psense_leftpos = new StringBuilder();
             //psense_leftpos.append(psense);
             //psense_leftpos.append(" ");
             //psense_leftpos.append(leftpos);
-            String psense_leftpos = psense + " " + leftpos;
+            String psense_leftpos = pSense + " " + leftpos;
             features[index++] = psense_leftpos;
             //StringBuilder psense_rightw = new StringBuilder();
             //psense_rightw.append(psense);
             //psense_rightw.append(" ");
             //psense_rightw.append(rightw);
-            String psense_rightw = psense + " " + rightw;
+            String psense_rightw = pSense + " " + rightw;
             features[index++] = psense_rightw;
             //StringBuilder psense_rightpos = new StringBuilder();
             //psense_rightpos.append(psense);
             //psense_rightpos.append(" ");
             //psense_rightpos.append(rightpos);
-            String psense_rightpos = psense + " " + rightpos;
+            String psense_rightpos = pSense + " " + rightpos;
             features[index++] = psense_rightpos;
             //StringBuilder psense_leftsiblingw = new StringBuilder();
             //psense_leftsiblingw.append(psense);
             //psense_leftsiblingw.append(" ");
             //psense_leftsiblingw.append(leftsiblingw);
-            String psense_leftsiblingw = psense +" " + leftsiblingw;
+            String psense_leftsiblingw = pSense +" " + leftsiblingw;
             features[index++] = psense_leftsiblingw;
             //StringBuilder psense_leftsiblingpos = new StringBuilder();
             //psense_leftsiblingpos.append(psense);
             //psense_leftsiblingpos.append(" ");
             //psense_leftsiblingpos.append(leftsiblingpos);
-            String psense_leftsiblingpos = psense + " " + leftsiblingpos;
+            String psense_leftsiblingpos = pSense + " " + leftsiblingpos;
             features[index++] = psense_leftsiblingpos;
             //StringBuilder psense_rightsiblingw = new StringBuilder();
             //psense_rightsiblingw.append(psense);
             //psense_rightsiblingw.append(" ");
             //psense_rightsiblingw.append(rightsiblingw);
-            String psense_rightsiblingw = psense +" "+rightsiblingw;
+            String psense_rightsiblingw = pSense +" "+rightsiblingw;
             features[index++] = psense_rightsiblingw;
             //StringBuilder psense_rightsiblingpos = new StringBuilder();
             //psense_rightsiblingpos.append(psense);
             //psense_rightsiblingpos.append(psense);
             //psense_rightsiblingpos.append(" ");
             //psense_rightsiblingpos.append(rightsiblingpos);
-            String psense_rightsiblingpos = psense +" "+rightsiblingpos;
+            String psense_rightsiblingpos = pSense +" "+rightsiblingpos;
             features[index++] = psense_rightsiblingpos;
 
 
