@@ -102,12 +102,12 @@ public class PD {
         int[] sentenceLemmas = sentence.getLemmas();
         int[] sentencePOSTags = sentence.getPosTags();
         HashMap<Integer, String> predictions = new HashMap<Integer, String>();
+        //given the fact that we know which words are predicates and we just want to disambiguate them
         for (PA pa : pas) {
             int pIdx = pa.getPredicateIndex();
-            String pLabel = pa.getPredicateLabel();
             int plem = sentenceLemmas[pIdx];
             int ppos = sentencePOSTags[pIdx];
-            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, pLabel , -1, sentence, "PD", 11, indexMap);
+            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, "" , -1, sentence, "PD", 11, indexMap);
             f1 = new File(modelDir + "/" + plem + "_" + ppos);
             if (f1.exists() && !f1.isDirectory()) {
                 AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);

@@ -26,7 +26,7 @@ public class Train {
                               int numOfAIFeatures, int numOfACFeatures) throws Exception
     {
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
-        HashSet<String> argLabels = obtainLabels(trainSentencesInCONLLFormat);
+        HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
 
         final IndexMap indexMap = new IndexMap(trainData);
 
@@ -55,12 +55,12 @@ public class Train {
 
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
-        HashSet<String> argLabels = obtainLabels(trainSentencesInCONLLFormat);
+        HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         argLabels.add("0");
         final IndexMap indexMap = new IndexMap(trainData);
 
         //training PD module
-        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
+        //PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
 
         AveragedPerceptron ap = new AveragedPerceptron(argLabels, numOfFeatures);
 
@@ -93,7 +93,7 @@ public class Train {
             endTime = System.currentTimeMillis();
             System.out.println("Total time of this iteration: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
-
+            /*
             System.out.println("****** DEV RESULTS ******");
             System.out.println("Making prediction on dev data started...");
             startTime = System.currentTimeMillis();
@@ -106,13 +106,13 @@ public class Train {
                     System.out.println(d+"/"+devSentencesInCONLLFormat.size());
 
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
-                decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures);
+                decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, modelDir);
             }
 
-            decoder.computePrecisionRecall("joint");
+            //decoder.computePrecisionRecall("joint");
             endTime = System.currentTimeMillis();
             System.out.println("Total time for decoding on dev data: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
+            */
         }
 
         System.out.print("\nSaving final model (including indexMap)...");
@@ -467,25 +467,5 @@ public class Train {
         return new Object[]{sampledFeatVectors, sampledLabels};
     }
 
-    private HashSet<String> obtainLabels (List<String> sentences) {
-        System.out.println("Getting set of labels...");
-        HashSet<String> labels = new HashSet<String>();
-
-        int counter = 0;
-        for (String sentence : sentences) {
-            counter++;
-            if (counter % 1000 == 0)
-                System.out.println(counter + "/" + sentences.size());
-
-            String[] tokens = sentence.trim().split("\n");
-            for (String token : tokens) {
-                String[] fields= token.split("\t");
-                for (int k=14 ; k< fields.length; k++)
-                    if (!fields[k].equals("_"))
-                        labels.add(fields[k]);
-            }
-        }
-        return labels;
-    }
 
 }

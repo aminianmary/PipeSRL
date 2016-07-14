@@ -6,10 +6,7 @@ import SupervisedSRL.Strcutures.Prediction;
 import apple.laf.JRSUIUtils;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Created by monadiab on 4/12/16.
@@ -61,6 +58,7 @@ public class IO {
         }
         return sentences;
     }
+
 
     public static ArrayList<String> readPlainFile(String plainFile) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(plainFile)));
@@ -145,9 +143,14 @@ public class IO {
                 for (int pIdx:predictionForThisSentence.keySet())
                 {
                     HashMap<Integer, Integer> argumentLabels = predictionForThisSentence.get(pIdx).getArgumentLabels();
-                    if (argumentLabels.containsKey(realWordIdx))
-                        //word is an argument
-                        outputWriter.write("\t"+labelMap[argumentLabels.get(realWordIdx)]);
+                    if (argumentLabels.containsKey(realWordIdx)) {
+                        if (!labelMap[argumentLabels.get(realWordIdx)].equals("0"))
+                            //word is an argument
+                            outputWriter.write("\t" + labelMap[argumentLabels.get(realWordIdx)]);
+                        else
+                            //word is not an argument for this predicate
+                            outputWriter.write("\t_");
+                    }
                     else
                         //word is not an argument for this predicate
                         outputWriter.write("\t_");
@@ -155,7 +158,7 @@ public class IO {
 
                 outputWriter.write("\n");
             }
-            outputWriter.write("\n\n");
+            outputWriter.write("\n");
         }
         outputWriter.flush();
         outputWriter.close();
@@ -190,4 +193,27 @@ public class IO {
         }
         return sentenceForOutput;
     }
+
+
+    public static HashSet<String> obtainLabels (List<String> sentences) {
+        System.out.println("Getting set of labels...");
+        HashSet<String> labels = new HashSet<String>();
+
+        int counter = 0;
+        for (String sentence : sentences) {
+            counter++;
+            if (counter % 1000 == 0)
+                System.out.println(counter + "/" + sentences.size());
+
+            String[] tokens = sentence.trim().split("\n");
+            for (String token : tokens) {
+                String[] fields= token.split("\t");
+                for (int k=14 ; k< fields.length; k++)
+                    if (!fields[k].equals("_"))
+                        labels.add(fields[k]);
+            }
+        }
+        return labels;
+    }
+
 }
