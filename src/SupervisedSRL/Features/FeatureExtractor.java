@@ -861,12 +861,9 @@ public class FeatureExtractor {
             features[index++] = pw;
             features[index++] = ppos;
             features[index++] = pdeprel;
-        //    for (String feat:pfeats.split("|"))
-         //       features[index++] = feat;
             features[index++] = pprw;
             features[index++] = pprpos;
-          //  for (String feat:pprfeats.split("|"))
-          //      features[index++] = feat;
+            features[index++] = pdepsubcat;
             features[index++] = pchilddepset;
             features[index++] = pchildposset;
             features[index++] = pchildwset;

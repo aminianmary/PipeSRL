@@ -4,6 +4,8 @@ import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.IndexMap;
 import ml.AveragedPerceptron;
 
+import java.util.HashMap;
+
 
 /**
  * Created by monadiab on 5/25/16.
@@ -36,10 +38,10 @@ public class Pipeline {
                  IndexMap indexMap = modelInfo.getIndexMap();
                  Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
                          indexMap,
-                         devData, modelInfo.getClassifier().getLabelMap(),
+                         trainData, modelInfo.getClassifier().getLabelMap(),
                          aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
 
-                 Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
+                 Evaluation.evaluate(outputFile, trainData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
 
              }
              else {
@@ -51,12 +53,13 @@ public class Pipeline {
                  AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[1]);
                  Decoder.decode(new Decoder(aiClassifier, acClassifier),
                          aiModelInfo.getIndexMap(),
-                         devData, acClassifier.getLabelMap(),
+                         trainData, acClassifier.getLabelMap(),
                          aiMaxBeamSize, acMaxBeamSize,
                          numOfFeatures, modelDir, outputFile);
 
-                 Evaluation.evaluate(outputFile, devData, indexMap, acClassifier.getReverseLabelMap());
-
+                 HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
+                 reverseLabelMap.put("0", reverseLabelMap.size());
+                 Evaluation.evaluate(outputFile, trainData, indexMap, reverseLabelMap);
              }
          }
          else if (decodeOnly==true)
@@ -84,7 +87,9 @@ public class Pipeline {
                          aiMaxBeamSize, acMaxBeamSize,
                          numOfFeatures, modelDir, outputFile);
 
-                 Evaluation.evaluate(outputFile, devData, indexMap, acClassifier.getReverseLabelMap());
+                 HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
+                 reverseLabelMap.put("0", reverseLabelMap.size()+1);
+                 Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
 
              }
          }

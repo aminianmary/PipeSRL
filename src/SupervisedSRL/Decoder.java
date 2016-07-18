@@ -112,8 +112,9 @@ public class Decoder {
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
-            predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, modelDir);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
+
+            predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, modelDir);
         }
 
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap ,outputFile);
@@ -428,9 +429,18 @@ public class Decoder {
 
     public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                                                                int acMaxBeamSize, int numOfFeatures, String modelDir) throws Exception {
+
         //Predicate disambiguation step
         System.out.println("Disambiguating predicates of this sentence...");
         HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+
+        /*
+        HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
+        ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        for (PA pa: goldPAs)
+            predictedPredicates.put(pa.getPredicateIndex(), pa.getPredicateLabel());
+        */
+
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
 
         if (predictedPredicates.keySet().size()==0)
@@ -462,15 +472,17 @@ public class Decoder {
     public TreeMap<Integer, Prediction> predictJoint(Sentence sentence, IndexMap indexMap,
                                                                     int maxBeamSize, int numOfFeatures,
                                                                     String modelDir) throws Exception {
-        /*
+
         //Predicate disambiguation step
         System.out.println("Disambiguating predicates of this sentence...");
         HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
-        */
+
+        /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa: goldPAs)
             predictedPredicates.put(pa.getPredicateIndex(), pa.getPredicateLabel());
+         */
 
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
 

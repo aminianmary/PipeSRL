@@ -30,8 +30,10 @@ public class Train {
 
         final IndexMap indexMap = new IndexMap(trainData);
 
+
         //training PD module
         PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
+
 
         //training AI and AC models separately
         String aiModelPath = trainAI(trainSentencesInCONLLFormat, indexMap,
@@ -60,7 +62,7 @@ public class Train {
         final IndexMap indexMap = new IndexMap(trainData);
 
         //training PD module
-        //PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
+        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
 
         AveragedPerceptron ap = new AveragedPerceptron(argLabels, numOfFeatures);
 

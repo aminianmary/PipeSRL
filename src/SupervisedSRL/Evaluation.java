@@ -23,7 +23,7 @@ public class Evaluation {
 
         List<String> systemOutputInCONLLFormat = IO.readCoNLLFile(systemOutput);
         List<String> goldOutputInCONLLFormat = IO.readCoNLLFile(goldOutput);
-        HashSet<String> argLabels= IO.obtainLabels(goldOutputInCONLLFormat);
+        Set<String> argLabels= reverseLabelMap.keySet();
 
         int correctPLabel =0;
         int wrongPLabel =0;
@@ -85,6 +85,7 @@ public class Evaluation {
                             aiConfusionMatrix = (int[][]) confusionMatrices[0];
                             acConfusionMatrix = (HashMap<Integer, int[]>) confusionMatrices[1];
                         }
+                        break;
                     }
                 }
             }
@@ -103,37 +104,37 @@ public class Evaluation {
         ArrayList<Argument> goldArgs = pa.getArguments();
         HashMap<Integer, String> goldArgMap = getGoldArgMap(goldArgs);
         Set<Integer> goldArgsIndices = goldArgMap.keySet();
+        Set<Integer> sysOutArgIndices = getNonZeroArgs(highestScorePrediction);
+
 
         HashSet<Integer> exclusiveGoldArgIndices = new HashSet(goldArgsIndices);
-        HashSet<Integer> commonGoldPredictedArgIndices = new HashSet(highestScorePrediction.keySet());
-        HashSet<Integer> exclusivePredicatedArgIndices = new HashSet(highestScorePrediction.keySet());
+        HashSet<Integer> commonGoldPredictedArgIndices = new HashSet(sysOutArgIndices);
+        HashSet<Integer> exclusivePredicatedArgIndices = new HashSet(sysOutArgIndices);
 
         exclusivePredicatedArgIndices.removeAll(goldArgsIndices); //contains argument indices only identified by AI module
         commonGoldPredictedArgIndices.retainAll(goldArgsIndices);
-        exclusiveGoldArgIndices.removeAll(highestScorePrediction.keySet());
+        exclusiveGoldArgIndices.removeAll(sysOutArgIndices);
 
         aiConfusionMatrix[1][1] += commonGoldPredictedArgIndices.size();
         aiConfusionMatrix[1][0] += exclusivePredicatedArgIndices.size();
         aiConfusionMatrix[0][1] += exclusiveGoldArgIndices.size();
 
-        for (int predictedArgIdx : highestScorePrediction.keySet()) {
+        for (int predictedArgIdx : sysOutArgIndices) {
             int predictedLabel = highestScorePrediction.get(predictedArgIdx);
             if (goldArgMap.containsKey(predictedArgIdx)) {
-                //ai_tp --> (ac_tp/ac_fp)
                 int goldLabel = reverseLabelMap.get(goldArgMap.get(predictedArgIdx));
                 acConfusionMatrix.get(predictedLabel)[goldLabel]++;
             } else {
-                //ai_fp --> ac_fp
-                acConfusionMatrix.get(predictedLabel)[acConfusionMatrix.size() - 1]++;
+                acConfusionMatrix.get(predictedLabel)[reverseLabelMap.get("0")]++;
             }
         }
 
         //update acConfusionMatrix for false negatives
         for (int goldArgIdx : goldArgMap.keySet()) {
-            if (!highestScorePrediction.containsKey(goldArgIdx)) {
+            if (!sysOutArgIndices.contains(goldArgIdx)) {
                 //ai_fn --> ac_fn
                 int goldLabel = reverseLabelMap.get(goldArgMap.get(goldArgIdx));
-                acConfusionMatrix.get(acConfusionMatrix.size() - 1)
+                acConfusionMatrix.get(reverseLabelMap.get("0"))
                         [goldLabel]++;
             }
         }
@@ -164,17 +165,19 @@ public class Evaluation {
         int total_gold = 0;
 
         //multi-class classification
-        for (int predicatedLabel : acConfusionMatrix.keySet()) {
-            if (predicatedLabel != acConfusionMatrix.size() - 1) {
+        for (int predicatedLabel : acConfusionMatrix.keySet())
+        {
+            if (predicatedLabel!=reverseLabelMap.get("0"))
+            {
+                //for real arguments
                 int tp = acConfusionMatrix.get(predicatedLabel)[predicatedLabel]; //element on the diagonal
                 total_tp += tp;
 
-                int total_prediction = 0;
+                int total_prediction_4_this_label = 0;
                 for (int element : acConfusionMatrix.get(predicatedLabel))
-                    total_prediction += element;
+                    total_prediction_4_this_label += element;
 
-                if (predicatedLabel != acConfusionMatrix.size() - 1)
-                    total_ac_predictions += total_prediction;
+                total_ac_predictions += total_prediction_4_this_label;
 
                 int total_gold_4_this_label = 0;
 
@@ -183,7 +186,7 @@ public class Evaluation {
 
                 total_gold += total_gold_4_this_label;
 
-                double precision = 100. * (double) tp / total_prediction;
+                double precision = 100. * (double) tp / total_prediction_4_this_label;
                 double recall = 100. * (double) tp / total_gold_4_this_label;
                 System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
                 System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
