@@ -858,7 +858,7 @@ public class FeatureExtractor {
         //build feature vector for predicate disambiguation module
         if (state.equals("PD")) {
             int index = 0;
-            features[index++] = pw;
+            //features[index++] = pw;
             features[index++] = ppos;
             features[index++] = pdeprel;
             features[index++] = pprw;
