@@ -38,10 +38,10 @@ public class Pipeline {
                  IndexMap indexMap = modelInfo.getIndexMap();
                  Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
                          indexMap,
-                         trainData, modelInfo.getClassifier().getLabelMap(),
+                         devData, modelInfo.getClassifier().getLabelMap(),
                          aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
 
-                 Evaluation.evaluate(outputFile, trainData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
+                 Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
 
              }
              else {
@@ -53,13 +53,13 @@ public class Pipeline {
                  AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[1]);
                  Decoder.decode(new Decoder(aiClassifier, acClassifier),
                          aiModelInfo.getIndexMap(),
-                         trainData, acClassifier.getLabelMap(),
+                         devData, acClassifier.getLabelMap(),
                          aiMaxBeamSize, acMaxBeamSize,
                          numOfFeatures, modelDir, outputFile);
 
                  HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
                  reverseLabelMap.put("0", reverseLabelMap.size());
-                 Evaluation.evaluate(outputFile, trainData, indexMap, reverseLabelMap);
+                 Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
              }
          }
          else if (decodeOnly==true)
