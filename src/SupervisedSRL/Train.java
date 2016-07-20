@@ -30,12 +30,10 @@ public class Train {
 
         final IndexMap indexMap = new IndexMap(trainData);
 
-
-        //training PD module
+        //////////////////////////////////// training PD module /////////////////////////////
         PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir);
 
-
-        //training AI and AC models separately
+        //////////////////////////////// training AI and AC models separately ///////////////
         String aiModelPath = trainAI(trainSentencesInCONLLFormat, indexMap,
                 numberOfTrainingIterations, modelDir, numOfAIFeatures);
 

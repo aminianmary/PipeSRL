@@ -61,7 +61,19 @@ public class Decoder {
         }
     }
 
-
+    /**
+     * pipeline decoding
+     * @param decoder
+     * @param indexMap
+     * @param devDataPath
+     * @param labelMap
+     * @param aiMaxBeamSize
+     * @param acMaxBeamSize
+     * @param numOfFeatures
+     * @param modelDir
+     * @param outputFile
+     * @throws Exception
+     */
     public static void decode (Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
                                int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures, String modelDir,String outputFile) throws Exception
     {
@@ -91,7 +103,18 @@ public class Decoder {
 
     }
 
-
+    /**
+     * joint decoding
+     * @param decoder
+     * @param indexMap
+     * @param devData
+     * @param labelMap
+     * @param maxBeamSize
+     * @param numOfFeatures
+     * @param modelDir
+     * @param outputFile
+     * @throws Exception
+     */
     public static void decode (Decoder decoder, IndexMap indexMap, String devData,
                                String[] labelMap,
                                int maxBeamSize, int numOfFeatures,

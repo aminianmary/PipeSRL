@@ -155,6 +155,20 @@ public class AveragedPerceptron  implements Serializable {
                     score[i+ offset] += w.getArray()[i];
             }
         }
+        /*
+        double sum =0;
+        for (int i=0; i< score.length; i++)
+        {
+            score[i] = Math.exp(score[i]);
+            sum +=  score[i];
+        }
+
+        for (int i=0; i< score.length; i++)
+        {
+            score[i] /= sum;
+            score[i] = Math.log(score[i]);
+        }
+        */
         return score;
     }
 
