@@ -20,7 +20,6 @@ public class FeatureExtractor {
     public static Object[] extractFeatures(int pIdx, String pSense, int aIdx, Sentence sentence, String state, int length,
                                            IndexMap indexMap) {
 
-        // todo object; int; respectively
         Object[] features = new Object [length];
         int[] sentenceDepLabels = sentence.getDepLabels();
         int[] sentenceDepHeads = sentence.getDepHeads();

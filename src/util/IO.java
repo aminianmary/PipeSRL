@@ -110,7 +110,6 @@ public class IO {
 
     public static void writePredictionsInCoNLLFormat (ArrayList<ArrayList<String>> sentencesForOutput,
                                                      TreeMap<Integer, Prediction>[] predictedPAs,
-                                                      String[] labelMap,
                                                       String outputFile)
             throws IOException
     {
@@ -142,11 +141,11 @@ public class IO {
                 //checking if this word has been an argument for other predicates or not (fields 14-end)
                 for (int pIdx:predictionForThisSentence.keySet())
                 {
-                    HashMap<Integer, Integer> argumentLabels = predictionForThisSentence.get(pIdx).getArgumentLabels();
+                    HashMap<Integer, String> argumentLabels = predictionForThisSentence.get(pIdx).getArgumentLabels();
                     if (argumentLabels.containsKey(realWordIdx)) {
-                        if (!labelMap[argumentLabels.get(realWordIdx)].equals("0"))
+                        if (!argumentLabels.get(realWordIdx).equals("0"))
                             //word is an argument
-                            outputWriter.write("\t" + labelMap[argumentLabels.get(realWordIdx)]);
+                            outputWriter.write("\t" + argumentLabels.get(realWordIdx));
                         else
                             //word is not an argument for this predicate
                             outputWriter.write("\t_");

@@ -9,14 +9,14 @@ import java.util.HashMap;
  */
 public class Prediction {
     String predicateLabel;
-    HashMap<Integer, Integer> argumentLabels;
+    HashMap<Integer, String> argumentLabels;
 
     public Prediction()
     {
         predicateLabel= "";
-        argumentLabels= new HashMap<Integer, Integer>();
+        argumentLabels= new HashMap<Integer, String>();
     }
-    public Prediction(String predicatedPredicateLabel, HashMap<Integer, Integer> predicatedArgumentLabels)
+    public Prediction(String predicatedPredicateLabel, HashMap<Integer, String> predicatedArgumentLabels)
     {
         predicateLabel= predicatedPredicateLabel;
         argumentLabels = predicatedArgumentLabels;
@@ -24,5 +24,5 @@ public class Prediction {
 
     public String getPredicateLabel() {return predicateLabel;}
 
-    public HashMap<Integer, Integer> getArgumentLabels() {return argumentLabels;}
+    public HashMap<Integer, String> getArgumentLabels() {return argumentLabels;}
 }

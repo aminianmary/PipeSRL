@@ -26,6 +26,8 @@ public class PD {
 
         String inputFile = args[0];
         String modelDir = args[1];
+        int numOfIterations = Integer.parseInt(args[2]);
+        int numOfFeatures = 8;
 
         final IndexMap indexMap = new IndexMap(inputFile);
 
@@ -39,7 +41,7 @@ public class PD {
         List<String> test = sentencesInCONLLFormat.subList(trainSize, totalNumOfSentences);
 
         //training
-        train(train, indexMap, 10, modelDir);
+        train(train, indexMap, numOfIterations, numOfFeatures, modelDir);
 
         //prediction
         HashMap<Integer, String>[] predictions= new HashMap[test.size()];
@@ -47,19 +49,18 @@ public class PD {
         for (int senIdx=0; senIdx<test.size(); senIdx++) {
             boolean decode = true;
             Sentence sentence = new Sentence(test.get(senIdx), indexMap, decode);
-            predictions[senIdx] = predict(sentence, indexMap, modelDir);
+            predictions[senIdx] = predict(sentence, indexMap, numOfFeatures, modelDir);
         }
 
     }
 
 
-    public static void train (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, String modelDir)
+    public static void train (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, int numOfFeatures, String modelDir)
             throws Exception
     {
-    int pdFeatSize =11;
         //creates lexicon of all predicates in the trainJoint set
         HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> trainPLexicon =
-                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap);
+                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfFeatures);
 
         System.out.println("Training Started...");
 
@@ -71,7 +72,7 @@ public class PD {
                 HashSet<pLexiconEntry> featVectors= trainPLexicon.get(plem).get(ppos);
                 HashSet<String> labelSet= getLabels (featVectors);
 
-                AveragedPerceptron ap = new AveragedPerceptron(labelSet, pdFeatSize);
+                AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfFeatures);
 
                 //System.out.print("training model for predicate/pos -->"+ plem+"|"+ppos+"\n");
                 for (int i=0; i< numberOfTrainingIterations; i++)
@@ -96,7 +97,7 @@ public class PD {
     }
 
 
-    public static HashMap<Integer, String> predict (Sentence sentence, IndexMap indexMap, String modelDir) throws Exception {
+    public static HashMap<Integer, String> predict (Sentence sentence, IndexMap indexMap, int numOfFeatures, String modelDir) throws Exception {
         File f1;
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceLemmas = sentence.getLemmas();
@@ -107,7 +108,7 @@ public class PD {
             int pIdx = pa.getPredicateIndex();
             int plem = sentenceLemmas[pIdx];
             int ppos = sentencePOSTags[pIdx];
-            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, "" , -1, sentence, "PD", 11, indexMap);
+            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, "" , -1, sentence, "PD", numOfFeatures, indexMap);
             f1 = new File(modelDir + "/" + plem + "_" + ppos);
             if (f1.exists() && !f1.isDirectory()) {
                 AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);
@@ -121,7 +122,7 @@ public class PD {
 
 
     public static HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> buildPredicateLexicon
-            (List<String> sentencesInCONLLFormat, IndexMap indexMap)
+            (List<String> sentencesInCONLLFormat, IndexMap indexMap, int numOfFreatures)
     {
         HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> pLexicon=
                 new HashMap<Integer, HashMap<Integer, HashSet<pLexiconEntry>>>();
@@ -142,7 +143,7 @@ public class PD {
                 String plabel= pa.getPredicateLabel();
                 int ppos= sentencePOSTags[pIdx];
 
-                Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, plabel, -1 ,sentence, "PD", 11, indexMap);
+                Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, plabel, -1 ,sentence, "PD", numOfFreatures, indexMap);
                 pLexiconEntry ple= new pLexiconEntry(plabel, pdfeats);
 
                 if (!pLexicon.containsKey(plem))

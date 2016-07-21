@@ -18,52 +18,26 @@ import java.util.*;
  */
 public class Decoder {
 
-    AveragedPerceptron aiClassifier; //argument identification (binary classifier)
-    AveragedPerceptron acClassifier; //argument classification (multi-class classifier)
-    int[][] aiConfusionMatrix = new int[2][2];
-    HashMap<Integer, int[]> acConfusionMatrix = new HashMap<Integer, int[]>();
+    AveragedPerceptron aiNominalClassifier; //argument identification- Nominal (binary classifier)
+    AveragedPerceptron aiVerbalClassifier; //argument identification- Verbal (binary classifier)
+    AveragedPerceptron acNominalClassifier; //argument classification- Nominal (multi-class classifier)
+    AveragedPerceptron acVerbalClassifier; //argument classification- Verbal (multi-class classifier)
 
-    public Decoder(AveragedPerceptron classifier, String state) {
 
-        if (state.equals("AI")) {
-            aiConfusionMatrix[0][0] = 0;
-            aiConfusionMatrix[0][1] = 0;
-            aiConfusionMatrix[1][0] = 0;
-            aiConfusionMatrix[1][1] = 0;
-            this.aiClassifier = classifier;
-        }else if (state.equals("joint"))
-        {
-            Set<String> acLabelSet = classifier.getReverseLabelMap().keySet();
+    public Decoder(AveragedPerceptron aiNominalClassifier, AveragedPerceptron aiVerbalClassifier,
+                   AveragedPerceptron acNominalClassifier, AveragedPerceptron acVerbalClassifier) {
 
-            for (int k = 0; k < acLabelSet.size(); k++) {
-                int[] acGoldLabels = new int[acLabelSet.size()];
-                this.acConfusionMatrix.put(k, acGoldLabels);
-            }
-            this.acClassifier = classifier;
-        }
+        this.aiNominalClassifier = aiNominalClassifier;
+        this.aiVerbalClassifier = aiVerbalClassifier;
+        this.acNominalClassifier = acNominalClassifier;
+        this.acVerbalClassifier = acVerbalClassifier;
     }
 
 
-    public Decoder(AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier) {
-
-        this.aiClassifier = aiClassifier;
-        this.acClassifier = acClassifier;
-
-        aiConfusionMatrix[0][0] = 0;
-        aiConfusionMatrix[0][1] = 0;
-        aiConfusionMatrix[1][0] = 0;
-        aiConfusionMatrix[1][1] = 0;
-        Set<String> acLabelSet = acClassifier.getReverseLabelMap().keySet();
-
-        for (int k = 0; k < acLabelSet.size()+1; k++) {
-            int[] acGoldLabels = new int[acLabelSet.size()+1];
-            this.acConfusionMatrix.put(k, acGoldLabels);
-        }
-    }
-
-
-    public static void decode (Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
-                               int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures, String modelDir,String outputFile) throws Exception
+    public static void decode (Decoder decoder, IndexMap indexMap, String devDataPath,
+                               int aiMaxBeamSize, int acMaxBeamSize, int numOfPDFeatures,
+                               int numOfAINominalFeatures,int numOfAIVerbalFeatures,
+                               int numOfACNominalFeatures,int numOfACVerbalFeatures, String modelDir, String outputFile) throws Exception
     {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -80,12 +54,13 @@ public class Decoder {
 
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
-            //todo think about the correct way to show final predications
-            predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfFeatures, modelDir);
+            predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfPDFeatures,
+                    numOfAINominalFeatures, numOfAIVerbalFeatures, numOfACNominalFeatures, numOfACVerbalFeatures, modelDir);
+
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
         }
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap ,outputFile);
+        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, outputFile);
         long endTime = System.currentTimeMillis();
         System.out.println("Total time for decoding: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
@@ -93,8 +68,7 @@ public class Decoder {
 
 
     public static void decode (Decoder decoder, IndexMap indexMap, String devData,
-                               String[] labelMap,
-                               int maxBeamSize, int numOfFeatures,
+                               int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
                                String modelDir,
                                String outputFile) throws Exception
     {
@@ -114,10 +88,10 @@ public class Decoder {
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
-            predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, modelDir);
+            predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfPDFeatures, numOfFeatures, modelDir);
         }
 
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap ,outputFile);
+        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, outputFile);
         long endTime = System.currentTimeMillis();
         System.out.println("Total time for decoding: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
@@ -126,7 +100,7 @@ public class Decoder {
 
 
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
-            (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int maxBeamSize, int numOfFeatures)
+            (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int maxBeamSize, int numOfFeatures, boolean isNominal)
 
     {
         ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
@@ -141,8 +115,7 @@ public class Decoder {
 
             // retrieve candidates for the current word
             Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AI", numOfFeatures, indexMap);
-
-            double[] scores = aiClassifier.score(featVector);
+            double[] scores = (isNominal)? aiNominalClassifier.score(featVector): aiVerbalClassifier.score(featVector);
             double score0 = scores[0];
             double score1 = scores[1];
 
@@ -181,7 +154,8 @@ public class Decoder {
 
 
     //getting highest score AI candidate without Beam Search
-    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int numOfFeatures)
+    private HashMap<Integer, Integer> getHighestScoreAISeqWOBeamSearch(Sentence sentence, int pIdx, String pLabel,
+                                                                       IndexMap indexMap, int numOfFeatures, boolean isNominal)
     {
         int[] sentenceWords = sentence.getWords();
         HashMap<Integer, Integer> highestScoreAISeq = new HashMap<Integer, Integer>();
@@ -193,7 +167,7 @@ public class Decoder {
 
             // retrieve candidates for the current word
             Object[] featVector = FeatureExtractor.extractFeatures (pIdx, pLabel, wordIdx, sentence, "AI", numOfFeatures, indexMap);
-            double score1 = aiClassifier.score(featVector)[1];
+            double score1 = (isNominal) ? aiNominalClassifier.score(featVector)[1] : aiVerbalClassifier.score(featVector)[1];
 
             if (score1 >= 0) {
                 highestScoreAISeq.put(wordIdx, 1);
@@ -207,9 +181,10 @@ public class Decoder {
     private ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getBestACCandidates
             (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
              ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates,
-             int maxBeamSize, int numOfFeatures)
+             int maxBeamSize, int numOfFeatures, boolean isNominal)
 
     {
+        AveragedPerceptron acClassifier = (isNominal) ? acNominalClassifier : acVerbalClassifier;
         String[] labelMap = acClassifier.getLabelMap();
         ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> finalACCandidates =
                 new ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>>();
@@ -263,13 +238,14 @@ public class Decoder {
         return finalACCandidates;
     }
 
-
-    //this function is used to test ai-ac combination
+    //todo look into joint decoding later!
+    //this function is used for ai-ac joint decoding
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestCandidates
             (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
-             int maxBeamSize, int numOfFeatures)
+             int maxBeamSize, int numOfFeatures, boolean isNominal)
 
     {
+        AveragedPerceptron acClassifier = (isNominal) ? acNominalClassifier : acVerbalClassifier;
         String[] labelMap = acClassifier.getLabelMap();
 
             ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
@@ -301,7 +277,6 @@ public class Decoder {
                 ArrayList<Pair<Double, ArrayList<Integer>>> newBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>(maxBeamSize);
 
                 for (BeamElement beamElement : newBeamHeap) {
-                    //todo check if it works properly
                     ArrayList<Integer> newArrayList = (ArrayList<Integer>) currentBeam.get(beamElement.index).second.clone();
                     newArrayList.add(beamElement.label);
                     newBeam.add(new Pair<Double, ArrayList<Integer>>(beamElement.score, newArrayList));
@@ -327,9 +302,9 @@ public class Decoder {
     }
 
 
-    private HashMap<Integer, Integer> getHighestScorePredication
+    private HashMap<Integer, String> getHighestScorePredication
             (ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates,
-             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates) {
+             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates, boolean isNominal) {
 
         double highestScore = Double.MIN_VALUE;
         ArrayList<Integer> highestScoreACSeq = new ArrayList<Integer>();
@@ -349,15 +324,16 @@ public class Decoder {
         }
 
         //after finding highest score sequence in the list of AC candidates
-        HashMap<Integer, Integer> wordIndexLabelMap = new HashMap<Integer, Integer>();
+        HashMap<Integer, String> wordIndexLabelMap = new HashMap<Integer, String>();
         ArrayList<Integer> highestScoreAISeq= new ArrayList<Integer>();
+        String[] labelMap = (isNominal) ? acNominalClassifier.getLabelMap() : acVerbalClassifier.getLabelMap();
 
         if (highestScoreSeqAIIndex != -1)
             highestScoreAISeq= aiCandidates.get(highestScoreSeqAIIndex).second;
 
         for (int k = 0; k < highestScoreAISeq.size(); k++) {
             int argIdx = highestScoreAISeq.get(k);
-            wordIndexLabelMap.put(argIdx, highestScoreACSeq.get(k));
+            wordIndexLabelMap.put(argIdx, labelMap[highestScoreACSeq.get(k)]);
         }
 
         return wordIndexLabelMap;
@@ -383,25 +359,25 @@ public class Decoder {
         return wordIndexLabelMap;
     }
 
-
+    //todo check is it's implemented properly
     //this function is used to test ai-ac modules combined
-    private HashMap<Integer, Integer> getHighestScorePredicationJoint
-            (ArrayList<Pair<Double, ArrayList<Integer>>> candidates, int pIndex) {
+    private HashMap<Integer, String> getHighestScorePredicationJoint
+            (ArrayList<Pair<Double, ArrayList<Integer>>> candidates, int pIndex, boolean isNominal) {
 
         TreeSet<Pair<Double, ArrayList<Integer>>> acCandidates4ThisSeq = new TreeSet<Pair<Double, ArrayList<Integer>>>(candidates);
         Pair<Double, ArrayList<Integer>> highestScorePair = acCandidates4ThisSeq.pollLast();
 
         //after finding highest score sequence in the list of candidates
-        HashMap<Integer, Integer> wordIndexLabelMap = new HashMap<Integer, Integer>();
+        HashMap<Integer, String> wordIndexLabelMap = new HashMap<Integer, String>();
         ArrayList<Integer> highestScoreSeq = new ArrayList<Integer>();
 
         highestScoreSeq = highestScorePair.second;
-
+        String[] labelMap = (isNominal) ? acNominalClassifier.getLabelMap() : acVerbalClassifier.getLabelMap();
         int realIndex = 1;
         for (int k = 0; k < highestScoreSeq.size(); k++) {
             if (realIndex == pIndex)
                 realIndex++;
-            wordIndexLabelMap.put(realIndex, highestScoreSeq.get(k));
+            wordIndexLabelMap.put(realIndex, labelMap[highestScoreSeq.get(k)]);
             realIndex++;
         }
 
@@ -409,30 +385,35 @@ public class Decoder {
     }
 
 
-    public void predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize, int numOfFeatures, String modelDir)
+    //todo check this function when wanted to use dev evaluation later!
+    public void predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize, int numOfPDFeatures, int numOfAIFeatures, String modelDir)
             throws Exception
     {
         //Predicate disambiguation step
         System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, numOfPDFeatures, modelDir);
 
         for (int pIdx :predictedPredicates.keySet()) {
 
             // get best k argument assignment candidates
             String pLabel =predictedPredicates.get(pIdx);
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, pLabel, indexMap, aiMaxBeamSize, numOfFeatures);
+            boolean isNominal = isNominal(sentence.getPosTags()[pIdx], indexMap);
+            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, pLabel,
+                    indexMap, aiMaxBeamSize, numOfAIFeatures, isNominal);
             HashMap<Integer, Integer> highestScorePrediction  = getHighestScorePredication(aiCandidates);
         }
 
     }
 
 
-    public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                               int acMaxBeamSize, int numOfFeatures, String modelDir) throws Exception {
+    public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize, int acMaxBeamSize,
+                                                int numOfPDFeatures,
+                                                int numOfAINominalFeatures,int numOfAIVerbalFeatures,
+                                                int numOfACNominalFeatures,  int numOfACVerbalFeatures,  String modelDir) throws Exception {
 
         //Predicate disambiguation step
         System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, numOfPDFeatures,  modelDir);
 
         /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
@@ -449,33 +430,37 @@ public class Decoder {
         for (int pIdx :predictedPredicates.keySet()) {
             // get best k argument assignment candidates
             String pLabel =predictedPredicates.get(pIdx);
+            boolean isNominal = isNominal(sentence.getPosTags()[pIdx], indexMap);
+            int numOfAIFeatures = (isNominal) ? numOfAINominalFeatures : numOfAIVerbalFeatures;
+            int numOfACFeatures = (isNominal) ? numOfACNominalFeatures : numOfACVerbalFeatures;
+
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence,
                     pIdx, pLabel, indexMap,
-                    aiMaxBeamSize, numOfFeatures);
+                    aiMaxBeamSize, numOfAIFeatures, isNominal);
 
             // get best <=l argument label for each of these k assignments
             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
-                    pIdx, pLabel,
-                    indexMap, aiCandidates, acMaxBeamSize, numOfFeatures);
-            HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
+                    pIdx, pLabel, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, isNominal);
 
-            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pIdx,pLabel ,
-                    indexMap, numOfFeatures);
+            HashMap<Integer, String> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates, isNominal);
+
+            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeqWOBeamSearch(sentence, pIdx,pLabel ,
+                    indexMap, numOfAIFeatures, isNominal);
 
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
         return predictedPAs;
     }
 
-
+    //todo look into this function for joint decoding
     //this function is used to test ai-ac modules combination
     public TreeMap<Integer, Prediction> predictJoint(Sentence sentence, IndexMap indexMap,
-                                                                    int maxBeamSize, int numOfFeatures,
+                                                                    int maxBeamSize, int numOfPDFeatures, int numOfFeatures,
                                                                     String modelDir) throws Exception {
 
         //Predicate disambiguation step
         System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, numOfPDFeatures, modelDir);
 
         /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
@@ -488,12 +473,23 @@ public class Decoder {
 
         for (int pIdx :predictedPredicates.keySet()) {
             String pLabel =predictedPredicates.get(pIdx);
-            ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pIdx, pLabel, indexMap, maxBeamSize, numOfFeatures);
-            HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredicationJoint(candidates, pIdx);
+            boolean isNominal = isNominal(sentence.getPosTags()[pIdx], indexMap);
+            ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pIdx, pLabel, indexMap, maxBeamSize, numOfFeatures, isNominal);
+            HashMap<Integer, String> highestScorePrediction = getHighestScorePredicationJoint(candidates, pIdx, isNominal);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
 
         }
         return predictedPAs;
     }
 
+
+    private static boolean isNominal (int ppos, IndexMap indexMap)
+    {
+        String[] int2StringMap = indexMap.getInt2stringMap();
+        String pos = int2StringMap[ppos];
+        if (pos.startsWith("VB"))
+            return false;
+        else
+            return true;
+    }
 }

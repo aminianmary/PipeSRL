@@ -5,8 +5,8 @@ import SupervisedSRL.Strcutures.IndexMap;
 import ml.AveragedPerceptron;
 
 import java.util.HashMap;
-
-
+import java.util.Set;
+import java.util.HashSet;
 /**
  * Created by monadiab on 5/25/16.
  */
@@ -24,14 +24,20 @@ public class Pipeline {
          int numOfTrainingIterations = Integer.parseInt(args[6]);
          boolean decodeJoint = Boolean.parseBoolean(args[7]);
          boolean decodeOnly = Boolean.parseBoolean(args[8]);
+         //todo change this numbers
+         int numOfAINominalFeatures = 31;
+         int numOfAIVerbalFeatures = 31;
+         int numOfACNomialFeatures = 44;
+         int numOfACVerbalFeatures = 76;
+         int numOfPDFeatures =8;
 
-         int numOfFeatures = 188;
 
          if (decodeOnly==false)
          {
              Train train= new Train();
              String[] modelPaths = new String[2];
              if (decodeJoint==true) {
+                 /*
                  //joint decoding
                  modelPaths[0] =train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
                  ModelInfo modelInfo = new ModelInfo(modelPaths[0]);
@@ -41,30 +47,48 @@ public class Pipeline {
                          devData, modelInfo.getClassifier().getLabelMap(),
                          aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
 
+                 Set<String> argLabels = acNominalClassifier.getReverseLabelMap().keySet();
+                 argLabels.addAll(acVerbalClassifier.getReverseLabelMap().keySet());
+                 argLabels.add("0");
+
                  Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
+                 */
 
              }
              else {
                  //stacked decoding
-                 modelPaths= train.train(trainData, numOfTrainingIterations, modelDir, numOfFeatures, numOfFeatures);
-                 ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
-                 IndexMap indexMap = aiModelInfo.getIndexMap();
-                 AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
-                 AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[1]);
-                 Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                         aiModelInfo.getIndexMap(),
-                         devData, acClassifier.getLabelMap(),
-                         aiMaxBeamSize, acMaxBeamSize,
-                         numOfFeatures, modelDir, outputFile);
+                 modelPaths= train.train(trainData, numOfTrainingIterations, modelDir, numOfPDFeatures,
+                         numOfAINominalFeatures, numOfAIVerbalFeatures, numOfACNomialFeatures, numOfACVerbalFeatures);
 
-                 HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
-                 reverseLabelMap.put("0", reverseLabelMap.size());
-                 Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                 String aiModelPath = modelPaths[0];
+                 String acModelPath = modelPaths[1];
+
+                 ModelInfo aiModelInfo = new ModelInfo(aiModelPath, true);
+                 IndexMap indexMap = aiModelInfo.getIndexMap();
+                 AveragedPerceptron aiNominalClassifier = aiModelInfo.getNominalClassifier();
+                 AveragedPerceptron aiVerbalClassifier = aiModelInfo.getVerbalClassifier();
+
+                 ModelInfo acModelInfo = new ModelInfo(acModelPath, false);
+                 AveragedPerceptron acNominalClassifier = acModelInfo.getNominalClassifier();
+                 AveragedPerceptron acVerbalClassifier = acModelInfo.getVerbalClassifier();
+
+                 Decoder.decode(new Decoder(aiNominalClassifier, aiVerbalClassifier, acNominalClassifier, acVerbalClassifier),
+                         aiModelInfo.getIndexMap(),
+                         trainData, aiMaxBeamSize, acMaxBeamSize, numOfPDFeatures,
+                         numOfAINominalFeatures, numOfAIVerbalFeatures, numOfACNomialFeatures, numOfACVerbalFeatures, modelDir, outputFile);
+
+                 HashSet<String> argLabels = new HashSet<String>(acNominalClassifier.getReverseLabelMap().keySet());
+                 for (String label:acVerbalClassifier.getReverseLabelMap().keySet())
+                    argLabels.add(label);
+                 argLabels.add("0");
+
+                 Evaluation.evaluate(outputFile, trainData, indexMap, argLabels);
              }
          }
          else if (decodeOnly==true)
          {
              if (decodeJoint==true) {
+                 /*
                  //joint decoding
                  ModelInfo modelInfo = new ModelInfo(modelDir+"/joint.model");
                  IndexMap indexMap = modelInfo.getIndexMap();
@@ -74,22 +98,29 @@ public class Pipeline {
                          aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
 
                  Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
+                 */
              }
              else {
                  //stacked decoding
-                 ModelInfo aiModelInfo = new ModelInfo(modelDir + "/AI.model");
+                 ModelInfo aiModelInfo = new ModelInfo(modelDir + "/AI.model", true);
                  IndexMap indexMap = aiModelInfo.getIndexMap();
-                 AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
-                 AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelDir + "/AC.model");
-                 Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                         aiModelInfo.getIndexMap(),
-                         devData, acClassifier.getLabelMap(),
-                         aiMaxBeamSize, acMaxBeamSize,
-                         numOfFeatures, modelDir, outputFile);
+                 AveragedPerceptron aiNominalClassifier = aiModelInfo.getNominalClassifier();
+                 AveragedPerceptron aiVerbalClassifier = aiModelInfo.getVerbalClassifier();
 
-                 HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
-                 reverseLabelMap.put("0", reverseLabelMap.size()+1);
-                 Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                 ModelInfo acModelInfo = new ModelInfo(modelDir + "/AC.model", false);
+                 AveragedPerceptron acNominalClassifier = acModelInfo.getNominalClassifier();
+                 AveragedPerceptron acVerbalClassifier = acModelInfo.getVerbalClassifier();
+
+                 Decoder.decode(new Decoder(aiNominalClassifier, aiVerbalClassifier, acNominalClassifier, acVerbalClassifier),
+                         aiModelInfo.getIndexMap(),
+                         devData, aiMaxBeamSize, acMaxBeamSize, numOfPDFeatures,
+                         numOfAINominalFeatures, numOfAIVerbalFeatures, numOfACNomialFeatures, numOfACVerbalFeatures, modelDir, outputFile);
+
+                 Set<String> argLabels = acNominalClassifier.getReverseLabelMap().keySet();
+                 argLabels.addAll(acVerbalClassifier.getReverseLabelMap().keySet());
+                 argLabels.add("0");
+
+                 Evaluation.evaluate(outputFile, devData, indexMap, argLabels);
 
              }
          }
