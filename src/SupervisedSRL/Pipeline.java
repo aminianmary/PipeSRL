@@ -24,73 +24,76 @@ public class Pipeline {
          int numOfTrainingIterations = Integer.parseInt(args[6]);
          boolean decodeJoint = Boolean.parseBoolean(args[7]);
          boolean decodeOnly = Boolean.parseBoolean(args[8]);
+         boolean evalOnly = Boolean.parseBoolean(args[9]);
 
          int numOfFeatures = 188;
 
-         if (decodeOnly==false)
+         if (evalOnly)
          {
-             Train train= new Train();
-             String[] modelPaths = new String[2];
-             if (decodeJoint==true) {
-                 //joint decoding
-                 modelPaths[0] =train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
-                 ModelInfo modelInfo = new ModelInfo(modelPaths[0]);
-                 IndexMap indexMap = modelInfo.getIndexMap();
-                 Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
-                         indexMap,
-                         trainData, modelInfo.getClassifier().getLabelMap(),
-                         aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
 
-                 Evaluation.evaluate(outputFile, trainData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
-
-             }
-             else {
-                 //stacked decoding
-                 modelPaths= train.train(trainData, numOfTrainingIterations, modelDir, numOfFeatures, numOfFeatures);
-                 ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
-                 IndexMap indexMap = aiModelInfo.getIndexMap();
-                 AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
-                 AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[1]);
-                 Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                         aiModelInfo.getIndexMap(),
-                         trainData, acClassifier.getLabelMap(),
-                         aiMaxBeamSize, acMaxBeamSize,
-                         numOfFeatures, modelDir, outputFile);
-
-                 HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
-                 reverseLabelMap.put("0", reverseLabelMap.size());
-                 Evaluation.evaluate(outputFile, trainData, indexMap, reverseLabelMap);
-             }
          }
-         else if (decodeOnly==true)
-         {
-             if (decodeJoint==true) {
-                 //joint decoding
-                 ModelInfo modelInfo = new ModelInfo(modelDir+"/joint.model");
-                 IndexMap indexMap = modelInfo.getIndexMap();
-                 Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
-                         indexMap,
-                         devData, modelInfo.getClassifier().getLabelMap(),
-                         aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
+         else {
 
-                 Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
-             }
-             else {
-                 //stacked decoding
-                 ModelInfo aiModelInfo = new ModelInfo(modelDir + "/AI.model");
-                 IndexMap indexMap = aiModelInfo.getIndexMap();
-                 AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
-                 AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelDir + "/AC.model");
-                 Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                         aiModelInfo.getIndexMap(),
-                         devData, acClassifier.getLabelMap(),
-                         aiMaxBeamSize, acMaxBeamSize,
-                         numOfFeatures, modelDir, outputFile);
+             if (decodeOnly == false) {
+                 Train train = new Train();
+                 String[] modelPaths = new String[2];
+                 if (decodeJoint == true) {
+                     //joint decoding
+                     modelPaths[0] = train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
+                     ModelInfo modelInfo = new ModelInfo(modelPaths[0]);
+                     IndexMap indexMap = modelInfo.getIndexMap();
+                     Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
+                             indexMap,
+                             trainData, modelInfo.getClassifier().getLabelMap(),
+                             aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
 
-                 HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
-                 reverseLabelMap.put("0", reverseLabelMap.size()+1);
-                 Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                     Evaluation.evaluate(outputFile, trainData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
 
+                 } else {
+                     //stacked decoding
+                     modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, numOfFeatures, aiMaxBeamSize, acMaxBeamSize);
+                     ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
+                     IndexMap indexMap = aiModelInfo.getIndexMap();
+                     AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
+                     AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[1]);
+                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
+                             aiModelInfo.getIndexMap(),
+                             devData, acClassifier.getLabelMap(),
+                             aiMaxBeamSize, acMaxBeamSize,
+                             numOfFeatures, modelDir, outputFile);
+
+                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
+                     reverseLabelMap.put("0", reverseLabelMap.size());
+                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                 }
+             } else if (decodeOnly == true) {
+                 if (decodeJoint == true) {
+                     //joint decoding
+                     ModelInfo modelInfo = new ModelInfo(modelDir + "/joint.model");
+                     IndexMap indexMap = modelInfo.getIndexMap();
+                     Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
+                             indexMap,
+                             devData, modelInfo.getClassifier().getLabelMap(),
+                             aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
+
+                     Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
+                 } else {
+                     //stacked decoding
+                     ModelInfo aiModelInfo = new ModelInfo(modelDir + "/AI.model");
+                     IndexMap indexMap = aiModelInfo.getIndexMap();
+                     AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
+                     AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelDir + "/AC.model");
+                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
+                             aiModelInfo.getIndexMap(),
+                             devData, acClassifier.getLabelMap(),
+                             aiMaxBeamSize, acMaxBeamSize,
+                             numOfFeatures, modelDir, outputFile);
+
+                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
+                     reverseLabelMap.put("0", reverseLabelMap.size());
+                     reverseLabelMap.put("0", reverseLabelMap.size());
+                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                 }
              }
          }
      }

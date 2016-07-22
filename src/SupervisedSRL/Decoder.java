@@ -20,25 +20,13 @@ public class Decoder {
 
     AveragedPerceptron aiClassifier; //argument identification (binary classifier)
     AveragedPerceptron acClassifier; //argument classification (multi-class classifier)
-    int[][] aiConfusionMatrix = new int[2][2];
-    HashMap<Integer, int[]> acConfusionMatrix = new HashMap<Integer, int[]>();
 
     public Decoder(AveragedPerceptron classifier, String state) {
 
         if (state.equals("AI")) {
-            aiConfusionMatrix[0][0] = 0;
-            aiConfusionMatrix[0][1] = 0;
-            aiConfusionMatrix[1][0] = 0;
-            aiConfusionMatrix[1][1] = 0;
             this.aiClassifier = classifier;
-        }else if (state.equals("joint"))
+        }else if (state.equals("AC") || state.equals("joint"))
         {
-            Set<String> acLabelSet = classifier.getReverseLabelMap().keySet();
-
-            for (int k = 0; k < acLabelSet.size(); k++) {
-                int[] acGoldLabels = new int[acLabelSet.size()];
-                this.acConfusionMatrix.put(k, acGoldLabels);
-            }
             this.acClassifier = classifier;
         }
     }
@@ -49,16 +37,6 @@ public class Decoder {
         this.aiClassifier = aiClassifier;
         this.acClassifier = acClassifier;
 
-        aiConfusionMatrix[0][0] = 0;
-        aiConfusionMatrix[0][1] = 0;
-        aiConfusionMatrix[1][0] = 0;
-        aiConfusionMatrix[1][1] = 0;
-        Set<String> acLabelSet = acClassifier.getReverseLabelMap().keySet();
-
-        for (int k = 0; k < acLabelSet.size()+1; k++) {
-            int[] acGoldLabels = new int[acLabelSet.size()+1];
-            this.acConfusionMatrix.put(k, acGoldLabels);
-        }
     }
 
 
@@ -365,19 +343,17 @@ public class Decoder {
 
 
     private HashMap<Integer, Integer> getHighestScorePredication
-            (ArrayList<Pair<Double, ArrayList<Integer>>> candidates) {
+            (ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates) {
 
-        TreeSet<Pair<Double, ArrayList<Integer>>> sortedCandidates = new TreeSet<Pair<Double, ArrayList<Integer>>>(candidates);
+        TreeSet<Pair<Double, ArrayList<Integer>>> sortedCandidates = new TreeSet<Pair<Double, ArrayList<Integer>>>(aiCandidates);
         Pair<Double, ArrayList<Integer>> highestScorePair = sortedCandidates.pollLast();
 
         //after finding highest score sequence in the list of candidates
         HashMap<Integer, Integer> wordIndexLabelMap = new HashMap<Integer, Integer>();
-        ArrayList<Integer> highestScoreSeq = new ArrayList<Integer>();
+        ArrayList<Integer> highestScoreSeq = highestScorePair.second;
 
-        highestScoreSeq = highestScorePair.second;
-
-        for (int k = 0; k < highestScoreSeq.size(); k++) {
-            wordIndexLabelMap.put(k, highestScoreSeq.get(k));
+        for (int index:highestScoreSeq) {
+            wordIndexLabelMap.put(index, 1);
         }
 
         return wordIndexLabelMap;
@@ -409,21 +385,64 @@ public class Decoder {
     }
 
 
-    public void predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize, int numOfFeatures, String modelDir)
+    public HashMap<Integer, Prediction> predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
+                                                   int numOfFeatures, String modelDir)
             throws Exception
     {
+
         //Predicate disambiguation step
         System.out.println("Disambiguating predicates of this sentence...");
         HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
 
-        for (int pIdx :predictedPredicates.keySet()) {
+        /*
+        HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
+        ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        for (PA pa: goldPAs)
+            predictedPredicates.put(pa.getPredicateIndex(), pa.getPredicateLabel());
+        */
 
+        HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
+
+        for (int pIdx :predictedPredicates.keySet()) {
             // get best k argument assignment candidates
-            String pLabel =predictedPredicates.get(pIdx);
+            String pLabel = predictedPredicates.get(pIdx);
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, pLabel, indexMap, aiMaxBeamSize, numOfFeatures);
             HashMap<Integer, Integer> highestScorePrediction  = getHighestScorePredication(aiCandidates);
+            predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
+        return predictedPAs;
+    }
 
+
+    public HashMap<Integer, Prediction> predictAC (Sentence sentence, IndexMap indexMap,
+                                                int acMaxBeamSize, int aiMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, String modelDir) throws Exception {
+
+
+        //Predicate disambiguation step
+        System.out.println("Disambiguating predicates of this sentence...");
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+
+        /*
+        ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        */
+
+        HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
+
+        for (int pIdx : predictedPredicates.keySet()) {
+            String pLabel = predictedPredicates.get(pIdx);
+
+            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates =
+                    getBestAICandidates(sentence,pIdx,pLabel,indexMap, aiMaxBeamSize, numOfAIFeatures);
+
+            // get best <=l argument label for each of these k assignments
+            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
+                    pIdx, pLabel, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
+
+            HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
+
+            predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
+        }
+        return predictedPAs;
     }
 
 
