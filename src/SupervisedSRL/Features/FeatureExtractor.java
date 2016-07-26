@@ -67,8 +67,17 @@ public class FeatureExtractor {
             int leftsiblingw = (lefSiblingIndex != -1) ? sentenceWords[lefSiblingIndex] : indexMap.getNullIdx();
             int leftsiblingpos = (lefSiblingIndex != -1) ? sentencePOSTags[lefSiblingIndex] : indexMap.getNullIdx();
 
-            //build feature vector for argument identification module
+            //build feature vector for argument identification/classification modules
             int index = 0;
+
+            //////////////////////////////////////////////////////////////////////
+            ////////////////////////// SINGLE FEATURES //////////////////////////
+            //////////////////////////////////////////////////////////////////////
+
+
+            ////////////////////////////////
+            ////// PREDICATE FEATURES //////
+            ////////////////////////////////
             features[index++] = pw;
             features[index++] = ppos;
             features[index++] = plem;
@@ -81,6 +90,9 @@ public class FeatureExtractor {
             features[index++] = pchildposset;
             features[index++] = pchildwset;
 
+            ////////////////////////////////
+            ////// ARGUMENT FEATURES //////
+            ////////////////////////////////
             features[index++] = aw;
             features[index++] = apos;
             features[index++] = adeprel;
@@ -96,11 +108,160 @@ public class FeatureExtractor {
             features[index++] = rightsiblingw;
             features[index++] = rightsiblingpos;
 
-            //predicate-argument conjoined features
-            // pw + argument features
+            //////////////////////////////////////////////////////////////////////
+            ///////////////// PREDICATE-PREDICATE CONJOINED FEATURES ////////////
+            //////////////////////////////////////////////////////////////////////
+            //todo 20 bits for words, 10 bits for pos, 10 bits for dependencies
+            // pw, ppos, plem, pdeprel, pSense, pprw, pprpos, pdepsubcat, pchilddepset, pchildposset, pchildwset;
 
+            //pw + ... (20 bits for pw)
+            int pw_ppos = (pw<<10) | ppos ;
+            features[index++] = pw_ppos;
+            long pw_plem = (pw<<20) | plem;
+            features[index++] = pw_plem;
+            int pw_pdeprel = (pw<<10) | pdeprel;
+            features[index++] = pw_pdeprel;
+            String pw_psense = pw + " " + pSense;
+            features[index++] = pw_psense;
+            long pw_pprw = (pw<<20) | pprw;
+            features[index++] = pw_pprw;
+            int pw_pprpos = (pw<<10) | pprpos ;
+            features[index++] = pw_pprpos;
+            String pw_pdepsubcat = pw + " " + pdepsubcat;
+            features[index++] = pw_pdepsubcat;
+            String pw_pchilddepset = pw + " " + pchilddepset;
+            features[index++] = pw_pchilddepset;
+            String pw_pchildposset = pw + " " + pchildposset;
+            features[index++] = pw_pchildposset;
+            String pw_pchildwset = pw + " " + pchildwset;
+            features[index++] = pw_pchildwset;
+
+            //ppos + ...(10 bits for ppos)
+            int ppos_plem = (plem<<10) | ppos;
+            features[index++] = ppos_plem;
+            int ppos_pdeprel = (ppos<<10) | pdeprel;
+            features[index++] = ppos_pdeprel;
+            String ppos_psense = ppos + " " + pSense;
+            features[index++] = ppos_psense;
+            int ppos_pprw = (pprw<<10) | ppos;
+            features[index++] = ppos_pprw;
+            int ppos_pprpos = (ppos<<10) | pprpos ;
+            features[index++] = ppos_pprpos;
+            String ppos_pdepsubcat = ppos + " " + pdepsubcat;
+            features[index++] = ppos_pdepsubcat;
+            String ppos_pchilddepset = ppos + " " + pchilddepset;
+            features[index++] = ppos_pchilddepset;
+            String ppos_pchildposset = ppos + " " + pchildposset;
+            features[index++] = ppos_pchildposset;
+            String ppos_pchildwset = ppos + " " + pchildwset;
+            features[index++] = ppos_pchildwset;
+
+            //plem + ... (20 bits for plem)
+            int plem_pdeprel = (plem<<10) | pdeprel;
+            features[index++] = plem_pdeprel;
+            String plem_psense = plem + " " + pSense;
+            features[index++] = plem_psense;
+            long plem_pprw = (plem<<20) | pprw;
+            features[index++] = plem_pprw;
+            int plem_pprpos = (plem<<10) | pprpos ;
+            features[index++] = plem_pprpos;
+            String plem_pdepsubcat = plem + " " + pdepsubcat;
+            features[index++] = plem_pdepsubcat;
+            String plem_pchilddepset = plem + " " + pchilddepset;
+            features[index++] = plem_pchilddepset;
+            String plem_pchildposset = plem + " " + pchildposset;
+            features[index++] = plem_pchildposset;
+            String plem_pchildwset = plem + " " + pchildwset;
+            features[index++] = plem_pchildwset;
+
+            //pdeprel + ...(10 bits for pdeprel)
+            String pdeprel_psense = pdeprel + " " + pSense;
+            features[index++] = pdeprel_psense;
+            int pdeprel_pprw = (pprw<<10) | pdeprel;
+            features[index++] = pdeprel_pprw;
+            int pdeprel_pprpos = (pdeprel<<10) | pprpos ;
+            features[index++] = pdeprel_pprpos;
+            String pdeprel_pdepsubcat = pdeprel + " " + pdepsubcat;
+            features[index++] = pdeprel_pdepsubcat;
+            String pdeprel_pchilddepset = pdeprel + " " + pchilddepset;
+            features[index++] = pdeprel_pchilddepset;
+            String pdeprel_pchildposset = pdeprel + " " + pchildposset;
+            features[index++] = pdeprel_pchildposset;
+            String pdeprel_pchildwset = pdeprel + " " + pchildwset;
+            features[index++] = pdeprel_pchildwset;
+
+            //psense + ...
+            String psense_pprw = pSense+ " "+ pprw;
+            features[index++] = psense_pprw;
+            String psense_pprpos = pSense+" "+ pprpos ;
+            features[index++] = psense_pprpos;
+            String psense_pdepsubcat = pSense + " " + pdepsubcat;
+            features[index++] = psense_pdepsubcat;
+            String psense_pchilddepset = pSense + " " + pchilddepset;
+            features[index++] = psense_pchilddepset;
+            String psense_pchildposset = pSense + " " + pchildposset;
+            features[index++] = psense_pchildposset;
+            String psense_pchildwset = pSense + " " + pchildwset;
+            features[index++] = psense_pchildwset;
+
+            //pprw + ... (20 bits for pprw)
+            int pprw_pprpos = (pprw<<10) | pprpos ;
+            features[index++] = pprw_pprpos;
+            String pprw_pdepsubcat = pprw + " " + pdepsubcat;
+            features[index++] = pprw_pdepsubcat;
+            String pprw_pchilddepset = pprw + " " + pchilddepset;
+            features[index++] = pprw_pchilddepset;
+            String pprw_pchildposset = pprw + " " + pchildposset;
+            features[index++] = pprw_pchildposset;
+            String pprw_pchildwset = pprw + " " + pchildwset;
+            features[index++] = pprw_pchildwset;
+
+            //pprpos + ...(10 bits for pprpos)
+            String pprpos_pdepsubcat = pprpos + " " + pdepsubcat;
+            features[index++] = pprpos_pdepsubcat;
+            String pprpos_pchilddepset = pprpos + " " + pchilddepset;
+            features[index++] = pprpos_pchilddepset;
+            String pprpos_pchildposset = pprpos + " " + pchildposset;
+            features[index++] = pprpos_pchildposset;
+            String pprpos_pchildwset = pprpos + " " + pchildwset;
+            features[index++] = pprpos_pchildwset;
+
+            //pdepsubcat + ...
+            String pdepsubcat_pchilddepset = pdepsubcat + " " + pchilddepset;
+            features[index++] = pdepsubcat_pchilddepset;
+            String pdepsubcat_pchildposset = pdepsubcat + " " + pchildposset;
+            features[index++] = pdepsubcat_pchildposset;
+            String pdepsubcat_pchildwset = pdepsubcat + " " + pchildwset;
+            features[index++] = pdepsubcat_pchildwset;
+
+            //pchilddepset + ...
+            String pchilddepset_pchildposset = pchilddepset + " " + pchildposset;
+            features[index++] = pchilddepset_pchildposset;
+            String pchilddepset_pchildwset = pchilddepset + " " + pchildwset;
+            features[index++] = pchilddepset_pchildwset;
+
+            //pchildposset + ...
+            String pchildposset_pchildwset = pchildposset + " " + pchildwset;
+            features[index++] = pchildposset_pchildwset;
+
+            //////////////////////////////////////////////////////////////////////
+            ///////////////// ARGUMENT-ARGUMENT CONJOINED FEATURES ////////////
+            //////////////////////////////////////////////////////////////////////
+            //todo 20 bits for words, 10 bits for pos, 10 bits for dependencies
+            // aw, apos, adeprel, deprelpath, pospath, position, leftw, leftpos, rightw, rightpos, leftsiblingw, leftsiblingpos, rightsiblingw, rightsiblingpos
+
+
+
+
+
+
+
+            //////////////////////////////////////////////////////////////////////
+            ///////////////// PREDICATE-ARGUMENT CONJOINED FEATURES //////////////
+            //////////////////////////////////////////////////////////////////////
             // todo 20 bits for words, 10 bits for pos, 10 bits for dependencies
             // todo e.g. (pw<<20) | aw ==> 20+20> 32 ==> long
+            // pw + argument features
             long pw_aw = (pw<<20) | aw;
             features[index++] = pw_aw;
             // todo (pw<<10) | pos ==> 10+20<32 ==> int

@@ -79,30 +79,30 @@ public class ModelInfo implements Serializable {
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
 
-        System.out.println("Saving newAvgMap...");
+        //System.out.println("Saving newAvgMap...");
         long startTime = System.currentTimeMillis();
         writer.writeObject(newAvgMap);
         long endTime = System.currentTimeMillis();
-        System.out.println("Total time to save newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        //System.out.println("Total time to save newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
-        System.out.println("Saving labelMap...");
+        //System.out.println("Saving labelMap...");
         startTime = System.currentTimeMillis();
         writer.writeObject(labelMap);
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to save labelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        //System.out.println("Total time to save labelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
 
-        System.out.println("Saving reverseLabelMap...");
+        //System.out.println("Saving reverseLabelMap...");
         startTime = System.currentTimeMillis();
         writer.writeObject(reverseLabelMap);
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to save reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+       // System.out.println("Total time to save reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
-        System.out.println("Saving indexMap...");
+        //System.out.println("Saving indexMap...");
         startTime = System.currentTimeMillis();
         writer.writeObject(indexMap);
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to save indexMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        //System.out.println("Total time to save indexMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
         writer.close();
     }
@@ -138,24 +138,24 @@ public class ModelInfo implements Serializable {
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
 
-        System.out.println("Saving newAvgMap...");
+        //System.out.println("Saving newAvgMap...");
         long startTime = System.currentTimeMillis();
         writer.writeObject(newAvgMap);
         long endTime = System.currentTimeMillis();
-        System.out.println("Total time to save newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+       // System.out.println("Total time to save newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
-        System.out.println("Saving labelMap...");
+       // System.out.println("Saving labelMap...");
         startTime = System.currentTimeMillis();
         writer.writeObject(labelMap);
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to save labelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+       // System.out.println("Total time to save labelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
 
-        System.out.println("Saving reverseLabelMap...");
+       // System.out.println("Saving reverseLabelMap...");
         startTime = System.currentTimeMillis();
         writer.writeObject(reverseLabelMap);
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to save reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+       // System.out.println("Total time to save reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
 
         writer.close();
     }
@@ -166,35 +166,35 @@ public class ModelInfo implements Serializable {
 
         DecimalFormat format = new DecimalFormat("##.00");
 
-        System.out.println("loading model...");
+        //System.out.println("loading model...");
         FileInputStream fis = new FileInputStream(modelPath);
         GZIPInputStream gz = new GZIPInputStream(fis);
         ObjectInput reader = new ObjectInputStream(gz);
 
-        System.out.println("loading newAvgWeight...");
+        //System.out.println("loading newAvgWeight...");
         long startTime = System.currentTimeMillis();
         HashMap<Object, CompactArray>[] newAvgWeight =
                 (HashMap<Object, CompactArray>[]) reader.readObject();
         long endTime = System.currentTimeMillis();
-        System.out.println("Total time to load newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
+        //System.out.println("Total time to load newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
 
-        System.out.println("loading labelMap...");
+        //System.out.println("loading labelMap...");
         startTime = System.currentTimeMillis();
         String[] labelMap = (String[]) reader.readObject();
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to load labelMap: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
+       // System.out.println("Total time to load labelMap: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
 
-        System.out.println("loading reverseLabelMap...");
+       // System.out.println("loading reverseLabelMap...");
         startTime = System.currentTimeMillis();
         HashMap<String, Integer> reverseLabelMap = (HashMap<String, Integer>) reader.readObject();
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to load reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
+      //  System.out.println("Total time to load reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
 
-        System.out.println("loading indexMap...");
+       // System.out.println("loading indexMap...");
         startTime = System.currentTimeMillis();
         IndexMap indexMap =(IndexMap) reader.readObject();
         endTime = System.currentTimeMillis();
-        System.out.println("Total time to load IndexMap: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
+       // System.out.println("Total time to load IndexMap: " + format.format( ((endTime - startTime)/1000.0)/60.0 ));
 
         fis.close();
         gz.close();
@@ -202,7 +202,7 @@ public class ModelInfo implements Serializable {
 
         this.classifier = new AveragedPerceptron(newAvgWeight, labelMap, reverseLabelMap);
         this.indexMap= indexMap;
-        System.out.println("************ DONE ************");
+      //  System.out.println("************ DONE ************");
 
     }
 }

@@ -15,6 +15,7 @@ public class Sentence {
     int[] depLabels;
     int[] words;
     int[] posTags;
+    int[] cPosTags;
     int[] lemmas;
     TreeSet<Integer>[] reverseDepHeads;
     PAs predicateArguments;
@@ -31,6 +32,7 @@ public class Sentence {
         depLabels = new int[numTokens];
         words = new int[numTokens];
         posTags = new int[numTokens];
+        cPosTags = new int[numTokens];
         lemmas = new int[numTokens];
 
         reverseDepHeads = new TreeSet[numTokens];
@@ -48,6 +50,7 @@ public class Sentence {
                 words[index] = wordMap.get(fields[1]);
                 depLabels[index] = wordMap.get(fields[11]);
                 posTags[index] = wordMap.get(fields[5]);
+                cPosTags[index] = wordMap.get(util.StringUtils.getCoarsePOS(fields[5]));
                 lemmas[index] = wordMap.get(fields[3]);
             }else
             {
@@ -64,6 +67,12 @@ public class Sentence {
                     posTags[index] = wordMap.get(fields[5]);
                 else
                     posTags[index] = indexMap.getUnknownIdx();
+
+                if (wordMap.containsKey(util.StringUtils.getCoarsePOS(fields[5])))
+                    cPosTags[index] = wordMap.get(util.StringUtils.getCoarsePOS(fields[5]));
+                else
+                    cPosTags[index] = indexMap.getUnknownIdx();
+
                 if (wordMap.containsKey(fields[3]))
                     lemmas[index] = wordMap.get(fields[3]);
                 else
@@ -172,6 +181,10 @@ public class Sentence {
         return posTags;
     }
 
+
+    public int[] getCPosTags() {
+        return cPosTags;
+    }
 
     public int[] getDepHeads() {
         return depHeads;

@@ -26,7 +26,8 @@ public class Pipeline {
          boolean decodeOnly = Boolean.parseBoolean(args[8]);
          boolean evalOnly = Boolean.parseBoolean(args[9]);
 
-         int numOfFeatures = 188;
+         int numOfFeatures = 188 +55;
+         int numOfPDFeatures =9;
 
          if (evalOnly)
          {
@@ -39,19 +40,19 @@ public class Pipeline {
                  String[] modelPaths = new String[2];
                  if (decodeJoint == true) {
                      //joint decoding
-                     modelPaths[0] = train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, aiMaxBeamSize);
+                     modelPaths[0] = train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, numOfPDFeatures, aiMaxBeamSize);
                      ModelInfo modelInfo = new ModelInfo(modelPaths[0]);
                      IndexMap indexMap = modelInfo.getIndexMap();
                      Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
                              indexMap,
-                             trainData, modelInfo.getClassifier().getLabelMap(),
-                             aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
+                             devData, modelInfo.getClassifier().getLabelMap(),
+                             aiMaxBeamSize, numOfFeatures, numOfPDFeatures, modelDir, outputFile);
 
-                     Evaluation.evaluate(outputFile, trainData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
+                     Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
 
                  } else {
                      //stacked decoding
-                     modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, numOfFeatures, aiMaxBeamSize, acMaxBeamSize);
+                     modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir, numOfFeatures, numOfFeatures,numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize);
                      ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
                      IndexMap indexMap = aiModelInfo.getIndexMap();
                      AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
@@ -59,8 +60,8 @@ public class Pipeline {
                      Decoder.decode(new Decoder(aiClassifier, acClassifier),
                              aiModelInfo.getIndexMap(),
                              devData, acClassifier.getLabelMap(),
-                             aiMaxBeamSize, acMaxBeamSize,
-                             numOfFeatures, modelDir, outputFile);
+                             aiMaxBeamSize, acMaxBeamSize, numOfFeatures ,numOfPDFeatures,
+                             modelDir, outputFile);
 
                      HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
                      reverseLabelMap.put("0", reverseLabelMap.size());
@@ -74,7 +75,7 @@ public class Pipeline {
                      Decoder.decode(new Decoder(modelInfo.getClassifier(), "joint"),
                              indexMap,
                              devData, modelInfo.getClassifier().getLabelMap(),
-                             aiMaxBeamSize, numOfFeatures, modelDir, outputFile);
+                             aiMaxBeamSize, numOfFeatures, numOfPDFeatures, modelDir, outputFile);
 
                      Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
                  } else {
@@ -90,7 +91,6 @@ public class Pipeline {
                              numOfFeatures, modelDir, outputFile);
 
                      HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
-                     reverseLabelMap.put("0", reverseLabelMap.size());
                      reverseLabelMap.put("0", reverseLabelMap.size());
                      Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
                  }

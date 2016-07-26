@@ -22,10 +22,15 @@ import java.util.zip.GZIPOutputStream;
  */
 public class PD {
 
+    public static int unseenPreds =0 ;
+    public static int totalPreds =0;
+
     public static void main(String[] args) throws Exception {
 
         String inputFile = args[0];
         String modelDir = args[1];
+
+        int numOfPDFeatures = 9;
 
         final IndexMap indexMap = new IndexMap(inputFile);
 
@@ -39,7 +44,7 @@ public class PD {
         List<String> test = sentencesInCONLLFormat.subList(trainSize, totalNumOfSentences);
 
         //training
-        train(train, indexMap, 10, modelDir);
+        train(train, indexMap, 10, modelDir, numOfPDFeatures);
 
         //prediction
         HashMap<Integer, String>[] predictions= new HashMap[test.size()];
@@ -47,19 +52,19 @@ public class PD {
         for (int senIdx=0; senIdx<test.size(); senIdx++) {
             boolean decode = true;
             Sentence sentence = new Sentence(test.get(senIdx), indexMap, decode);
-            predictions[senIdx] = predict(sentence, indexMap, modelDir);
+            predictions[senIdx] = predict(sentence, indexMap, modelDir, numOfPDFeatures);
         }
 
     }
 
 
-    public static void train (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, String modelDir)
+    public static void train (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
             throws Exception
     {
     int pdFeatSize =11;
         //creates lexicon of all predicates in the trainJoint set
         HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> trainPLexicon =
-                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap);
+                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
 
         System.out.println("Training Started...");
 
@@ -96,23 +101,32 @@ public class PD {
     }
 
 
-    public static HashMap<Integer, String> predict (Sentence sentence, IndexMap indexMap, String modelDir) throws Exception {
+    public static HashMap<Integer, String> predict (Sentence sentence, IndexMap indexMap, String modelDir, int numOfPDFeatures) throws Exception {
         File f1;
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceLemmas = sentence.getLemmas();
         int[] sentencePOSTags = sentence.getPosTags();
+        int[] sentenceCPOSTags = sentence.getCPosTags();
         HashMap<Integer, String> predictions = new HashMap<Integer, String>();
-        //given the fact that we know which words are predicates and we just want to disambiguate them
+        //given gold predicate ids, we just disambiguate them
         for (PA pa : pas) {
+            totalPreds++;
             int pIdx = pa.getPredicateIndex();
             int plem = sentenceLemmas[pIdx];
-            int ppos = sentencePOSTags[pIdx];
-            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, "" , -1, sentence, "PD", 11, indexMap);
+            //we use coarse POS tags instead of original POS tags
+            int ppos = sentenceCPOSTags[pIdx]; //sentencePOSTags[pIdx];
+            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, "" , -1, sentence, "PD", numOfPDFeatures, indexMap);
             f1 = new File(modelDir + "/" + plem + "_" + ppos);
             if (f1.exists() && !f1.isDirectory()) {
+                //seen predicates
                 AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);
                 String prediction = classifier.predict(pdfeats);
                 predictions.put(pIdx, prediction);
+            }else
+            {
+                //unseen predicate --> assign lemma.01 (default sense) as predicate label instead of null
+                unseenPreds++;
+                predictions.put(pIdx, plem+".01");
             }
         }
         return predictions;
@@ -121,7 +135,7 @@ public class PD {
 
 
     public static HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> buildPredicateLexicon
-            (List<String> sentencesInCONLLFormat, IndexMap indexMap)
+            (List<String> sentencesInCONLLFormat, IndexMap indexMap, int numOfPDFeatures)
     {
         HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> pLexicon=
                 new HashMap<Integer, HashMap<Integer, HashSet<pLexiconEntry>>>();
@@ -134,15 +148,17 @@ public class PD {
             ArrayList<PA> pas= sentence.getPredicateArguments().getPredicateArgumentsAsArray();
             int[] sentenceLemmas= sentence.getLemmas();
             int[] sentencePOSTags= sentence.getPosTags();
+            int[] sentenceCPOSTags= sentence.getCPosTags();
 
             for (PA pa:pas)
             {
                 int pIdx= pa.getPredicateIndex();
                 int plem= sentenceLemmas[pIdx];
                 String plabel= pa.getPredicateLabel();
-                int ppos= sentencePOSTags[pIdx];
+                //instead of original POS tags, we use coarse POS tags
+                int ppos= sentenceCPOSTags[pIdx];
 
-                Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, plabel, -1 ,sentence, "PD", 11, indexMap);
+                Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, plabel, -1 ,sentence, "PD", numOfPDFeatures , indexMap);
                 pLexiconEntry ple= new pLexiconEntry(plabel, pdfeats);
 
                 if (!pLexicon.containsKey(plem))

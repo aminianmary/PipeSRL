@@ -41,7 +41,7 @@ public class Decoder {
 
 
     public static void decode (Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
-                               int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures, String modelDir,String outputFile) throws Exception
+                               int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures, int numOfPDFeatures, String modelDir,String outputFile) throws Exception
     {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -59,7 +59,7 @@ public class Decoder {
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
             //todo think about the correct way to show final predications
-            predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfFeatures, modelDir);
+            predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfFeatures, numOfPDFeatures, modelDir);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
         }
@@ -72,7 +72,7 @@ public class Decoder {
 
     public static void decode (Decoder decoder, IndexMap indexMap, String devData,
                                String[] labelMap,
-                               int maxBeamSize, int numOfFeatures,
+                               int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
                                String modelDir,
                                String outputFile) throws Exception
     {
@@ -92,7 +92,7 @@ public class Decoder {
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
-            predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, modelDir);
+            predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOfPDFeatures, modelDir);
         }
 
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap ,outputFile);
@@ -386,13 +386,14 @@ public class Decoder {
 
 
     public HashMap<Integer, Prediction> predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                   int numOfFeatures, String modelDir)
+                                                   int numOfFeatures, String modelDir, int numOfPDFeatures)
             throws Exception
     {
 
         //Predicate disambiguation step
-        System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+        //System.out.println("Disambiguating predicates of this sentence...");
+
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
 
         /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
@@ -415,12 +416,12 @@ public class Decoder {
 
 
     public HashMap<Integer, Prediction> predictAC (Sentence sentence, IndexMap indexMap,
-                                                int acMaxBeamSize, int aiMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, String modelDir) throws Exception {
+                                                int acMaxBeamSize, int aiMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
 
         //Predicate disambiguation step
-        System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+        //System.out.println("Disambiguating predicates of this sentence...");
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
 
         /*
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
@@ -447,11 +448,11 @@ public class Decoder {
 
 
     public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                               int acMaxBeamSize, int numOfFeatures, String modelDir) throws Exception {
+                                                               int acMaxBeamSize, int numOfFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
         //Predicate disambiguation step
-        System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+        //System.out.println("Disambiguating predicates of this sentence...");
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
 
         /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
@@ -462,8 +463,8 @@ public class Decoder {
 
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
 
-        if (predictedPredicates.keySet().size()==0)
-            System.out.print("no predicate predicted...");
+        //if (predictedPredicates.keySet().size()==0)
+            //System.out.print("no predicate predicted...");
 
         for (int pIdx :predictedPredicates.keySet()) {
             // get best k argument assignment candidates
@@ -489,12 +490,12 @@ public class Decoder {
 
     //this function is used to test ai-ac modules combination
     public TreeMap<Integer, Prediction> predictJoint(Sentence sentence, IndexMap indexMap,
-                                                                    int maxBeamSize, int numOfFeatures,
+                                                                    int maxBeamSize, int numOfFeatures,int numOfPDFeatures,
                                                                     String modelDir) throws Exception {
 
         //Predicate disambiguation step
-        System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir);
+        //System.out.println("Disambiguating predicates of this sentence...");
+        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
 
         /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();

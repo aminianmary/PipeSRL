@@ -138,7 +138,6 @@ public class IO {
                     outputWriter.write("_"); //field 13
                 }
 
-
                 //checking if this word has been an argument for other predicates or not (fields 14-end)
                 for (int pIdx:predictionForThisSentence.keySet())
                 {

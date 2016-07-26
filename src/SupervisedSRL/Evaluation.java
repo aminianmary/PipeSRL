@@ -3,6 +3,7 @@ package SupervisedSRL;
 import Sentence.Argument;
 import Sentence.PA;
 import Sentence.Sentence;
+import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Prediction;
 import util.IO;
@@ -49,6 +50,11 @@ public class Evaluation {
         boolean decode = true;
         for (int senIdx =0; senIdx< systemOutputInCONLLFormat.size(); senIdx++)
         {
+            System.out.println("sen: "+senIdx);
+            if (senIdx==6)
+            {
+                System.out.print("STOP");
+            }
             Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap, decode);
             Sentence goldSen = new Sentence(goldOutputInCONLLFormat.get(senIdx), indexMap, decode);
 
@@ -93,6 +99,8 @@ public class Evaluation {
         }
         System.out.println("*********************************************");
         System.out.println("Total Predicate Disambiguation Accuracy " + format.format((double) correctPLabel / (correctPLabel+wrongPLabel)));
+        System.out.println("Total Number of Predicate Tokens in dev data: "+ PD.totalPreds);
+        System.out.println("Total Number of Unseen Predicate Tokens in dev data: "+ PD.unseenPreds);
         System.out.println("*********************************************");
         computePrecisionRecall(aiConfusionMatrix, acConfusionMatrix, reverseLabelMap);
     }
@@ -135,9 +143,20 @@ public class Evaluation {
         for (int goldArgIdx : goldArgMap.keySet()) {
             if (!sysOutArgIndices.contains(goldArgIdx)) {
                 //ai_fn --> ac_fn
-                int goldLabel = reverseLabelMap.get(goldArgMap.get(goldArgIdx));
+                System.out.println(goldArgMap.get(goldArgIdx));
+                String goldLabel = goldArgMap.get(goldArgIdx);
+                int goldLabelIdx =-1;
+                //we might see an unseen gold label at this step
+                if (reverseLabelMap.containsKey(goldLabel))
+                    goldLabelIdx = reverseLabelMap.get(goldArgMap.get(goldArgIdx));
+                else
+                {
+                    reverseLabelMap.put(goldLabel, reverseLabelMap.size());
+                    goldLabelIdx = reverseLabelMap.get(goldLabel);
+                    acConfusionMatrix =updateConfusionMatrix(acConfusionMatrix);
+                }
                 acConfusionMatrix.get(reverseLabelMap.get("0"))
-                        [goldLabel]++;
+                        [goldLabelIdx]++;
             }
         }
         return new Object[]{aiConfusionMatrix, acConfusionMatrix};
@@ -188,8 +207,8 @@ public class Evaluation {
 
                 double precision = 100. * (double) tp / total_prediction_4_this_label;
                 double recall = 100. * (double) tp / total_gold_4_this_label;
-                System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
-                System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
+                //System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
+                //System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
             }
         }
 
@@ -262,8 +281,8 @@ public class Evaluation {
 
                 double precision = 100. * (double) tp / total_prediction_4_this_label;
                 double recall = 100. * (double) tp / total_gold_4_this_label;
-                System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
-                System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
+                //System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
+               //System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
             }
         }
 
@@ -446,6 +465,21 @@ public class Evaluation {
         return highestScorePrediction;
     }
 
+    private static HashMap<Integer, int[]> updateConfusionMatrix (HashMap<Integer, int[]> currentConfusionMatrix)
+    {
+        HashMap<Integer, int[]> newConfusionMatrix = new HashMap<Integer, int[]>();
+        for (int predictedLabel:currentConfusionMatrix.keySet())
+        {
+            int[] currentGoldLabels = currentConfusionMatrix.get(predictedLabel);
+            int[] newGoldLabels = new int[currentGoldLabels.length+1];
+            for (int i=0; i< currentGoldLabels.length; i++)
+                newGoldLabels[i] = currentGoldLabels[i];
+            newGoldLabels[currentGoldLabels.length] =0;
+            newConfusionMatrix.put(predictedLabel, newGoldLabels);
+        }
+        int[] temp = new int[currentConfusionMatrix.size()+1];
+        newConfusionMatrix.put(currentConfusionMatrix.size(),temp);
 
-
+        return newConfusionMatrix;
+    }
 }

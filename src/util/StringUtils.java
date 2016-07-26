@@ -37,4 +37,19 @@ public class StringUtils {
         return output.trim();
     }
 
+    public static String getCoarsePOS(String originalPOS)
+    {
+        String coarsePOS = originalPOS;
+        if (originalPOS.startsWith("JJ"))
+            coarsePOS = "JJ"; //covers JJ, JJR, JJS
+        else if (originalPOS.startsWith("NN"))
+            coarsePOS = "NN"; //covers NN, NNS, NNP, NNPS
+        else if (originalPOS.startsWith("PR"))
+            coarsePOS = "PR"; //covers PRP, PRP$
+        else if (originalPOS.startsWith("RB"))
+            coarsePOS = "RB"; //covers RB, RBR, RBS
+        else if (originalPOS.startsWith("VB"))
+            coarsePOS = "VB"; //covers VB, VBD, VBG, VBN, VBP, VBZ
+        return coarsePOS;
+    }
 }

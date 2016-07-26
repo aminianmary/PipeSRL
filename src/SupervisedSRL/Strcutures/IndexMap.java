@@ -5,7 +5,7 @@ import com.sun.tools.classfile.Synthetic_attribute;
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
-
+import util.StringUtils.*;
 /**
  * Created by Maryam Aminian on 6/21/16.
  */
@@ -81,6 +81,7 @@ public class IndexMap implements Serializable {
             String pLemma= splitLine[3];
             String gPos = splitLine[4];
             String pPos = splitLine[5];
+            String cPos = util.StringUtils.getCoarsePOS (pPos); //coarse predicated pos tag
             String gFeats = splitLine[6];
             String pFeats = splitLine[7];
             String gHead = splitLine[8];
@@ -93,6 +94,7 @@ public class IndexMap implements Serializable {
 
             posTags.add(gPos);
             posTags.add(pPos);
+            posTags.add(cPos);
             depRels.add(gDepRel);
             depRels.add(pDepRel);
             words.add("\t");
