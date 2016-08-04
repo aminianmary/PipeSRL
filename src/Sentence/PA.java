@@ -1,4 +1,5 @@
 package Sentence;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -9,48 +10,47 @@ public class PA {
 
     Predicate pr;
     ArrayList<Argument> ams;
-    public PA()
-    {
-        pr= new Predicate();
-        ams= new ArrayList<Argument>();
+
+    public PA() {
+        pr = new Predicate();
+        ams = new ArrayList<Argument>();
     }
 
-    public PA(Predicate p, ArrayList<Argument> a)
-    {
-        pr= p;
-        ams= a;
+    public PA(Predicate p, ArrayList<Argument> a) {
+        pr = p;
+        ams = a;
     }
 
-    public Predicate getPredicate() {return pr;}
-    public void set(Predicate p)
-    {
-        pr=p;
+    public Predicate getPredicate() {
+        return pr;
     }
-    public void updateArguments(Argument a)
-    {
+
+    public void set(Predicate p) {
+        pr = p;
+    }
+
+    public void updateArguments(Argument a) {
         ams.add(a);
     }
-    public int getPredicateIndex()
-    {
+
+    public int getPredicateIndex() {
         return pr.getIndex();
     }
-    public String getPredicateLabel()
-    {
+
+    public String getPredicateLabel() {
         return pr.getLabel();
     }
-    public ArrayList<Argument> getArguments()
-    {
+
+    public ArrayList<Argument> getArguments() {
         return ams;
     }
 
-    public HashSet<PADependencyTuple> getAllPredArgDepTupls ()
-    {
-        HashSet<PADependencyTuple> predArgDepTuples= new HashSet<PADependencyTuple>();
-        int pIndex= pr.getIndex();
-        for (Argument a: ams)
-        {
-            int aIndex= a.getIndex();
-            String aType= a.getType();
+    public HashSet<PADependencyTuple> getAllPredArgDepTupls() {
+        HashSet<PADependencyTuple> predArgDepTuples = new HashSet<PADependencyTuple>();
+        int pIndex = pr.getIndex();
+        for (Argument a : ams) {
+            int aIndex = a.getIndex();
+            String aType = a.getType();
 
             predArgDepTuples.add(new PADependencyTuple(pIndex, aIndex, aType));
         }
@@ -58,11 +58,9 @@ public class PA {
         return predArgDepTuples;
     }
 
-    public String obtainArgumentType (int argIndex)
-    {
-        for (Argument arg:ams)
-        {
-            if (arg.getIndex()==argIndex)
+    public String obtainArgumentType(int argIndex) {
+        for (Argument arg : ams) {
+            if (arg.getIndex() == argIndex)
                 return arg.getType();
         }
         return "";

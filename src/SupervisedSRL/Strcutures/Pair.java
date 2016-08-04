@@ -3,6 +3,7 @@ package SupervisedSRL.Strcutures;
 /**
  * Created by Maryam Aminian on 5/24/16.
  */
+
 import java.io.Serializable;
 
 public class Pair<T1, T2> implements Comparable, Cloneable, Serializable {
@@ -54,7 +55,7 @@ public class Pair<T1, T2> implements Comparable, Cloneable, Serializable {
     @Override
     public int compareTo(Object o) {
         Pair pair = (Pair) o;
-        double diff = (Double) first - (Double) pair.first ;
+        double diff = (Double) first - (Double) pair.first;
         if (diff > 0)
             return 2;
         return -2;

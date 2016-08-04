@@ -23,7 +23,7 @@ public class BeamElement implements Comparable<BeamElement> {
             return -2;
         if (index != beamElement.index)
             return beamElement.index - index;
-        return beamElement.label-label;
+        return beamElement.label - label;
     }
 
     @Override

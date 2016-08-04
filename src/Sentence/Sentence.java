@@ -1,7 +1,6 @@
 package Sentence;
 
 import SupervisedSRL.Strcutures.IndexMap;
-import apple.laf.JRSUIUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,10 +41,10 @@ public class Sentence {
         cPosTags[0] = words[0];
         lemmas = new int[numTokens];
         lemmas[0] = words[0];
-        lemmas_str= new String[numTokens];
+        lemmas_str = new String[numTokens];
         lemmas_str[0] = "ROOT";
 
-        reverseDepHeads = new TreeSet [numTokens];
+        reverseDepHeads = new TreeSet[numTokens];
         predicateArguments = new PAs();
 
         for (int tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
@@ -56,15 +55,13 @@ public class Sentence {
             int depHead = Integer.parseInt(fields[9]);
             depHeads[index] = depHead;
 
-            if (decode==false) {
+            if (decode == false) {
                 words[index] = wordMap.get(fields[1]);
                 depLabels[index] = wordMap.get(fields[11]);
                 posTags[index] = wordMap.get(fields[5]);
                 cPosTags[index] = wordMap.get(util.StringUtils.getCoarsePOS(fields[5]));
                 lemmas[index] = wordMap.get(fields[3]);
-            }
-            else
-            {
+            } else {
                 lemmas_str[index] = fields[3];
 
                 if (wordMap.containsKey(fields[1]))
@@ -93,8 +90,8 @@ public class Sentence {
                     lemmas[index] = indexMap.getUnknownIdx();
             }
 
-            if (reverseDepHeads[depHead] == null){
-                TreeSet<Integer> children= new TreeSet<Integer>();
+            if (reverseDepHeads[depHead] == null) {
+                TreeSet<Integer> children = new TreeSet<Integer>();
                 children.add(index);
                 reverseDepHeads[depHead] = children;
 
@@ -151,13 +148,11 @@ public class Sentence {
                         if (visitedFromThisChild.size() != 0) {
                             visited.addAll(visitedFromThisChild);
                             break;
-                        }
-                        else
+                        } else
                             visited.clear();
                     }
                 }
-            }else
-            {
+            } else {
                 //source does not have any children + we have not still met the target --> there is no path between source and target
                 visited.clear();
             }
@@ -192,13 +187,11 @@ public class Sentence {
                         if (visitedFromThisChild.size() != 0) {
                             visited.addAll(visitedFromThisChild);
                             break;
-                        }
-                        else
+                        } else
                             visited.clear();
                     }
                 }
-            }else
-            {
+            } else {
                 //source does not have any children + we have not still met the target --> there is no path between source and target
                 visited.clear();
             }
@@ -225,7 +218,9 @@ public class Sentence {
         return depHeads;
     }
 
-    public String[] getLemmas_str() {return lemmas_str;}
+    public String[] getLemmas_str() {
+        return lemmas_str;
+    }
 
     public String[] getDepHeads_as_str() {
         String[] depHeads_str = new String[depHeads.length];
@@ -250,10 +245,9 @@ public class Sentence {
         return reverseDepHeads;
     }
 
-    public ArrayList<Predicate> getListOfPredicates()
-    {
-        ArrayList<Predicate> predicates= new ArrayList<Predicate>();
-        for (PA pa: predicateArguments.getPredicateArgumentsAsArray())
+    public ArrayList<Predicate> getListOfPredicates() {
+        ArrayList<Predicate> predicates = new ArrayList<Predicate>();
+        for (PA pa : predicateArguments.getPredicateArgumentsAsArray())
             predicates.add(pa.getPredicate());
 
         return predicates;

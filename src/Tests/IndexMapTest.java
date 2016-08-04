@@ -1,20 +1,15 @@
 package Tests;
 
-import Sentence.Argument;
-import Sentence.PA;
-import Sentence.Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.TreeSet;
 
 /**
  * Created by monadiab on 8/3/16.
  */
-public class SentenceTest {
+public class IndexMapTest {
     final String tmpFilePath = "/tmp/tmp.tmp";
     final String conllText = "1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
             "2\teconomy\teconomy\teconomy\tNN\tNN\t_\t_\t4\t4\tNMOD\tNMOD\t_\t_\tA1\t_\t_\t_\n" +
@@ -43,69 +38,19 @@ public class SentenceTest {
             "25\t.\t.\t.\t.\t.\t_\t_\t5\t5\tP\tP\t_\t_\t_\t_\t_\t_\n\n";
 
     @Test
-    public void testConstructor() throws Exception {
+    public void testMaps() throws Exception {
         writeConllText();
         IndexMap map = new IndexMap(tmpFilePath);
-        Sentence sentence = new Sentence(conllText, map, false);
 
-        int[] depHeads = sentence.getDepHeads();
-        assert depHeads[0] == 0;
-        assert depHeads[3] == 2;
+        assert map.str2int("\t") == map.getUnknownIdx();
+        assert map.str2int(".") < 13;
+        assert map.str2int("NMOD") > 12;
+        assert map.str2int("P") < 24;
+        assert map.str2int("week") >= 24;
 
-        int[] depLabels = sentence.getDepLabels();
-        assert depLabels[3] == map.getString2intMap().get("SUFFIX");
-        assert depLabels[0] == map.getNullIdx();
-
-        int[] words = sentence.getWords();
-        assert words[11] == map.getString2intMap().get("points");
-
-        int[] posTags = sentence.getPosTags();
-        assert posTags[10] == map.getString2intMap().get("NN");
-
-        int[] cPosTags = sentence.getCPosTags();
-        assert cPosTags[17] == map.getString2intMap().get("IN");
-
-        int[] lemmas = sentence.getLemmas();
-        assert lemmas[0] == map.getString2intMap().get("ROOT");
-        assert lemmas[8] == map.getString2intMap().get("from");
-
-        TreeSet<Integer>[] reverseHead = sentence.getReverseDepHeads();
-        assert reverseHead[2].size() == 2;
-        assert reverseHead[2].contains(3);
-
-        ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
-        for (PA pa : pas) {
-            System.out.println(pa.getPredicateIndex() + "\t" + pa.getPredicateLabel());
-            if (pa.getPredicateIndex() == 4)
-                assert pa.getPredicateLabel().equals("temperature.01");
-            for (Argument arg : pa.getArguments()) {
-                System.out.println("arg: " + arg.getIndex() + "\t" + arg.getType());
-                if (pa.getPredicateIndex() == 16)
-                    assert arg.getIndex() == 17;
-            }
-        }
-    }
-
-    @Test
-    public void testGetDepPath() throws Exception {
-        writeConllText();
-        IndexMap map = new IndexMap(tmpFilePath);
-        Sentence sentence = new Sentence(conllText, map, false);
-        ArrayList<Integer> depPath = sentence.getDepPath(5, 12);
-
-        assert depPath.get(0) == (map.str2int("VC") << 1 | 0);
-        assert depPath.get(3) == (map.str2int("NMOD") << 1 | 1);
-    }
-
-    @Test
-    public void testGetPOSPath() throws Exception {
-        writeConllText();
-        IndexMap map = new IndexMap(tmpFilePath);
-        Sentence sentence = new Sentence(conllText, map, false);
-        ArrayList<Integer> depPath = sentence.getPOSPath(5, 12);
-
-        assert depPath.get(0) == (map.str2int("VB") << 1 | 0);
-        assert depPath.get(3) == 1;
+        assert map.int2str(map.str2int("economy")).equals("economy");
+        assert map.str2int("mary") == map.getUnknownIdx();
+        assert map.getNullIdx() == 0;
     }
 
     private void writeConllText() throws Exception {

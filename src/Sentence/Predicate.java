@@ -1,7 +1,5 @@
 package Sentence;
 
-import SupervisedSRL.Strcutures.IndexMap;
-
 /**
  * Created by Maryam Aminian on 12/11/15.
  */
@@ -11,19 +9,21 @@ public class Predicate {
     String predicateLabel;
 
 
-    public Predicate(){
-        predicateIndex= -1;
-        predicateLabel= "";
+    public Predicate() {
+        predicateIndex = -1;
+        predicateLabel = "";
     }
 
-    public Predicate(int givenIndex, String givenType){
-        predicateIndex= givenIndex;
+    public Predicate(int givenIndex, String givenType) {
+        predicateIndex = givenIndex;
         predicateLabel = givenType;
     }
-    public int getIndex(){
+
+    public int getIndex() {
         return predicateIndex;
     }
-    public String getLabel(){
+
+    public String getLabel() {
         return predicateLabel;
     }
 

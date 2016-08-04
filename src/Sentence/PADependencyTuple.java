@@ -9,27 +9,29 @@ public class PADependencyTuple implements Comparable {
     int argIndex;
     String srl;
 
-    PADependencyTuple()
-    {
-        this.predIndex= -1;
-        this.argIndex= -1;
-        this.srl= "";
-    }
-    PADependencyTuple(int predIndex, int argIndex, String srl)
-    {
-        this.predIndex= predIndex;
-        this.argIndex= argIndex;
-        this.srl= srl;
+    PADependencyTuple() {
+        this.predIndex = -1;
+        this.argIndex = -1;
+        this.srl = "";
     }
 
-    public  int getPredIndex()
-    {return predIndex; }
+    PADependencyTuple(int predIndex, int argIndex, String srl) {
+        this.predIndex = predIndex;
+        this.argIndex = argIndex;
+        this.srl = srl;
+    }
 
-    public  int getArgIndex()
-    {return argIndex; }
+    public int getPredIndex() {
+        return predIndex;
+    }
 
-    public  String getSRL()
-    {return srl; }
+    public int getArgIndex() {
+        return argIndex;
+    }
+
+    public String getSRL() {
+        return srl;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -56,7 +58,7 @@ public class PADependencyTuple implements Comparable {
     @Override
     public int hashCode() {
         int hash = 0;
-        hash^= srl.hashCode() * predIndex * argIndex;
+        hash ^= srl.hashCode() * predIndex * argIndex;
         return hash;
     }
 

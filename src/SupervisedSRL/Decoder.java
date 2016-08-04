@@ -1,6 +1,6 @@
 package SupervisedSRL;
 
-import Sentence.*;
+import Sentence.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.BeamElement;
@@ -25,8 +25,7 @@ public class Decoder {
 
         if (state.equals("AI")) {
             this.aiClassifier = classifier;
-        }else if (state.equals("AC") || state.equals("joint"))
-        {
+        } else if (state.equals("AC") || state.equals("joint")) {
             this.acClassifier = classifier;
         }
     }
@@ -40,14 +39,13 @@ public class Decoder {
     }
 
 
-    public static void decode (Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
-                               int aiMaxBeamSize, int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir,String outputFile) throws Exception
-    {
+    public static void decode(Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
+                              int aiMaxBeamSize, int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir, String outputFile) throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
         System.out.println("Decoding started (on dev data)...");
-        long startTime  = System.currentTimeMillis();
-        boolean decode= true;
+        long startTime = System.currentTimeMillis();
+        boolean decode = true;
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devDataPath);
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
@@ -63,24 +61,23 @@ public class Decoder {
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
         }
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap ,outputFile);
+        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap, outputFile);
         long endTime = System.currentTimeMillis();
-        System.out.println("Total time for decoding: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
     }
 
 
-    public static void decode (Decoder decoder, IndexMap indexMap, String devData,
-                               String[] labelMap,
-                               int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
-                               String modelDir,
-                               String outputFile) throws Exception
-    {
+    public static void decode(Decoder decoder, IndexMap indexMap, String devData,
+                              String[] labelMap,
+                              int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
+                              String modelDir,
+                              String outputFile) throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
         System.out.println("Decoding started (on dev data)...");
-        long startTime  = System.currentTimeMillis();
-        boolean decode= true;
+        long startTime = System.currentTimeMillis();
+        boolean decode = true;
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
@@ -92,15 +89,21 @@ public class Decoder {
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
-            predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOfPDFeatures, modelDir);
+            predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOfPDFeatures, modelDir);
         }
 
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap ,outputFile);
+        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap, outputFile);
         long endTime = System.currentTimeMillis();
-        System.out.println("Total time for decoding: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
     }
 
-
+    private static TreeSet<Pair<Double, ArrayList<Integer>>> convertArrayListOfPairs2TreeSetOfPairs(ArrayList<Pair<Double, ArrayList<Integer>>> arrayOfPairs) {
+        TreeSet<Pair<Double, ArrayList<Integer>>> treeSetOfPairs = new TreeSet<Pair<Double, ArrayList<Integer>>>();
+        for (Pair<Double, ArrayList<Integer>> pair : arrayOfPairs) {
+            treeSetOfPairs.add(pair);
+        }
+        return treeSetOfPairs;
+    }
 
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
             (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int maxBeamSize, int numOfFeatures)
@@ -154,10 +157,8 @@ public class Decoder {
         return currentBeam;
     }
 
-
     //getting highest score AI candidate without Beam Search
-    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int numOfFeatures)
-    {
+    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int numOfFeatures) {
         int[] sentenceWords = sentence.getWords();
         HashMap<Integer, Integer> highestScoreAISeq = new HashMap<Integer, Integer>();
 
@@ -167,7 +168,7 @@ public class Decoder {
                 continue;
 
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractFeatures (pIdx, pLabel, wordIdx, sentence, "AI", numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AI", numOfFeatures, indexMap);
             double score1 = aiClassifier.score(featVector)[1];
 
             if (score1 >= 0) {
@@ -177,7 +178,6 @@ public class Decoder {
 
         return highestScoreAISeq;
     }
-
 
     private ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getBestACCandidates
             (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
@@ -238,21 +238,20 @@ public class Decoder {
         return finalACCandidates;
     }
 
-
     //this function is used for joint ai-ac decoding
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestCandidates
-            (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
-             int maxBeamSize, int numOfFeatures)
+    (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
+     int maxBeamSize, int numOfFeatures)
 
     {
         String[] labelMap = acClassifier.getLabelMap();
 
-            ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
-            currentBeam.add(new Pair<Double, ArrayList<Integer>>(0., new ArrayList<Integer>()));
+        ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
+        currentBeam.add(new Pair<Double, ArrayList<Integer>>(0., new ArrayList<Integer>()));
 
 
         // Gradual building of the beam for all words in the sentence
-        for (int wordIdx = 1; wordIdx < sentence.getWords().length ; wordIdx++) {
+        for (int wordIdx = 1; wordIdx < sentence.getWords().length; wordIdx++) {
             // retrieve candidates for the current word
             Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AC", numOfFeatures, indexMap);
             double[] labelScores = acClassifier.score(featVector);
@@ -286,18 +285,6 @@ public class Decoder {
         return currentBeam;
     }
 
-
-    private static TreeSet<Pair<Double, ArrayList<Integer>>> convertArrayListOfPairs2TreeSetOfPairs (ArrayList<Pair<Double, ArrayList<Integer>>> arrayOfPairs)
-    {
-        TreeSet<Pair<Double, ArrayList<Integer>>> treeSetOfPairs= new TreeSet<Pair<Double, ArrayList<Integer>>>();
-        for (Pair<Double, ArrayList<Integer>> pair: arrayOfPairs)
-        {
-            treeSetOfPairs.add(pair);
-        }
-        return treeSetOfPairs;
-    }
-
-
     private HashMap<Integer, Integer> getHighestScorePredication
             (ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates,
              ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates) {
@@ -321,10 +308,10 @@ public class Decoder {
 
         //after finding highest score sequence in the list of AC candidates
         HashMap<Integer, Integer> wordIndexLabelMap = new HashMap<Integer, Integer>();
-        ArrayList<Integer> highestScoreAISeq= new ArrayList<Integer>();
+        ArrayList<Integer> highestScoreAISeq = new ArrayList<Integer>();
 
         if (highestScoreSeqAIIndex != -1)
-            highestScoreAISeq= aiCandidates.get(highestScoreSeqAIIndex).second;
+            highestScoreAISeq = aiCandidates.get(highestScoreSeqAIIndex).second;
 
         for (int k = 0; k < highestScoreAISeq.size(); k++) {
             int argIdx = highestScoreAISeq.get(k);
@@ -345,7 +332,7 @@ public class Decoder {
         HashMap<Integer, Integer> wordIndexLabelMap = new HashMap<Integer, Integer>();
         ArrayList<Integer> highestScoreSeq = highestScorePair.second;
 
-        for (int index:highestScoreSeq) {
+        for (int index : highestScoreSeq) {
             wordIndexLabelMap.put(index, 1);
         }
 
@@ -355,7 +342,7 @@ public class Decoder {
 
     //this function is used for joint ai-ac modules
     private HashMap<Integer, Integer> getHighestScorePredicationJoint
-            (ArrayList<Pair<Double, ArrayList<Integer>>> candidates, int pIndex) {
+    (ArrayList<Pair<Double, ArrayList<Integer>>> candidates, int pIndex) {
 
         TreeSet<Pair<Double, ArrayList<Integer>>> acCandidates4ThisSeq = new TreeSet<Pair<Double, ArrayList<Integer>>>(candidates);
         Pair<Double, ArrayList<Integer>> highestScorePair = acCandidates4ThisSeq.pollLast();
@@ -376,15 +363,14 @@ public class Decoder {
     }
 
 
-    public HashMap<Integer, Prediction> predictAI (Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                   int numOfFeatures, String modelDir, int numOfPDFeatures)
-            throws Exception
-    {
+    public HashMap<Integer, Prediction> predictAI(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
+                                                  int numOfFeatures, String modelDir, int numOfPDFeatures)
+            throws Exception {
 
         //Predicate disambiguation step
         //System.out.println("Disambiguating predicates of this sentence...");
 
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
+        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
 
         /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
@@ -395,24 +381,24 @@ public class Decoder {
 
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
 
-        for (int pIdx :predictedPredicates.keySet()) {
+        for (int pIdx : predictedPredicates.keySet()) {
             // get best k argument assignment candidates
             String pLabel = predictedPredicates.get(pIdx);
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, pLabel, indexMap, aiMaxBeamSize, numOfFeatures);
-            HashMap<Integer, Integer> highestScorePrediction  = getHighestScorePredication(aiCandidates);
+            HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
         return predictedPAs;
     }
 
 
-    public HashMap<Integer, Prediction> predictAC (Sentence sentence, IndexMap indexMap,
-                                                int acMaxBeamSize, int aiMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
+    public HashMap<Integer, Prediction> predictAC(Sentence sentence, IndexMap indexMap,
+                                                  int acMaxBeamSize, int aiMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
 
         //Predicate disambiguation step
         //System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
+        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
 
         /*
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
@@ -424,7 +410,7 @@ public class Decoder {
             String pLabel = predictedPredicates.get(pIdx);
 
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates =
-                    getBestAICandidates(sentence,pIdx,pLabel,indexMap, aiMaxBeamSize, numOfAIFeatures);
+                    getBestAICandidates(sentence, pIdx, pLabel, indexMap, aiMaxBeamSize, numOfAIFeatures);
 
             // get best <=l argument label for each of these k assignments
             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
@@ -439,11 +425,11 @@ public class Decoder {
 
 
     public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                               int acMaxBeamSize, int numOfAIFeatures,int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
+                                                int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
         //Predicate disambiguation step
         //System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
+        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
         /*
         /////////////////////////////
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
@@ -469,11 +455,11 @@ public class Decoder {
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
 
         //if (predictedPredicates.keySet().size()==0)
-            //System.out.print("no predicate predicted...");
+        //System.out.print("no predicate predicted...");
 
-        for (int pIdx :predictedPredicates.keySet()) {
+        for (int pIdx : predictedPredicates.keySet()) {
             // get best k argument assignment candidates
-            String pLabel =predictedPredicates.get(pIdx);
+            String pLabel = predictedPredicates.get(pIdx);
 
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence,
                     pIdx, pLabel, indexMap,
@@ -487,7 +473,7 @@ public class Decoder {
                     pIdx, pLabel, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
 
-            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pIdx,pLabel ,
+            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pIdx, pLabel,
                     indexMap, numOfAIFeatures);
 
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
@@ -498,12 +484,12 @@ public class Decoder {
 
     //this function is used for joint ai-ac decoding
     public TreeMap<Integer, Prediction> predictJoint(Sentence sentence, IndexMap indexMap,
-                                                                    int maxBeamSize, int numOfFeatures,int numOfPDFeatures,
-                                                                    String modelDir) throws Exception {
+                                                     int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
+                                                     String modelDir) throws Exception {
 
         //Predicate disambiguation step
         //System.out.println("Disambiguating predicates of this sentence...");
-        HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
+        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
 
         /*
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
@@ -514,8 +500,8 @@ public class Decoder {
 
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
 
-        for (int pIdx :predictedPredicates.keySet()) {
-            String pLabel =predictedPredicates.get(pIdx);
+        for (int pIdx : predictedPredicates.keySet()) {
+            String pLabel = predictedPredicates.get(pIdx);
             ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pIdx, pLabel, indexMap, maxBeamSize, numOfFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredicationJoint(candidates, pIdx);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));

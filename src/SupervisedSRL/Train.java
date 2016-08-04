@@ -1,12 +1,8 @@
 package SupervisedSRL;
 
-import java.text.DecimalFormat;
-import java.util.*;
-
-import Sentence.Sentence;
-import Sentence.Predicate;
 import Sentence.Argument;
 import Sentence.PA;
+import Sentence.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.IndexMap;
@@ -15,18 +11,20 @@ import SupervisedSRL.Strcutures.Prediction;
 import ml.AveragedPerceptron;
 import util.IO;
 
+import java.text.DecimalFormat;
+import java.util.*;
+
 /**
  * Created by Maryam Aminian on 5/23/16.
  */
 public class Train {
 
     //this function is used to train stacked ai-ac models
-    public String[] train (String trainData,
-                           String devData,
-                              int numberOfTrainingIterations,
-                              String modelDir,
-                              int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, int aiMaxBeamSize, int acMaxBeamSize) throws Exception
-    {
+    public String[] train(String trainData,
+                          String devData,
+                          int numberOfTrainingIterations,
+                          String modelDir,
+                          int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, int aiMaxBeamSize, int acMaxBeamSize) throws Exception {
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
@@ -38,7 +36,7 @@ public class Train {
 
 
         //training AI and AC models separately
-        String aiModelPath = trainAI(trainSentencesInCONLLFormat,devSentencesInCONLLFormat, indexMap,
+        String aiModelPath = trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
                 numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
 
         String acModelPath = trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap,
@@ -50,10 +48,10 @@ public class Train {
 
     //this function is used to train the joint ai-ac model
     public String trainJoint(String trainData,
-                                    String devData,
-                                    int numberOfTrainingIterations,
-                                    String modelDir, String outputPrefix, int numOfFeatures, int numOFPDFeaturs,
-                                    int maxBeamSize)
+                             String devData,
+                             int numberOfTrainingIterations,
+                             String modelDir, String outputPrefix, int numOfFeatures, int numOFPDFeaturs,
+                             int maxBeamSize)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -70,12 +68,12 @@ public class Train {
 
         //training averaged perceptron
         long startTime = 0;
-        long endTime =0;
+        long endTime = 0;
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
-            startTime= System.currentTimeMillis();
+            startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
             int s = 0;
-            for(String sentence: trainSentencesInCONLLFormat) {
+            for (String sentence : trainSentencesInCONLLFormat) {
                 Object[] instances = obtainTrainInstance4JointModel(sentence, indexMap, numOfFeatures);
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
@@ -84,12 +82,12 @@ public class Train {
                     ap.learnInstance(featVectors.get(d), labels.get(d));
                 }
                 s++;
-                if(s%1000==0)
-                    System.out.print(s+"...");
+                if (s % 1000 == 0)
+                    System.out.print(s + "...");
             }
-            System.out.print(s+"\n");
+            System.out.print(s + "\n");
             endTime = System.currentTimeMillis();
-            System.out.println("Total time of this iteration: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+            System.out.println("Total time of this iteration: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
             System.out.println("****** DEV RESULTS ******");
             System.out.println("Making prediction on dev data started...");
@@ -104,21 +102,21 @@ public class Train {
             PD.totalPreds = 0;
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
-                if (d%1000==0)
-                    System.out.println(d+"/"+devSentencesInCONLLFormat.size());
+                if (d % 1000 == 0)
+                    System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
                 sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentencesInCONLLFormat.get(d)));
-                predictions[d]= decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOFPDFeaturs, modelDir);
+                predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOFPDFeaturs, modelDir);
             }
 
-            IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, ap.getLabelMap(), outputPrefix+"_"+iter);
+            IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, ap.getLabelMap(), outputPrefix + "_" + iter);
 
             //evaluation
-            Evaluation.evaluate(outputPrefix+"_"+iter, devData, indexMap, ap.getReverseLabelMap());
+            Evaluation.evaluate(outputPrefix + "_" + iter, devData, indexMap, ap.getReverseLabelMap());
 
             endTime = System.currentTimeMillis();
-            System.out.println("Total time for decoding on dev data: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+            System.out.println("Total time for decoding on dev data: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
         }
 
@@ -133,9 +131,9 @@ public class Train {
 
     private String trainAI(List<String> trainSentencesInCONLLFormat,
                            List<String> devSentencesInCONLLFormat,
-                                 IndexMap indexMap,
-                                 int numberOfTrainingIterations,
-                                 String modelDir, int numOfFeatures, int numOfPDFeatures, int aiMaxBeamSize)
+                           IndexMap indexMap,
+                           int numberOfTrainingIterations,
+                           String modelDir, int numOfFeatures, int numOfPDFeatures, int aiMaxBeamSize)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -147,17 +145,17 @@ public class Train {
 
         //training averaged perceptron
         long startTime = 0;
-        long endTime =0;
+        long endTime = 0;
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
             int negInstances = 0;
             int dataSize = 0;
             int s = 0;
-            ap.correct =0;
-            for(String sentence: trainSentencesInCONLLFormat) {
+            ap.correct = 0;
+            for (String sentence : trainSentencesInCONLLFormat) {
 
-                Object[] instances = obtainTrainInstance4AI (sentence, indexMap, numOfFeatures);
+                Object[] instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
@@ -193,16 +191,16 @@ public class Train {
                     dataSize++;
                 }
                 s++;
-                if(s%1000==0)
-                    System.out.print(s+"...");
+                if (s % 1000 == 0)
+                    System.out.print(s + "...");
             }
-            System.out.print(s+"\n");
+            System.out.print(s + "\n");
 
-            double ac = 100. * (double) ap.correct /dataSize;
+            double ac = 100. * (double) ap.correct / dataSize;
 
-            System.out.println("data size:"+ dataSize +" neg_instances: "+negInstances+" accuracy: " + ac);
+            System.out.println("data size:" + dataSize + " neg_instances: " + negInstances + " accuracy: " + ac);
             endTime = System.currentTimeMillis();
-            System.out.println("Total time for this iteration " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+            System.out.println("Total time for this iteration " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
             //making prediction over dev sentences
             System.out.println("****** DEV RESULTS ******");
@@ -222,12 +220,12 @@ public class Train {
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
                 //if (d%1000==0)
-                    //System.out.println(d+"/"+devSentencesInCONLLFormat.size());
+                //System.out.println(d+"/"+devSentencesInCONLLFormat.size());
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
-                HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI (sentence, indexMap, aiMaxBeamSize, numOfFeatures, modelDir, numOfPDFeatures);
+                HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize, numOfFeatures, modelDir, numOfPDFeatures);
 
                 //we do evaluation for each sentence and update confusion matrix right here
-                aiConfusionMatrix =Evaluation.evaluateAI4ThisSentence(sentence,prediction, aiConfusionMatrix);
+                aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
             }
             Evaluation.computePrecisionRecall(aiConfusionMatrix);
         }
@@ -241,12 +239,11 @@ public class Train {
     }
 
 
-
     private String trainAC(List<String> trainSentencesInCONLLFormat,
                            List<String> devSentencesInCONLLFormat,
                            HashSet<String> labelSet, IndexMap indexMap,
-                                   int numberOfTrainingIterations,
-                                   String modelDir, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, int aiMaxBeamSize, int acMaxBeamSize)
+                           int numberOfTrainingIterations,
+                           String modelDir, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, int aiMaxBeamSize, int acMaxBeamSize)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -254,8 +251,8 @@ public class Train {
         AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfACFeatures);
 
         //training average perceptron
-        long startTime =0;
-        long endTime =0;
+        long startTime = 0;
+        long endTime = 0;
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
@@ -278,7 +275,7 @@ public class Train {
             System.out.println("accuracy: " + ac);
             ap.correct = 0;
             endTime = System.currentTimeMillis();
-            System.out.println("Total time of this iteration: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+            System.out.println("Total time of this iteration: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
             //making prediction over dev sentences
             System.out.println("****** DEV RESULTS ******");
@@ -286,9 +283,9 @@ public class Train {
 
             //instead of loading model from file, we just calculate the average weights
             String aiModelPath = modelDir + "/AI.model";
-            Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath),ap.calculateAvgWeights());
+            Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(ap.getReverseLabelMap());
-            reverseLabelMap.put("0",reverseLabelMap.size());
+            reverseLabelMap.put("0", reverseLabelMap.size());
             boolean decode = true;
 
             //ac confusion matrix
@@ -300,14 +297,14 @@ public class Train {
 
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
-               // if (d%1000==0)
-                    //System.out.println(d+"/"+devSentencesInCONLLFormat.size());
+                // if (d%1000==0)
+                //System.out.println(d+"/"+devSentencesInCONLLFormat.size());
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
-                HashMap<Integer, Prediction> prediction = argumentDecoder.predictAC (sentence, indexMap,
-                        acMaxBeamSize, aiMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,modelDir);
+                HashMap<Integer, Prediction> prediction = argumentDecoder.predictAC(sentence, indexMap,
+                        acMaxBeamSize, aiMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir);
 
                 //we do evaluation for each sentence and update confusion matrix right here
-                acConfusionMatrix = Evaluation.evaluateAC4ThisSentence(sentence,prediction, acConfusionMatrix, reverseLabelMap);
+                acConfusionMatrix = Evaluation.evaluateAC4ThisSentence(sentence, prediction, acConfusionMatrix, reverseLabelMap);
             }
             Evaluation.computePrecisionRecall(acConfusionMatrix, reverseLabelMap);
         }
@@ -321,27 +318,27 @@ public class Train {
     }
 
 
-
     /**
      * This function reads input sentences in Conll format and extracts features vectors
      * This function is no longer used due to high memory usage, instead feature extraction is repeated at each iteration
+     *
      * @param sentencesInCONLLFormat
      * @param state
      * @param indexMap
      * @param numOfFeatures
      * @return
      */
-    private Object[] obtainTrainInstances (List<String> sentencesInCONLLFormat, String state,
-                                                  IndexMap indexMap, int numOfFeatures) {
+    private Object[] obtainTrainInstances(List<String> sentencesInCONLLFormat, String state,
+                                          IndexMap indexMap, int numOfFeatures) {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
 
-        int counter=0;
+        int counter = 0;
         boolean decode = false;
         for (String sentenceInCONLLFormat : sentencesInCONLLFormat) {
             counter++;
-            if (counter%1000==0)
-                System.out.println(counter+"/"+sentencesInCONLLFormat.size());
+            if (counter % 1000 == 0)
+                System.out.println(counter + "/" + sentencesInCONLLFormat.size());
 
             Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
             ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
@@ -384,8 +381,8 @@ public class Train {
     }
 
 
-    private Object[] obtainTrainInstance4AI (String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
-        String state= "AI";
+    private Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
+        String state = "AI";
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -411,8 +408,8 @@ public class Train {
         return new Object[]{featVectors, labels};
     }
 
-    private Object[] obtainTrainInstance4AC (String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
-        String state= "AC";
+    private Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
+        String state = "AC";
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -424,8 +421,8 @@ public class Train {
             String pLabel = pa.getPredicateLabel();
             ArrayList<Argument> currentArgs = pa.getArguments();
             //extract features for arguments (not all words)
-            for (Argument arg: currentArgs) {
-                int argIdx= arg.getIndex();
+            for (Argument arg : currentArgs) {
+                int argIdx = arg.getIndex();
                 Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, argIdx,
                         sentence, state, numOfFeatures, indexMap);
 
@@ -440,7 +437,7 @@ public class Train {
 
     //function is used for joint ai-ac training/decoding
     private Object[] obtainTrainInstance4JointModel(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
-        String state= "joint";
+        String state = "joint";
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -471,21 +468,19 @@ public class Train {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    private  String isArgument(int wordIdx, ArrayList<Argument> currentArgs) {
+    private String isArgument(int wordIdx, ArrayList<Argument> currentArgs) {
         for (Argument arg : currentArgs)
             if (arg.getIndex() == wordIdx)
                 return arg.getType();
         return "";
     }
 
-    private  List<Integer> obtainSampleIndices(ArrayList<String> labels)
-    {
-        ArrayList<Integer> posIndices= new ArrayList<Integer>();
-        ArrayList<Integer> negIndices= new ArrayList<Integer>();
+    private List<Integer> obtainSampleIndices(ArrayList<String> labels) {
+        ArrayList<Integer> posIndices = new ArrayList<Integer>();
+        ArrayList<Integer> negIndices = new ArrayList<Integer>();
 
-        for (int k=0; k< labels.size(); k++)
-        {
-            if(labels.get(k).equals("1"))
+        for (int k = 0; k < labels.size(); k++) {
+            if (labels.get(k).equals("1"))
                 posIndices.add(k);
             else
                 negIndices.add(k);
@@ -495,25 +490,23 @@ public class Train {
         Collections.shuffle(negIndices);
 
         //int sampleSize= Math.min(posIndices.size(), negIndices.size());
-        int posSampleSize= posIndices.size();
-        int negSampleSize= negIndices.size()/8;
-        List<Integer> sampledPosIndices= posIndices.subList(0, posSampleSize);
-        List<Integer> sampledNegIndices= negIndices.subList(0, negSampleSize);
+        int posSampleSize = posIndices.size();
+        int negSampleSize = negIndices.size() / 8;
+        List<Integer> sampledPosIndices = posIndices.subList(0, posSampleSize);
+        List<Integer> sampledNegIndices = negIndices.subList(0, negSampleSize);
 
         sampledPosIndices.addAll(sampledNegIndices);
         return sampledPosIndices;
     }
 
-    private  Object[] sample(ArrayList<List<String>> featVectors,
-                                                  ArrayList<String> labels,
-                                                  List<Integer> sampleIndices)
-    {
-        ArrayList<List<String>> sampledFeatVectors= new ArrayList<List<String>>();
-        ArrayList<String> sampledLabels= new ArrayList<String>();
+    private Object[] sample(ArrayList<List<String>> featVectors,
+                            ArrayList<String> labels,
+                            List<Integer> sampleIndices) {
+        ArrayList<List<String>> sampledFeatVectors = new ArrayList<List<String>>();
+        ArrayList<String> sampledLabels = new ArrayList<String>();
 
         Collections.shuffle(sampleIndices);
-        for (int idx: sampleIndices)
-        {
+        for (int idx : sampleIndices) {
             sampledFeatVectors.add(featVectors.get(idx));
             sampledLabels.add(labels.get(idx));
         }
@@ -522,44 +515,39 @@ public class Train {
     }
 
 
-    private Object[] overSample(ArrayList<Object[]> senFeatVecs, ArrayList<String> senLabels)
-    {
+    private Object[] overSample(ArrayList<Object[]> senFeatVecs, ArrayList<String> senLabels) {
         ArrayList<Integer> negIndices = new ArrayList<Integer>();
         ArrayList<Integer> posIndices = new ArrayList<Integer>();
 
         ArrayList<Object[]> overSampledFeatVecs = senFeatVecs;
         ArrayList<String> overSampledLabels = senLabels;
 
-        for (int idx =0 ; idx< senLabels.size(); idx++)
-        {
+        for (int idx = 0; idx < senLabels.size(); idx++) {
             if (senLabels.get(idx).equals("0"))
                 negIndices.add(idx);
             else
                 posIndices.add(idx);
         }
-        int numOfSamples =  negIndices.size() - posIndices.size();
-        for (int k=0; k< numOfSamples; k++)
-        {
-            if (posIndices.size()!=0) {
+        int numOfSamples = negIndices.size() - posIndices.size();
+        for (int k = 0; k < numOfSamples; k++) {
+            if (posIndices.size() != 0) {
                 int ranIdx = new Random().nextInt(posIndices.size());
                 overSampledFeatVecs.add(senFeatVecs.get(posIndices.get(ranIdx)));
                 overSampledLabels.add(senLabels.get(posIndices.get(ranIdx)));
             }
         }
-        return new Object[] {overSampledFeatVecs, overSampledLabels};
+        return new Object[]{overSampledFeatVecs, overSampledLabels};
     }
 
 
-    private Object[] downSample(ArrayList<Object[]> senFeatVecs, ArrayList<String> senLabels)
-    {
+    private Object[] downSample(ArrayList<Object[]> senFeatVecs, ArrayList<String> senLabels) {
         ArrayList<Integer> negIndices = new ArrayList<Integer>();
         ArrayList<Integer> posIndices = new ArrayList<Integer>();
 
         ArrayList<Object[]> downSampledFeatVecs = new ArrayList<Object[]>();
         ArrayList<String> downSampledLabels = new ArrayList<String>();
 
-        for (int idx =0 ; idx< senLabels.size(); idx++)
-        {
+        for (int idx = 0; idx < senLabels.size(); idx++) {
             if (senLabels.get(idx).equals("0"))
                 negIndices.add(idx);
             else
@@ -568,9 +556,8 @@ public class Train {
         int numOfSamples = posIndices.size();
         ArrayList<Integer> downSampledIndices = new ArrayList<Integer>();
         //adding down sampled neg indices
-        for (int k=0; k< numOfSamples; k++)
-        {
-            if (negIndices.size()!=0) {
+        for (int k = 0; k < numOfSamples; k++) {
+            if (negIndices.size() != 0) {
                 int ranIdx = new Random().nextInt(negIndices.size());
                 downSampledIndices.add(negIndices.get(ranIdx));
             }
@@ -579,12 +566,11 @@ public class Train {
         downSampledIndices.addAll(posIndices);
         Collections.shuffle(downSampledIndices);
 
-        for (int idx: downSampledIndices)
-        {
+        for (int idx : downSampledIndices) {
             downSampledFeatVecs.add(senFeatVecs.get(idx));
             downSampledLabels.add(senLabels.get(idx));
         }
 
-        return new Object[] {downSampledFeatVecs, downSampledLabels};
+        return new Object[]{downSampledFeatVecs, downSampledLabels};
     }
 }

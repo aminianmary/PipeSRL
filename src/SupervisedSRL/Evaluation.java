@@ -18,17 +18,16 @@ import java.util.*;
 public class Evaluation {
 
 
-    public static void evaluate (String systemOutput, String goldOutput, IndexMap indexMap,
-                                 HashMap<String, Integer> reverseLabelMap) throws IOException
-    {
+    public static void evaluate(String systemOutput, String goldOutput, IndexMap indexMap,
+                                HashMap<String, Integer> reverseLabelMap) throws IOException {
         DecimalFormat format = new DecimalFormat("##.00");
 
         List<String> systemOutputInCONLLFormat = IO.readCoNLLFile(systemOutput);
         List<String> goldOutputInCONLLFormat = IO.readCoNLLFile(goldOutput);
-        Set<String> argLabels= reverseLabelMap.keySet();
+        Set<String> argLabels = reverseLabelMap.keySet();
 
-        int correctPLabel =0;
-        int wrongPLabel =0;
+        int correctPLabel = 0;
+        int wrongPLabel = 0;
 
         int[][] aiConfusionMatrix = new int[2][2];
         aiConfusionMatrix[0][0] = 0;
@@ -48,8 +47,7 @@ public class Evaluation {
         }
 
         boolean decode = true;
-        for (int senIdx =0; senIdx< systemOutputInCONLLFormat.size(); senIdx++)
-        {
+        for (int senIdx = 0; senIdx < systemOutputInCONLLFormat.size(); senIdx++) {
             //System.out.println("sen: "+senIdx);
             Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap, decode);
             Sentence goldSen = new Sentence(goldOutputInCONLLFormat.get(senIdx), indexMap, decode);
@@ -57,15 +55,12 @@ public class Evaluation {
             ArrayList<PA> sysOutPAs = sysOutSen.getPredicateArguments().getPredicateArgumentsAsArray();
             ArrayList<PA> goldPAs = goldSen.getPredicateArguments().getPredicateArgumentsAsArray();
 
-            for (PA goldPA : goldPAs)
-            {
+            for (PA goldPA : goldPAs) {
                 int goldPIdx = goldPA.getPredicateIndex();
                 String goldPLabel = goldPA.getPredicateLabel();
-                for (PA sysOutPA : sysOutPAs)
-                {
-                    int sysOutPIdx=  sysOutPA.getPredicateIndex();
-                    if (goldPIdx == sysOutPIdx)
-                    {
+                for (PA sysOutPA : sysOutPAs) {
+                    int sysOutPIdx = sysOutPA.getPredicateIndex();
+                    if (goldPIdx == sysOutPIdx) {
                         //same predicate index (predicate indices are supposed to be given)
                         String sysOutPLabel = sysOutPA.getPredicateLabel();
                         if (goldPLabel.equals(sysOutPLabel)) {
@@ -77,8 +72,7 @@ public class Evaluation {
                                     aiConfusionMatrix, acConfusionMatrix, reverseLabelMap);
                             aiConfusionMatrix = (int[][]) confusionMatrices[0];
                             acConfusionMatrix = (HashMap<Integer, int[]>) confusionMatrices[1];
-                        }else
-                        {
+                        } else {
                             //different predicate labels
                             wrongPLabel++;
                             //discover argument precision/recall
@@ -94,9 +88,9 @@ public class Evaluation {
             }
         }
         System.out.println("*********************************************");
-        System.out.println("Total Predicate Disambiguation Accuracy " + format.format((double) correctPLabel / (correctPLabel+wrongPLabel)));
-        System.out.println("Total Number of Predicate Tokens in dev data: "+ PD.totalPreds);
-        System.out.println("Total Number of Unseen Predicate Tokens in dev data: "+ PD.unseenPreds);
+        System.out.println("Total Predicate Disambiguation Accuracy " + format.format((double) correctPLabel / (correctPLabel + wrongPLabel)));
+        System.out.println("Total Number of Predicate Tokens in dev data: " + PD.totalPreds);
+        System.out.println("Total Number of Unseen Predicate Tokens in dev data: " + PD.unseenPreds);
         System.out.println("*********************************************");
         computePrecisionRecall(aiConfusionMatrix, acConfusionMatrix, reverseLabelMap);
     }
@@ -129,13 +123,11 @@ public class Evaluation {
             if (goldArgMap.containsKey(predictedArgIdx)) {
                 //System.out.print("predictedArgIdx: "+predictedArgIdx + "\tGoldLabel: " + goldArgMap.get(predictedArgIdx) +"\n\n");
                 String goldLabel = goldArgMap.get(predictedArgIdx);
-                int goldLabelIdx =-1;
-                if (reverseLabelMap.containsKey(goldLabel))
-                {
+                int goldLabelIdx = -1;
+                if (reverseLabelMap.containsKey(goldLabel)) {
                     //seen gold label in train data
                     goldLabelIdx = reverseLabelMap.get(goldLabel);
-                }
-                else {
+                } else {
                     reverseLabelMap.put(goldLabel, reverseLabelMap.size());
                     goldLabelIdx = reverseLabelMap.get(goldLabel);
                     acConfusionMatrix = updateConfusionMatrix(acConfusionMatrix);
@@ -153,15 +145,14 @@ public class Evaluation {
                 //ai_fn --> ac_fn
                 //System.out.println(goldArgMap.get(goldArgIdx));
                 String goldLabel = goldArgMap.get(goldArgIdx);
-                int goldLabelIdx =-1;
+                int goldLabelIdx = -1;
                 //we might see an unseen gold label at this step
                 if (reverseLabelMap.containsKey(goldLabel))
                     goldLabelIdx = reverseLabelMap.get(goldArgMap.get(goldArgIdx));
-                else
-                {
+                else {
                     reverseLabelMap.put(goldLabel, reverseLabelMap.size());
                     goldLabelIdx = reverseLabelMap.get(goldLabel);
-                    acConfusionMatrix =updateConfusionMatrix(acConfusionMatrix);
+                    acConfusionMatrix = updateConfusionMatrix(acConfusionMatrix);
                 }
                 acConfusionMatrix.get(reverseLabelMap.get("0"))
                         [goldLabelIdx]++;
@@ -172,8 +163,8 @@ public class Evaluation {
 
 
     public static void computePrecisionRecall(int[][] aiConfusionMatrix,
-                                               HashMap<Integer, int[]> acConfusionMatrix,
-                                               HashMap<String, Integer> reverseLabelMap) {
+                                              HashMap<Integer, int[]> acConfusionMatrix,
+                                              HashMap<String, Integer> reverseLabelMap) {
         DecimalFormat format = new DecimalFormat("##.00");
         //binary classification
         int aiTP = aiConfusionMatrix[1][1];
@@ -249,15 +240,13 @@ public class Evaluation {
         System.out.println("Total AI prediction " + total_ai_predictions);
         System.out.println("AI Precision: " + format.format(precision));
         System.out.println("AI Recall: " + format.format(recall));
-        System.out.println("AI F1-score: " + format.format((2*precision*recall)/(precision+recall)));
+        System.out.println("AI F1-score: " + format.format((2 * precision * recall) / (precision + recall)));
         System.out.println("*********************************************");
     }
 
 
-
     public static void computePrecisionRecall(HashMap<Integer, int[]> acConfusionMatrix,
-                                              HashMap<String, Integer> reverseLabelMap)
-    {
+                                              HashMap<String, Integer> reverseLabelMap) {
         DecimalFormat format = new DecimalFormat("##.00");
 
         String[] labelMap = new String[reverseLabelMap.size()];
@@ -291,7 +280,7 @@ public class Evaluation {
                 double precision = 100. * (double) tp / total_prediction_4_this_label;
                 double recall = 100. * (double) tp / total_gold_4_this_label;
                 //System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
-               //System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
+                //System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
             }
         }
 
@@ -310,17 +299,14 @@ public class Evaluation {
     }
 
 
-    public static int[][] evaluateAI4ThisSentence (Sentence goldSentence, HashMap<Integer, Prediction> prediction,
-                                                int[][] aiConfusionMatrix)
-    {
+    public static int[][] evaluateAI4ThisSentence(Sentence goldSentence, HashMap<Integer, Prediction> prediction,
+                                                  int[][] aiConfusionMatrix) {
         ArrayList<PA> goldPAs = goldSentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
-        for (PA goldPA : goldPAs)
-        {
+        for (PA goldPA : goldPAs) {
             int goldPIdx = goldPA.getPredicateIndex();
             String goldPLabel = goldPA.getPredicateLabel();
-            for (int sysOutPIdx : prediction.keySet())
-            {
+            for (int sysOutPIdx : prediction.keySet()) {
                 if (goldPIdx == sysOutPIdx) {
                     HashMap<Integer, Integer> prediction4ThisPredicate = prediction.get(sysOutPIdx).getArgumentLabels();
 
@@ -348,8 +334,8 @@ public class Evaluation {
     }
 
 
-    public static HashMap<Integer, int[]> evaluateAC4ThisSentence (Sentence goldSen, HashMap<Integer, Prediction> prediction,
-                                                    HashMap<Integer, int[]> acConfusionMatrix, HashMap<String, Integer> reverseLabelMap) {
+    public static HashMap<Integer, int[]> evaluateAC4ThisSentence(Sentence goldSen, HashMap<Integer, Prediction> prediction,
+                                                                  HashMap<Integer, int[]> acConfusionMatrix, HashMap<String, Integer> reverseLabelMap) {
         DecimalFormat format = new DecimalFormat("##.00");
 
         ArrayList<PA> goldPAs = goldSen.getPredicateArguments().getPredicateArgumentsAsArray();
@@ -358,7 +344,7 @@ public class Evaluation {
 
             int goldPIdx = goldPA.getPredicateIndex();
 
-            for (int sysOutPIdx: prediction.keySet()) {
+            for (int sysOutPIdx : prediction.keySet()) {
                 if (goldPIdx == sysOutPIdx) {
 
                     ArrayList<Argument> goldArgs = goldPA.getArguments();
@@ -439,55 +425,50 @@ public class Evaluation {
     //////////// SUPPORTING FUNCTIONS /////////////////////////////////////////////////
 
     private static HashMap<Integer, String> getGoldArgMap(ArrayList<Argument> args) {
-        HashMap<Integer, String> goldArgMap= new HashMap<Integer, String>();
+        HashMap<Integer, String> goldArgMap = new HashMap<Integer, String>();
         for (Argument arg : args)
             goldArgMap.put(arg.getIndex(), arg.getType());
         return goldArgMap;
     }
 
 
-    private static HashSet<Integer> getNonZeroArgs (HashMap<Integer, Integer> prediction)
-    {
+    private static HashSet<Integer> getNonZeroArgs(HashMap<Integer, Integer> prediction) {
         HashSet<Integer> nonZeroArgs = new HashSet();
-        for (int key: prediction.keySet())
+        for (int key : prediction.keySet())
             if (prediction.get(key) != 21)
                 nonZeroArgs.add(key);
 
         return nonZeroArgs;
     }
 
-    private static HashSet<Integer> getPredicateIndices (ArrayList<PA> predicateArguments)
-    {
-        HashSet<Integer> predicateIndices =  new HashSet<Integer>(  );
+    private static HashSet<Integer> getPredicateIndices(ArrayList<PA> predicateArguments) {
+        HashSet<Integer> predicateIndices = new HashSet<Integer>();
         for (PA pa : predicateArguments)
             predicateIndices.add(pa.getPredicateIndex());
         return predicateIndices;
     }
 
 
-    private static HashMap<Integer, Integer> convertPredictionToMap(PA pa, HashMap<String, Integer> reverseLabelMap)
-    {
+    private static HashMap<Integer, Integer> convertPredictionToMap(PA pa, HashMap<String, Integer> reverseLabelMap) {
         HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
         ArrayList<Argument> args = pa.getArguments();
-        for (Argument arg: args)
+        for (Argument arg : args)
             highestScorePrediction.put(arg.getIndex(), reverseLabelMap.get(arg.getType()));
         return highestScorePrediction;
     }
 
-    private static HashMap<Integer, int[]> updateConfusionMatrix (HashMap<Integer, int[]> currentConfusionMatrix)
-    {
+    private static HashMap<Integer, int[]> updateConfusionMatrix(HashMap<Integer, int[]> currentConfusionMatrix) {
         HashMap<Integer, int[]> newConfusionMatrix = new HashMap<Integer, int[]>();
-        for (int predictedLabel:currentConfusionMatrix.keySet())
-        {
+        for (int predictedLabel : currentConfusionMatrix.keySet()) {
             int[] currentGoldLabels = currentConfusionMatrix.get(predictedLabel);
-            int[] newGoldLabels = new int[currentGoldLabels.length+1];
-            for (int i=0; i< currentGoldLabels.length; i++)
+            int[] newGoldLabels = new int[currentGoldLabels.length + 1];
+            for (int i = 0; i < currentGoldLabels.length; i++)
                 newGoldLabels[i] = currentGoldLabels[i];
-            newGoldLabels[currentGoldLabels.length] =0;
+            newGoldLabels[currentGoldLabels.length] = 0;
             newConfusionMatrix.put(predictedLabel, newGoldLabels);
         }
-        int[] temp = new int[currentConfusionMatrix.size()+1];
-        newConfusionMatrix.put(currentConfusionMatrix.size(),temp);
+        int[] temp = new int[currentConfusionMatrix.size() + 1];
+        newConfusionMatrix.put(currentConfusionMatrix.size(), temp);
 
         return newConfusionMatrix;
     }

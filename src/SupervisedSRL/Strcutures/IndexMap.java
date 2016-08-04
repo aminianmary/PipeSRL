@@ -1,87 +1,85 @@
 package SupervisedSRL.Strcutures;
 
-import com.sun.tools.classfile.Synthetic_attribute;
-
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
-import util.StringUtils.*;
+
 /**
  * Created by Maryam Aminian on 6/21/16.
  */
 public class IndexMap implements Serializable {
 
     final int nullIdx = 0;
-    final int unknownIdx =1;
+    final int unknownIdx = 1;
     private HashMap<String, Integer> string2intMap;
     private String[] int2stringMap;
 
-    public IndexMap(String trainFilePath) throws IOException
-    {
-        string2intMap= new HashMap<String, Integer>();
+    public IndexMap(String trainFilePath) throws IOException {
+        string2intMap = new HashMap<String, Integer>();
         string2intMap.put("NULL", nullIdx);
-        string2intMap.put("UNK",unknownIdx);
-        int index =2;
+        string2intMap.put("UNK", unknownIdx);
+        int index = 2;
 
-        Object[] sets =buildIndividualSets(trainFilePath);
+        Object[] sets = buildIndividualSets(trainFilePath);
         HashSet<String> posTags = (HashSet<String>) sets[0];
         HashSet<String> depRels = (HashSet<String>) sets[1];
         HashSet<String> words = (HashSet<String>) sets[2];
 
-        for (String posTag: posTags)
-        {
+        for (String posTag : posTags) {
             if (!string2intMap.containsKey(posTag)) {
                 string2intMap.put(posTag, index);
                 index++;
             }
         }
-        for (String depRel: depRels)
-        {
+        for (String depRel : depRels) {
             if (!string2intMap.containsKey(depRel)) {
                 string2intMap.put(depRel, index);
                 index++;
             }
         }
-        for (String word: words) {
+        for (String word : words) {
             if (!string2intMap.containsKey(word)) {
                 string2intMap.put(word, index);
                 index++;
             }
         }
         //building int2stringMap
-        int2stringMap= new String[string2intMap.size()];
-        for (String str: string2intMap.keySet())
+        int2stringMap = new String[string2intMap.size()];
+        for (String str : string2intMap.keySet())
             int2stringMap[string2intMap.get(str)] = str;
 
-        System.out.print("Size of index Map: "+ string2intMap.size()+"\n");
+        System.out.print("Size of index Map: " + string2intMap.size() + "\n");
 
     }
 
-    public HashMap<String, Integer> getString2intMap() {return string2intMap;}
+    public HashMap<String, Integer> getString2intMap() {
+        return string2intMap;
+    }
 
-    public String[] getInt2stringMap() {return int2stringMap;}
+    public String[] getInt2stringMap() {
+        return int2stringMap;
+    }
 
-    private Object[] buildIndividualSets (String trainFilePath) throws IOException
-    {
+    private Object[] buildIndividualSets(String trainFilePath) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(trainFilePath)));
-        String line2read= "";
+        String line2read = "";
 
         //data structures to store pos, depRel, words, etc.
         HashSet<String> posTags = new HashSet<String>();
         HashSet<String> depRels = new HashSet<String>();
         HashSet<String> words = new HashSet<String>();
 
-        while ((line2read= reader.readLine())!= null) {
+        while ((line2read = reader.readLine()) != null) {
             if (line2read.equals(""))
                 continue;
-            String[] splitLine= line2read.split("\t");
+            String[] splitLine = line2read.split("\t");
             String id = splitLine[0];
-            String form= splitLine[1];
-            String gLemma= splitLine[2];
-            String pLemma= splitLine[3];
+            String form = splitLine[1];
+            String gLemma = splitLine[2];
+            String pLemma = splitLine[3];
             String gPos = splitLine[4];
             String pPos = splitLine[5];
-            String cPos = util.StringUtils.getCoarsePOS (pPos); //coarse predicated pos tag
+            String cPos = util.StringUtils.getCoarsePOS(pPos); //coarse predicated pos tag
             String gFeats = splitLine[6];
             String pFeats = splitLine[7];
             String gHead = splitLine[8];
@@ -97,33 +95,41 @@ public class IndexMap implements Serializable {
             posTags.add(cPos);
             depRels.add(gDepRel);
             depRels.add(pDepRel);
-            words.add("\t");
             words.add(id);
             words.add(form);
             words.add(gLemma);
             words.add(pLemma);
-            words.add("|");
-            for (String gFeat: gFeats.split("|"))
+            for (String gFeat : gFeats.split("|"))
                 words.add(gFeat);
-            for (String pFeat: pFeats.split("|"))
+            for (String pFeat : pFeats.split("|"))
                 words.add(pFeat);
             words.add(gHead);
             words.add(pHead);
             words.add(fillPred);
             words.add(pred);
-            for (int k=14; k<splitLine.length;k++)
+            for (int k = 14; k < splitLine.length; k++)
                 words.add(splitLine[k]);
         }
         return new Object[]{posTags, depRels, words};
     }
 
-    public int getNullIdx() {return nullIdx;}
+    public int getNullIdx() {
+        return nullIdx;
+    }
 
-    public int getUnknownIdx() {return unknownIdx;}
+    public int getUnknownIdx() {
+        return unknownIdx;
+    }
 
-    public int str2int(String str){
-        if(string2intMap.containsKey(str))
+    public int str2int(String str) {
+        if (string2intMap.containsKey(str))
             return string2intMap.get(str);
         return unknownIdx;
+    }
+
+    public String int2str(int i) throws Exception {
+        if (int2stringMap.length <= i)
+            throw new Exception("Index out of bound");
+        return int2stringMap[i];
     }
 }
