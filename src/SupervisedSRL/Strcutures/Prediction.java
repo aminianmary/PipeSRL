@@ -9,11 +9,6 @@ public class Prediction {
     String predicateLabel;
     HashMap<Integer, Integer> argumentLabels;
 
-    public Prediction() {
-        predicateLabel = "";
-        argumentLabels = new HashMap<Integer, Integer>();
-    }
-
     public Prediction(String predicatedPredicateLabel, HashMap<Integer, Integer> predicatedArgumentLabels) {
         predicateLabel = predicatedPredicateLabel;
         argumentLabels = predicatedArgumentLabels;

@@ -106,7 +106,7 @@ public class Decoder {
     }
 
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
-            (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int maxBeamSize, int numOfFeatures)
+            (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int maxBeamSize, int numOfFeatures) throws Exception
 
     {
         ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
@@ -118,7 +118,7 @@ public class Decoder {
         for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
 
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AI", numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
 
             double[] scores = aiClassifier.score(featVector);
             double score0 = scores[0];
@@ -158,7 +158,7 @@ public class Decoder {
     }
 
     //getting highest score AI candidate without Beam Search
-    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int numOfFeatures) {
+    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int numOfFeatures) throws Exception {
         int[] sentenceWords = sentence.getWords();
         HashMap<Integer, Integer> highestScoreAISeq = new HashMap<Integer, Integer>();
 
@@ -168,7 +168,7 @@ public class Decoder {
                 continue;
 
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AI", numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
             double score1 = aiClassifier.score(featVector)[1];
 
             if (score1 >= 0) {
@@ -182,7 +182,7 @@ public class Decoder {
     private ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getBestACCandidates
             (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
              ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates,
-             int maxBeamSize, int numOfFeatures)
+             int maxBeamSize, int numOfFeatures) throws Exception
 
     {
         String[] labelMap = acClassifier.getLabelMap();
@@ -201,7 +201,7 @@ public class Decoder {
             for (int wordIdx : aiCandidate.second) {
 
                 // retrieve candidates for the current word
-                Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AC", numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
                 double[] labelScores = acClassifier.score(featVector);
 
                 // build an intermediate beam
@@ -241,7 +241,7 @@ public class Decoder {
     //this function is used for joint ai-ac decoding
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestCandidates
     (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
-     int maxBeamSize, int numOfFeatures)
+     int maxBeamSize, int numOfFeatures) throws Exception
 
     {
         String[] labelMap = acClassifier.getLabelMap();
@@ -253,7 +253,7 @@ public class Decoder {
         // Gradual building of the beam for all words in the sentence
         for (int wordIdx = 1; wordIdx < sentence.getWords().length; wordIdx++) {
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AC", numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
             double[] labelScores = acClassifier.score(featVector);
 
             // build an intermediate beam

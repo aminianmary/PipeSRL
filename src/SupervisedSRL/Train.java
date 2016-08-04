@@ -318,71 +318,7 @@ public class Train {
     }
 
 
-    /**
-     * This function reads input sentences in Conll format and extracts features vectors
-     * This function is no longer used due to high memory usage, instead feature extraction is repeated at each iteration
-     *
-     * @param sentencesInCONLLFormat
-     * @param state
-     * @param indexMap
-     * @param numOfFeatures
-     * @return
-     */
-    private Object[] obtainTrainInstances(List<String> sentencesInCONLLFormat, String state,
-                                          IndexMap indexMap, int numOfFeatures) {
-        ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
-        ArrayList<String> labels = new ArrayList<String>();
-
-        int counter = 0;
-        boolean decode = false;
-        for (String sentenceInCONLLFormat : sentencesInCONLLFormat) {
-            counter++;
-            if (counter % 1000 == 0)
-                System.out.println(counter + "/" + sentencesInCONLLFormat.size());
-
-            Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
-            ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
-            int[] sentenceWords = sentence.getWords();
-
-            for (PA pa : pas) {
-                int pIdx = pa.getPredicateIndex();
-                String pLabel = pa.getPredicateLabel();
-                ArrayList<Argument> currentArgs = pa.getArguments();
-
-                for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                    if (wordIdx != pIdx) {
-                        Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx,
-                                sentence, state, numOfFeatures, indexMap);
-                        String label = "";
-
-                        if (state.equals("AI"))
-                            label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
-                        else
-                            label = pa.obtainArgumentType(wordIdx);
-
-                        featVectors.add(featVector);
-                        labels.add(label);
-                    }
-                }
-            }
-        }
-        /*
-        //due to data imbalance --> try to sample pos and neg examples
-        List<Integer> sampleIndices= obtainSampleIndices(labels);
-        Object[] objs =sample(featVectors, labels, sampleIndices);
-
-        ArrayList<List<String>> sampledFeatVectors = (ArrayList<List<String>>) objs[0];
-        ArrayList<String> sampledLabels = (ArrayList<String>) objs[1];
-
-        featVectors= sampledFeatVectors;
-        labels= sampledLabels;
-        */
-        return new Object[]{featVectors, labels};
-    }
-
-
-    private Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
-        String state = "AI";
+    private Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -396,8 +332,8 @@ public class Train {
             ArrayList<Argument> currentArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx,
-                        sentence, state, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, pLabel, wordIdx,
+                        sentence, numOfFeatures, indexMap);
 
                 String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
                 featVectors.add(featVector);
@@ -408,8 +344,7 @@ public class Train {
         return new Object[]{featVectors, labels};
     }
 
-    private Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
-        String state = "AC";
+    private Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -423,8 +358,7 @@ public class Train {
             //extract features for arguments (not all words)
             for (Argument arg : currentArgs) {
                 int argIdx = arg.getIndex();
-                Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, argIdx,
-                        sentence, state, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, pLabel, argIdx, sentence, numOfFeatures, indexMap);
 
                 String label = arg.getType();
                 featVectors.add(featVector);
@@ -436,8 +370,7 @@ public class Train {
     }
 
     //function is used for joint ai-ac training/decoding
-    private Object[] obtainTrainInstance4JointModel(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
-        String state = "joint";
+    private Object[] obtainTrainInstance4JointModel(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -451,8 +384,7 @@ public class Train {
             ArrayList<Argument> currentArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx,
-                        sentence, state, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractJointFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
 
                 String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : isArgument(wordIdx, currentArgs);
                 featVectors.add(featVector);

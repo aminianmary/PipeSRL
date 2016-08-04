@@ -1,7 +1,6 @@
 package Tests;
 
 import Sentence.*;
-import Sentence.PADependencyTuple;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
 
@@ -77,13 +76,13 @@ public class SentenceTest {
             System.out.println(pa.getPredicateIndex() + "\t" + pa.getPredicateLabel());
             if (pa.getPredicateIndex() == 4) {
                 assert pa.getPredicateLabel().equals("temperature.01");
-                assert pa.getAllPredArgDepTupls().contains(new PADependencyTuple(4,4,"A2"));
+                assert pa.getAllPredArgDepTupls().contains(new PADependencyTuple(4, 4, "A2"));
                 assert pa.obtainArgumentType(4).equals("A2");
                 assert pa.obtainArgumentType(2).equals("A1");
-                for(Argument arg: pa.getArguments()){
-                    if(arg.getIndex()==4)
-                        assert  arg.getArgPosition() == ArgumentPosition.ON;
-                    if(arg.getIndex()==2)
+                for (Argument arg : pa.getArguments()) {
+                    if (arg.getIndex() == 4)
+                        assert arg.getArgPosition() == ArgumentPosition.ON;
+                    if (arg.getIndex() == 2)
                         assert arg.getArgPosition() == ArgumentPosition.BEFORE;
                 }
             }

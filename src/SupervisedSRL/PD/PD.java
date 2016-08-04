@@ -58,7 +58,7 @@ public class PD {
     public static void train(List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
             throws Exception {
         //creates lexicon of all predicates in the trainJoint set
-        HashMap<Integer, HashMap<Integer, HashSet<pLexiconEntry>>> trainPLexicon =
+        HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> trainPLexicon =
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
 
         System.out.println("Training Started...");
@@ -66,7 +66,7 @@ public class PD {
         for (int plem : trainPLexicon.keySet()) {
             //extracting feature vector for each training example
             for (int ppos : trainPLexicon.get(plem).keySet()) {
-                HashSet<pLexiconEntry> featVectors = trainPLexicon.get(plem).get(ppos);
+                HashSet<PredicateLexiconEntry> featVectors = trainPLexicon.get(plem).get(ppos);
                 HashSet<String> labelSet = getLabels(featVectors);
 
                 AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfPDFeaturs);
@@ -74,7 +74,7 @@ public class PD {
                 //System.out.print("training model for predicate/pos -->"+ plem+"|"+ppos+"\n");
                 for (int i = 0; i < numberOfTrainingIterations; i++) {
                     //System.out.print("iteration:" + i + "...");
-                    for (pLexiconEntry ple : trainPLexicon.get(plem).get(ppos)) {
+                    for (PredicateLexiconEntry ple : trainPLexicon.get(plem).get(ppos)) {
                         //trainJoint average perceptron
                         String plabel = ple.getPlabel();
 
@@ -108,7 +108,7 @@ public class PD {
             int plem = sentenceLemmas[pIdx];
             //we use coarse POS tags instead of original POS tags
             int ppos = sentenceCPOSTags[pIdx]; //sentencePOSTags[pIdx];
-            Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, "", -1, sentence, "PD", numOfPDFeatures, indexMap);
+            Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, "", -1, sentence, numOfPDFeatures, indexMap);
             f1 = new File(modelDir + "/" + plem + "_" + ppos);
             if (f1.exists() && !f1.isDirectory()) {
                 //seen predicates
@@ -128,10 +128,9 @@ public class PD {
     }
 
 
-    public static HashMap<Integer, HashMap<Integer, HashSet<pLexiconEntry>>> buildPredicateLexicon
-            (List<String> sentencesInCONLLFormat, IndexMap indexMap, int numOfPDFeatures) {
-        HashMap<Integer, HashMap<Integer, HashSet<pLexiconEntry>>> pLexicon =
-                new HashMap<Integer, HashMap<Integer, HashSet<pLexiconEntry>>>();
+    public static HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> buildPredicateLexicon
+            (List<String> sentencesInCONLLFormat, IndexMap indexMap, int numOfPDFeatures) throws Exception {
+        HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> pLexicon = new HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>>();
 
         boolean decode = false;
         for (int senID = 0; senID < sentencesInCONLLFormat.size(); senID++) {
@@ -148,18 +147,18 @@ public class PD {
                 //instead of original POS tags, we use coarse POS tags
                 int ppos = sentenceCPOSTags[pIdx];
 
-                Object[] pdfeats = FeatureExtractor.extractFeatures(pIdx, plabel, -1, sentence, "PD", numOfPDFeatures, indexMap);
-                pLexiconEntry ple = new pLexiconEntry(plabel, pdfeats);
+                Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, plabel, -1, sentence, numOfPDFeatures, indexMap);
+                PredicateLexiconEntry ple = new PredicateLexiconEntry(plabel, pdfeats);
 
                 if (!pLexicon.containsKey(plem)) {
-                    HashMap<Integer, HashSet<pLexiconEntry>> posDic = new HashMap<Integer, HashSet<pLexiconEntry>>();
-                    HashSet<pLexiconEntry> featVectors = new HashSet<pLexiconEntry>();
+                    HashMap<Integer, HashSet<PredicateLexiconEntry>> posDic = new HashMap<Integer, HashSet<PredicateLexiconEntry>>();
+                    HashSet<PredicateLexiconEntry> featVectors = new HashSet<PredicateLexiconEntry>();
                     featVectors.add(ple);
                     posDic.put(ppos, featVectors);
                     pLexicon.put(plem, posDic);
 
                 } else if (!pLexicon.get(plem).containsKey(ppos)) {
-                    HashSet<pLexiconEntry> featVectors = new HashSet<pLexiconEntry>();
+                    HashSet<PredicateLexiconEntry> featVectors = new HashSet<PredicateLexiconEntry>();
                     featVectors.add(ple);
                     pLexicon.get(plem).put(ppos, featVectors);
                 } else {
@@ -173,9 +172,9 @@ public class PD {
     }
 
 
-    public static HashSet<String> getLabels(HashSet<pLexiconEntry> featVectors) {
+    public static HashSet<String> getLabels(HashSet<PredicateLexiconEntry> featVectors) {
         HashSet<String> labelSet = new HashSet<String>();
-        for (pLexiconEntry ple : featVectors)
+        for (PredicateLexiconEntry ple : featVectors)
             labelSet.add(ple.getPlabel());
 
         return labelSet;
