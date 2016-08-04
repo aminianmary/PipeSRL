@@ -51,7 +51,6 @@ public class PA {
         for (Argument a : ams) {
             int aIndex = a.getIndex();
             String aType = a.getType();
-
             predArgDepTuples.add(new PADependencyTuple(pIndex, aIndex, aType));
         }
 

@@ -80,6 +80,8 @@ public class SentenceTest {
             if (pa.getPredicateIndex() == 4) {
                 assert pa.getPredicateLabel().equals("temperature.01");
                 assert pa.getAllPredArgDepTupls().contains(new PADependencyTuple(4,4,"A2"));
+                assert pa.obtainArgumentType(4).equals("A2");
+                assert pa.obtainArgumentType(2).equals("A1");
             }
             for (Argument arg : pa.getArguments()) {
                 System.out.println("arg: " + arg.getIndex() + "\t" + arg.getType());
