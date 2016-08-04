@@ -107,6 +107,8 @@ public class PD {
         int[] sentenceLemmas = sentence.getLemmas();
         int[] sentencePOSTags = sentence.getPosTags();
         int[] sentenceCPOSTags = sentence.getCPosTags();
+        String[] sentenceLemmas_str = sentence.getLemmas_str();
+
         HashMap<Integer, String> predictions = new HashMap<Integer, String>();
         //given gold predicate ids, we just disambiguate them
         for (PA pa : pas) {
@@ -126,7 +128,10 @@ public class PD {
             {
                 //unseen predicate --> assign lemma.01 (default sense) as predicate label instead of null
                 unseenPreds++;
-                predictions.put(pIdx, plem+".01");
+                if (plem != indexMap.getUnknownIdx())
+                    predictions.put(pIdx, indexMap.getInt2stringMap()[plem]+".01"); //seen pLem
+                else
+                    predictions.put(pIdx, sentenceLemmas_str[pIdx]+".01"); //unseen pLem
             }
         }
         return predictions;

@@ -50,11 +50,7 @@ public class Evaluation {
         boolean decode = true;
         for (int senIdx =0; senIdx< systemOutputInCONLLFormat.size(); senIdx++)
         {
-            System.out.println("sen: "+senIdx);
-            if (senIdx==6)
-            {
-                System.out.print("STOP");
-            }
+            //System.out.println("sen: "+senIdx);
             Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap, decode);
             Sentence goldSen = new Sentence(goldOutputInCONLLFormat.get(senIdx), indexMap, decode);
 
@@ -132,8 +128,20 @@ public class Evaluation {
             int predictedLabel = highestScorePrediction.get(predictedArgIdx);
             if (goldArgMap.containsKey(predictedArgIdx)) {
                 //System.out.print("predictedArgIdx: "+predictedArgIdx + "\tGoldLabel: " + goldArgMap.get(predictedArgIdx) +"\n\n");
-                int goldLabel = reverseLabelMap.get(goldArgMap.get(predictedArgIdx));
-                acConfusionMatrix.get(predictedLabel)[goldLabel]++;
+                String goldLabel = goldArgMap.get(predictedArgIdx);
+                int goldLabelIdx =-1;
+                if (reverseLabelMap.containsKey(goldLabel))
+                {
+                    //seen gold label in train data
+                    goldLabelIdx = reverseLabelMap.get(goldLabel);
+                }
+                else {
+                    reverseLabelMap.put(goldLabel, reverseLabelMap.size());
+                    goldLabelIdx = reverseLabelMap.get(goldLabel);
+                    acConfusionMatrix = updateConfusionMatrix(acConfusionMatrix);
+                }
+                acConfusionMatrix.get(predictedLabel)[goldLabelIdx]++;
+
             } else {
                 acConfusionMatrix.get(predictedLabel)[reverseLabelMap.get("0")]++;
             }
@@ -143,7 +151,7 @@ public class Evaluation {
         for (int goldArgIdx : goldArgMap.keySet()) {
             if (!sysOutArgIndices.contains(goldArgIdx)) {
                 //ai_fn --> ac_fn
-                System.out.println(goldArgMap.get(goldArgIdx));
+                //System.out.println(goldArgMap.get(goldArgIdx));
                 String goldLabel = goldArgMap.get(goldArgIdx);
                 int goldLabelIdx =-1;
                 //we might see an unseen gold label at this step
@@ -161,6 +169,7 @@ public class Evaluation {
         }
         return new Object[]{aiConfusionMatrix, acConfusionMatrix};
     }
+
 
     public static void computePrecisionRecall(int[][] aiConfusionMatrix,
                                                HashMap<Integer, int[]> acConfusionMatrix,

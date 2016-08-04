@@ -41,7 +41,7 @@ public class Decoder {
 
 
     public static void decode (Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
-                               int aiMaxBeamSize, int acMaxBeamSize, int numOfFeatures, int numOfPDFeatures, String modelDir,String outputFile) throws Exception
+                               int aiMaxBeamSize, int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir,String outputFile) throws Exception
     {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -59,7 +59,7 @@ public class Decoder {
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
             //todo think about the correct way to show final predications
-            predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfFeatures, numOfPDFeatures, modelDir);
+            predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
         }
@@ -98,7 +98,6 @@ public class Decoder {
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap ,outputFile);
         long endTime = System.currentTimeMillis();
         System.out.println("Total time for decoding: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
     }
 
 
@@ -114,8 +113,6 @@ public class Decoder {
 
         // Gradual building of the beam
         for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-            if (wordIdx == pIdx)
-                continue;
 
             // retrieve candidates for the current word
             Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AI", numOfFeatures, indexMap);
@@ -242,7 +239,7 @@ public class Decoder {
     }
 
 
-    //this function is used to test ai-ac combination
+    //this function is used for joint ai-ac decoding
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestCandidates
             (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
              int maxBeamSize, int numOfFeatures)
@@ -254,41 +251,37 @@ public class Decoder {
             currentBeam.add(new Pair<Double, ArrayList<Integer>>(0., new ArrayList<Integer>()));
 
 
-            // Gradual building of the beam for the words identified as an argument by AI classifier
+        // Gradual building of the beam for all words in the sentence
         for (int wordIdx = 1; wordIdx < sentence.getWords().length ; wordIdx++) {
-            if (wordIdx == pIdx)
-                continue;
+            // retrieve candidates for the current word
+            Object[] featVector = FeatureExtractor.extractFeatures(pIdx, pLabel, wordIdx, sentence, "AC", numOfFeatures, indexMap);
+            double[] labelScores = acClassifier.score(featVector);
 
-                // retrieve candidates for the current word
-                Object[] featVector = FeatureExtractor.extractFeatures( pIdx, pLabel, wordIdx, sentence, "AC", numOfFeatures, indexMap);
-                double[] labelScores = acClassifier.score(featVector);
+            // build an intermediate beam
+            TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();
 
-                // build an intermediate beam
-                TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();
+            for (int index = 0; index < currentBeam.size(); index++) {
+                double currentScore = currentBeam.get(index).first;
 
-                for (int index = 0; index < currentBeam.size(); index++) {
-                    double currentScore = currentBeam.get(index).first;
-
-                    for (int labelIdx = 0; labelIdx < labelMap.length; labelIdx++) {
-                        newBeamHeap.add(new BeamElement(index, currentScore + labelScores[labelIdx], labelIdx));
-                        if (newBeamHeap.size() > maxBeamSize)
-                            newBeamHeap.pollFirst();
-                    }
+                for (int labelIdx = 0; labelIdx < labelMap.length; labelIdx++) {
+                    newBeamHeap.add(new BeamElement(index, currentScore + labelScores[labelIdx], labelIdx));
+                    if (newBeamHeap.size() > maxBeamSize)
+                        newBeamHeap.pollFirst();
                 }
-
-                ArrayList<Pair<Double, ArrayList<Integer>>> newBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>(maxBeamSize);
-
-                for (BeamElement beamElement : newBeamHeap) {
-                    //todo check if it works properly
-                    ArrayList<Integer> newArrayList = (ArrayList<Integer>) currentBeam.get(beamElement.index).second.clone();
-                    newArrayList.add(beamElement.label);
-                    newBeam.add(new Pair<Double, ArrayList<Integer>>(beamElement.score, newArrayList));
-
-                }
-
-                // replace the old beam with the intermediate beam
-                currentBeam = newBeam;
             }
+
+            ArrayList<Pair<Double, ArrayList<Integer>>> newBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>(maxBeamSize);
+
+            for (BeamElement beamElement : newBeamHeap) {
+                ArrayList<Integer> newArrayList = (ArrayList<Integer>) currentBeam.get(beamElement.index).second.clone();
+                newArrayList.add(beamElement.label);
+                newBeam.add(new Pair<Double, ArrayList<Integer>>(beamElement.score, newArrayList));
+
+            }
+
+            // replace the old beam with the intermediate beam
+            currentBeam = newBeam;
+        }
 
         return currentBeam;
     }
@@ -360,7 +353,7 @@ public class Decoder {
     }
 
 
-    //this function is used to test ai-ac modules combined
+    //this function is used for joint ai-ac modules
     private HashMap<Integer, Integer> getHighestScorePredicationJoint
             (ArrayList<Pair<Double, ArrayList<Integer>>> candidates, int pIndex) {
 
@@ -369,9 +362,7 @@ public class Decoder {
 
         //after finding highest score sequence in the list of candidates
         HashMap<Integer, Integer> wordIndexLabelMap = new HashMap<Integer, Integer>();
-        ArrayList<Integer> highestScoreSeq = new ArrayList<Integer>();
-
-        highestScoreSeq = highestScorePair.second;
+        ArrayList<Integer> highestScoreSeq = highestScorePair.second;
 
         int realIndex = 1;
         for (int k = 0; k < highestScoreSeq.size(); k++) {
@@ -448,17 +439,31 @@ public class Decoder {
 
 
     public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                               int acMaxBeamSize, int numOfFeatures, int numOfPDFeatures, String modelDir) throws Exception {
+                                                               int acMaxBeamSize, int numOfAIFeatures,int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
         //Predicate disambiguation step
         //System.out.println("Disambiguating predicates of this sentence...");
         HashMap<Integer, String> predictedPredicates =PD.predict(sentence,indexMap, modelDir, numOfPDFeatures);
-
         /*
+        /////////////////////////////
         HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
-        for (PA pa: goldPAs)
+        HashMap<Integer, ArrayList<Pair<Double, ArrayList<Integer>>>> goldArgs =
+                new HashMap<Integer, ArrayList<Pair<Double, ArrayList<Integer>>>>();
+
+        for (PA pa: goldPAs) {
             predictedPredicates.put(pa.getPredicateIndex(), pa.getPredicateLabel());
+            ArrayList<Integer> args =  new ArrayList<Integer>();
+            for (Argument argument: pa.getArguments())
+                args.add(argument.getIndex());
+
+            ArrayList<Pair<Double, ArrayList<Integer>>> goldList = new ArrayList<Pair<Double, ArrayList<Integer>>>();
+            Pair<Double, ArrayList<Integer>> temp = new Pair<Double, ArrayList<Integer>>(1.0, args);
+            goldList.add(temp);
+
+            goldArgs.put(pa.getPredicateIndex(), goldList);
+        }
+        /////////////////////////////
         */
 
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
@@ -469,18 +474,21 @@ public class Decoder {
         for (int pIdx :predictedPredicates.keySet()) {
             // get best k argument assignment candidates
             String pLabel =predictedPredicates.get(pIdx);
+
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence,
                     pIdx, pLabel, indexMap,
-                    aiMaxBeamSize, numOfFeatures);
+                    aiMaxBeamSize, numOfAIFeatures);
+
+            //gold arguments
+            //ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = goldArgs.get(pIdx);
 
             // get best <=l argument label for each of these k assignments
             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
-                    pIdx, pLabel,
-                    indexMap, aiCandidates, acMaxBeamSize, numOfFeatures);
+                    pIdx, pLabel, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
 
             HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pIdx,pLabel ,
-                    indexMap, numOfFeatures);
+                    indexMap, numOfAIFeatures);
 
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
@@ -488,7 +496,7 @@ public class Decoder {
     }
 
 
-    //this function is used to test ai-ac modules combination
+    //this function is used for joint ai-ac decoding
     public TreeMap<Integer, Prediction> predictJoint(Sentence sentence, IndexMap indexMap,
                                                                     int maxBeamSize, int numOfFeatures,int numOfPDFeatures,
                                                                     String modelDir) throws Exception {

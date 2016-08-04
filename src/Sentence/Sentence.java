@@ -1,6 +1,7 @@
 package Sentence;
 
 import SupervisedSRL.Strcutures.IndexMap;
+import apple.laf.JRSUIUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ public class Sentence {
     int[] posTags;
     int[] cPosTags;
     int[] lemmas;
+    String[] lemmas_str;
     TreeSet<Integer>[] reverseDepHeads;
     PAs predicateArguments;
 
@@ -34,8 +36,9 @@ public class Sentence {
         posTags = new int[numTokens];
         cPosTags = new int[numTokens];
         lemmas = new int[numTokens];
+        lemmas_str= new String[numTokens];
 
-        reverseDepHeads = new TreeSet[numTokens];
+        reverseDepHeads = new TreeSet [numTokens];
         predicateArguments = new PAs();
 
         for (int tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
@@ -52,12 +55,16 @@ public class Sentence {
                 posTags[index] = wordMap.get(fields[5]);
                 cPosTags[index] = wordMap.get(util.StringUtils.getCoarsePOS(fields[5]));
                 lemmas[index] = wordMap.get(fields[3]);
-            }else
+            }
+            else
             {
+                lemmas_str[index] = fields[3];
+
                 if (wordMap.containsKey(fields[1]))
                     words[index] = wordMap.get(fields[1]);
                 else
                     words[index] = indexMap.getUnknownIdx();
+
                 if (wordMap.containsKey(fields[11]))
                     depLabels[index] = wordMap.get(fields[11]);
                 else
@@ -111,62 +118,83 @@ public class Sentence {
         }
     }
 
-
-    // todo be a member for Predicate (L/R show as bit, POS as int; finally with a StringBuilder concat them with space)
     public ArrayList<Integer> getDepPath(int source, int target) {
         int right = 0;
         int left = 1;
         ArrayList<Integer> visited = new ArrayList<Integer>();
 
-        if (reverseDepHeads[source] != null) {
-            for (int child : reverseDepHeads[source]) {
-                if (child == target) {
-                    if (child > source)
-                        visited.add(depLabels[child]<<1 | left);
-                    else
-                        visited.add(depLabels[child]<<1 | right);
-                    break;
+        if (source != target) {
+            if (reverseDepHeads[source] != null) {
+                //source has some children
+                for (int child : reverseDepHeads[source]) {
+                    if (child == target) {
+                        if (child > source) {
+                            visited.add(depLabels[child] << 1 | right);
+                        } else {
+                            visited.add(depLabels[child] << 1 | left);
+                        }
+                        break;
+                    } else {
+                        if (child > source) {
+                            visited.add(depLabels[child] << 1 | right);
+                        } else {
+                            visited.add(depLabels[child] << 1 | left);
+                        }
+                        ArrayList<Integer> visitedFromThisChild = getDepPath(child, target);
+                        if (visitedFromThisChild.size() != 0) {
+                            visited.addAll(visitedFromThisChild);
+                            break;
+                        }
+                        else
+                            visited.clear();
+                    }
                 }
-                else {
-                    if (child > source)
-                        visited.add(depLabels[child]<<1 | left);
-                    else
-                        visited.add(depLabels[child]<<1 | right);
-
-                    getDepPath(child, target);
-                }
+            }else
+            {
+                //source does not have any children + we have not still met the target --> there is no path between source and target
+                visited.clear();
             }
-
         }
         return visited;
     }
 
 
-    // todo be a member for Predicate (L/R show as bit, POS as int; finally with a StringBuilder concat them with space)
     public ArrayList<Integer> getPOSPath(int source, int target) {
         int right = 0;
         int left = 1;
         ArrayList<Integer> visited = new ArrayList<Integer>();
 
-        if (reverseDepHeads[source] != null) {
-            for (int child : reverseDepHeads[source]) {
-                if (child == target) {
-                    if (child > source)
-                        visited.add(posTags[child]<<1 | left);
-                    else
-                        visited.add(posTags[child]<<1 | right);
-                    break;
+        if (source != target) {
+            if (reverseDepHeads[source] != null) {
+                //source has some children
+                for (int child : reverseDepHeads[source]) {
+                    if (child == target) {
+                        if (child > source) {
+                            visited.add(posTags[child] << 1 | right);
+                        } else {
+                            visited.add(posTags[child] << 1 | left);
+                        }
+                        break;
+                    } else {
+                        if (child > source) {
+                            visited.add(posTags[child] << 1 | right);
+                        } else {
+                            visited.add(posTags[child] << 1 | left);
+                        }
+                        ArrayList<Integer> visitedFromThisChild = getPOSPath(child, target);
+                        if (visitedFromThisChild.size() != 0) {
+                            visited.addAll(visitedFromThisChild);
+                            break;
+                        }
+                        else
+                            visited.clear();
+                    }
                 }
-                else {
-                    if (child > source)
-                        visited.add(posTags[child]<<1 | left);
-                    else
-                        visited.add(posTags[child]<<1 | right);
-
-                    getPOSPath(child, target);
-                }
+            }else
+            {
+                //source does not have any children + we have not still met the target --> there is no path between source and target
+                visited.clear();
             }
-
         }
         return visited;
     }
@@ -190,6 +218,7 @@ public class Sentence {
         return depHeads;
     }
 
+    public String[] getLemmas_str() {return lemmas_str;}
 
     public String[] getDepHeads_as_str() {
         String[] depHeads_str = new String[depHeads.length];
