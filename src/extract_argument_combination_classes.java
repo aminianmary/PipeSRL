@@ -1,4 +1,5 @@
 import Sentence.Argument;
+import Sentence.ArgumentPosition;
 import Sentence.PA;
 import Sentence.Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
@@ -144,7 +145,7 @@ public class extract_argument_combination_classes {
 
                                 if (justCoreRoles == true) {
                                     if (isACoreRole(ar.getType()) == true) {
-                                        if (ar.isSeenBeforePredicate() == false && firstArgAfterPredicate == true) {
+                                        if (ar.getArgPosition() == ArgumentPosition.AFTER && firstArgAfterPredicate == true) {
                                             label += "p|" + ar.getType() + "|";
                                             firstArgAfterPredicate = false;
                                         } else
@@ -152,7 +153,7 @@ public class extract_argument_combination_classes {
                                     }
 
                                 } else {
-                                    if (ar.isSeenBeforePredicate() == false && firstArgAfterPredicate == true) {
+                                    if (ar.getArgPosition() == ArgumentPosition.AFTER && firstArgAfterPredicate == true) {
                                         label += "p|" + ar.getType() + "|";
                                         firstArgAfterPredicate = false;
                                     } else
@@ -202,7 +203,7 @@ public class extract_argument_combination_classes {
 
                             if (justCoreRoles == true) {
                                 if (isACoreRole(ar.getType()) == true) {
-                                    if (ar.isSeenBeforePredicate() == false && firstArgAfterPredicate == true) {
+                                    if (ar.getArgPosition() == ArgumentPosition.AFTER && firstArgAfterPredicate == true) {
                                         label += "p|" + ar.getType() + "|";
                                         firstArgAfterPredicate = false;
                                     } else
@@ -210,7 +211,7 @@ public class extract_argument_combination_classes {
                                 }
 
                             } else {
-                                if (ar.isSeenBeforePredicate() == false && firstArgAfterPredicate == true) {
+                                if (ar.getArgPosition() == ArgumentPosition.AFTER && firstArgAfterPredicate == true) {
                                     label += "p|" + ar.getType() + "|";
                                     firstArgAfterPredicate = false;
                                 } else
@@ -480,7 +481,7 @@ public class extract_argument_combination_classes {
     public static boolean isAnyArgumentSeenAfterPredicate(ArrayList<Argument> args) {
         boolean isAnyArgumentSeenAfterPredicate = false;
         for (Argument arg : args) {
-            if (arg.isSeenBeforePredicate() == false) {
+            if (arg.getArgPosition() == ArgumentPosition.BEFORE) {
                 isAnyArgumentSeenAfterPredicate = true;
                 break;
             }

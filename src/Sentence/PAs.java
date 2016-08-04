@@ -7,6 +7,7 @@ import java.util.HashSet;
  * Created by monadiab on 12/11/15.
  */
 public class PAs {
+
     ArrayList<PA> predicateArguments;
 
     public PAs() {
@@ -18,6 +19,7 @@ public class PAs {
     }
 
     public void setPredicate(int predicateSeq, int predicateIndex, String predicateType) {
+        //note predicateSeq starts from 0
         if (predicateArguments.size() == predicateSeq) {
             //nothing about this predicate has seen before
             Predicate pr = new Predicate(predicateIndex, predicateType);
@@ -33,24 +35,30 @@ public class PAs {
         }
     }
 
-
     public void setArgument(int associatedPredicateSeq, int argumentIndex, String argumentType) {
+
         if (predicateArguments.size() == associatedPredicateSeq) {
             //nothing about this predicate has seen before --> argument seen before predicate
             ArrayList<Argument> arguments = new ArrayList<Argument>();
-            arguments.add(new Argument(argumentIndex, argumentType, true));
+            arguments.add(new Argument(argumentIndex, argumentType, ArgumentPosition.BEFORE));
             PA pa = new PA(new Predicate(), arguments);
             predicateArguments.add(pa);
-        } else if (predicateArguments.size() > associatedPredicateSeq) {
-            //arguments/predicate of this predicates have been seen before
+        }
+        else if (predicateArguments.size() > associatedPredicateSeq) {
             //we still don't know has predicate seen before or not
             PA currentPA = predicateArguments.get(associatedPredicateSeq);
-
-            if (currentPA.getPredicateIndex() > 0 && currentPA.getPredicateIndex() < argumentIndex)
-                //check if we have seen predicate before this argument or not
-                currentPA.updateArguments(new Argument(argumentIndex, argumentType, false));
-            else
-                currentPA.updateArguments(new Argument(argumentIndex, argumentType, true));
+            if (currentPA.getPredicateIndex() > 0) {
+                //this PA has predicate
+                if (currentPA.getPredicateIndex() == argumentIndex)
+                    currentPA.updateArguments(new Argument(argumentIndex, argumentType, ArgumentPosition.ON));
+                else if (currentPA.getPredicateIndex() < argumentIndex)
+                    currentPA.updateArguments(new Argument(argumentIndex, argumentType, ArgumentPosition.AFTER));
+                else if (currentPA.getPredicateIndex() > argumentIndex)
+                    currentPA.updateArguments(new Argument(argumentIndex, argumentType, ArgumentPosition.BEFORE));
+            } else {
+                //PA does not have predicate
+                currentPA.updateArguments(new Argument(argumentIndex, argumentType, ArgumentPosition.BEFORE));
+            }
         } else if (predicateArguments.size() < associatedPredicateSeq) {
             //there is/are some arguments in between that are not observed in any ways (either their arguments or the predicate itself)
             for (int j = 0; j < (associatedPredicateSeq - predicateArguments.size() + 1); j++) {
@@ -58,11 +66,10 @@ public class PAs {
                 predicateArguments.add(pa);
             }
             ArrayList<Argument> arguments = new ArrayList<Argument>();
-            arguments.add(new Argument(argumentIndex, argumentType, true));
+            arguments.add(new Argument(argumentIndex, argumentType, ArgumentPosition.BEFORE));
             PA pa = new PA(new Predicate(), arguments);
             predicateArguments.add(pa);
         }
-
     }
 
 

@@ -4,21 +4,20 @@ package Sentence;
  * Created by monadiab on 12/11/15.
  */
 public class Argument {
-
     int index;
     String type;
-    boolean seenBeforePredicate;
+    ArgumentPosition argPosition;
 
     public Argument() {
         index = -1;
         type = "";
-        seenBeforePredicate = true;
+        argPosition = ArgumentPosition.BEFORE;
     }
 
-    public Argument(int givenIndex, String givenType, boolean isBeforePredicate) {
+    public Argument(int givenIndex, String givenType, ArgumentPosition position) {
         index = givenIndex;
         type = givenType;
-        seenBeforePredicate = isBeforePredicate;
+        argPosition = position;
     }
 
     public Argument(int givenIndex, String givenType) {
@@ -26,8 +25,8 @@ public class Argument {
         type = givenType;
     }
 
-    public boolean isSeenBeforePredicate() {
-        return seenBeforePredicate;
+    public ArgumentPosition getArgPosition() {
+        return argPosition;
     }
 
     public String getType() {
