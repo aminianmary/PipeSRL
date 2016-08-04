@@ -411,8 +411,6 @@ public class Train {
         return new Object[]{featVectors, labels};
     }
 
-
-
     private Object[] obtainTrainInstance4AC (String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {
         String state= "AC";
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
@@ -439,8 +437,6 @@ public class Train {
 
         return new Object[]{featVectors, labels};
     }
-
-
 
     //function is used for joint ai-ac training/decoding
     private Object[] obtainTrainInstance4JointModel(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) {

@@ -121,4 +121,9 @@ public class IndexMap implements Serializable {
 
     public int getUnknownIdx() {return unknownIdx;}
 
+    public int str2int(String str){
+        if(string2intMap.containsKey(str))
+            return string2intMap.get(str);
+        return unknownIdx;
+    }
 }

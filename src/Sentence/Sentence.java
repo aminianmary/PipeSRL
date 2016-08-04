@@ -31,12 +31,19 @@ public class Sentence {
         int predicatesSeq = -1;
 
         depHeads = new int[numTokens];
+        depHeads[0] = indexMap.getNullIdx();
         depLabels = new int[numTokens];
+        depLabels[0] = indexMap.getNullIdx();
         words = new int[numTokens];
+        words[0] = indexMap.str2int("ROOT");
         posTags = new int[numTokens];
+        posTags[0] = words[0];
         cPosTags = new int[numTokens];
+        cPosTags[0] = words[0];
         lemmas = new int[numTokens];
+        lemmas[0] = words[0];
         lemmas_str= new String[numTokens];
+        lemmas_str[0] = "ROOT";
 
         reverseDepHeads = new TreeSet [numTokens];
         predicateArguments = new PAs();
@@ -170,9 +177,9 @@ public class Sentence {
                 for (int child : reverseDepHeads[source]) {
                     if (child == target) {
                         if (child > source) {
-                            visited.add(posTags[child] << 1 | right);
+                            visited.add(right);
                         } else {
-                            visited.add(posTags[child] << 1 | left);
+                            visited.add(left);
                         }
                         break;
                     } else {

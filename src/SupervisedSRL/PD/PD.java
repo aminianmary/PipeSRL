@@ -61,7 +61,6 @@ public class PD {
     public static void train (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
             throws Exception
     {
-    int pdFeatSize =11;
         //creates lexicon of all predicates in the trainJoint set
         HashMap<Integer,  HashMap<Integer, HashSet<pLexiconEntry>>> trainPLexicon =
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
@@ -76,7 +75,7 @@ public class PD {
                 HashSet<pLexiconEntry> featVectors= trainPLexicon.get(plem).get(ppos);
                 HashSet<String> labelSet= getLabels (featVectors);
 
-                AveragedPerceptron ap = new AveragedPerceptron(labelSet, pdFeatSize);
+                AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfPDFeaturs);
 
                 //System.out.print("training model for predicate/pos -->"+ plem+"|"+ppos+"\n");
                 for (int i=0; i< numberOfTrainingIterations; i++)
@@ -152,7 +151,6 @@ public class PD {
 
             ArrayList<PA> pas= sentence.getPredicateArguments().getPredicateArgumentsAsArray();
             int[] sentenceLemmas= sentence.getLemmas();
-            int[] sentencePOSTags= sentence.getPosTags();
             int[] sentenceCPOSTags= sentence.getCPosTags();
 
             for (PA pa:pas)
