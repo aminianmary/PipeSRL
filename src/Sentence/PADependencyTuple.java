@@ -15,7 +15,7 @@ public class PADependencyTuple implements Comparable {
         this.srl = "";
     }
 
-    PADependencyTuple(int predIndex, int argIndex, String srl) {
+    public PADependencyTuple(int predIndex, int argIndex, String srl) {
         this.predIndex = predIndex;
         this.argIndex = argIndex;
         this.srl = srl;
@@ -41,7 +41,7 @@ public class PADependencyTuple implements Comparable {
                 return false;
             if (PADepTuple.argIndex != argIndex)
                 return false;
-            if (PADepTuple.srl != srl)
+            if (!PADepTuple.srl.equals(srl))
                 return false;
             return true;
         }
