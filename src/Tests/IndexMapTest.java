@@ -42,15 +42,15 @@ public class IndexMapTest {
         writeConllText();
         IndexMap map = new IndexMap(tmpFilePath);
 
-        assert map.str2int("\t") == map.getUnknownIdx();
+        assert map.str2int("\t") == IndexMap.unknownIdx;
         assert map.str2int(".") < 13;
         assert map.str2int("NMOD") > 12;
         assert map.str2int("P") < 24;
         assert map.str2int("week") >= 24;
 
         assert map.int2str(map.str2int("economy")).equals("economy");
-        assert map.str2int("mary") == map.getUnknownIdx();
-        assert map.getNullIdx() == 0;
+        assert map.str2int("mary") == IndexMap.unknownIdx;
+        assert map.nullIdx == 0;
     }
 
     private void writeConllText() throws Exception {

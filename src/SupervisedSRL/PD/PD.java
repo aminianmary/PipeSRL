@@ -118,8 +118,8 @@ public class PD {
             } else {
                 //unseen predicate --> assign lemma.01 (default sense) as predicate label instead of null
                 unseenPreds++;
-                if (plem != indexMap.getUnknownIdx())
-                    predictions.put(pIdx, indexMap.getInt2stringMap()[plem] + ".01"); //seen pLem
+                if (plem != indexMap.unknownIdx)
+                    predictions.put(pIdx, indexMap.int2str(plem) + ".01"); //seen pLem
                 else
                     predictions.put(pIdx, sentenceLemmas_str[pIdx] + ".01"); //unseen pLem
             }

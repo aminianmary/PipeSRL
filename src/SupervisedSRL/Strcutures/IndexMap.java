@@ -52,14 +52,6 @@ public class IndexMap implements Serializable {
 
     }
 
-    public HashMap<String, Integer> getString2intMap() {
-        return string2intMap;
-    }
-
-    public String[] getInt2stringMap() {
-        return int2stringMap;
-    }
-
     private Object[] buildIndividualSets(String trainFilePath) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(trainFilePath)));
         String line2read = "";
@@ -111,14 +103,6 @@ public class IndexMap implements Serializable {
                 words.add(splitLine[k]);
         }
         return new Object[]{posTags, depRels, words};
-    }
-
-    public int getNullIdx() {
-        return nullIdx;
-    }
-
-    public int getUnknownIdx() {
-        return unknownIdx;
     }
 
     public int str2int(String str) {

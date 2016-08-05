@@ -20,9 +20,7 @@ public class StanfordTreeLSTM {
 
     static HashSet<Integer> vocab = new HashSet<Integer>();
 
-    public static ArrayList<String> generateData4StanfordTreeLSTM(Sentence sen, IndexMap indexMap, boolean justCoreRoles) {
-
-        String[] int2stringMap = indexMap.getInt2stringMap();
+    public static ArrayList<String> generateData4StanfordTreeLSTM(Sentence sen, IndexMap indexMap, boolean justCoreRoles) throws Exception {
 
         ArrayList<PA> pas_list = sen.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] posTags = sen.getPosTags();
@@ -47,7 +45,7 @@ public class StanfordTreeLSTM {
                 for (int k = 1; k < depParents.length; k++)
                     depParents2write.append(depParents[k] + " ");
 
-                if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
+                if (indexMap.int2str(posTags[predicateIndex]).startsWith("VB")) {
 
                     String srl_label = "";
                     String test_label = "";

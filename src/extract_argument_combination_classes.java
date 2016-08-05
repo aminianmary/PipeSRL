@@ -16,7 +16,7 @@ public class extract_argument_combination_classes {
     static HashMap<HashSet<String>, ArrayList<Integer>> predArgLabelFreqDic = new HashMap<HashSet<String>, ArrayList<Integer>>();
     static ArrayList<String> sentences = new ArrayList<String>();
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         String propBankFile = args[0];
         String output_dir_path = args[1];
         boolean justCoreRoles = Boolean.parseBoolean(args[2]);
@@ -63,7 +63,6 @@ public class extract_argument_combination_classes {
                         indexMap, justCoreRoles);
                 StanfordTreeLSTM.updateVocab(sen);
 
-
                 treeLSTM_sentences_writer.write(treeLSTM_format_sentence.get(0) + "\n");
                 treeLSTM_sentences_tok_writer.write(treeLSTM_format_sentence.get(0) + "\n");
                 treeLSTM_dep_parents_writer.write(treeLSTM_format_sentence.get(1) + "\n");
@@ -72,10 +71,8 @@ public class extract_argument_combination_classes {
                 StanfordTreeLSTM.writeVocab(treeLSTM_vocab /*, false*/);
                 StanfordTreeLSTM.writeVocab(treeLSTM_vocab_cased /*, true*/);
 
-
                 //keep the sentence for tracking later
                 sentences.add(sentence);
-
 
                 //ArrayList<String> labels =extractPredicateArgumentLabel(sen, true, true);
                 ArrayList<HashSet<String>> labels = extractPredicateArgumentLabel_unorderedFormat(sen, indexMap, false, true);
@@ -112,9 +109,7 @@ public class extract_argument_combination_classes {
     public static ArrayList<String> extractPredicateArgumentLabel(Sentence sen,
                                                                   IndexMap indexMap,
                                                                   boolean justMainPredicate,
-                                                                  boolean justCoreRoles) {
-
-        String[] int2stringMap = indexMap.getInt2stringMap();
+                                                                  boolean justCoreRoles) throws Exception {
         ArrayList<String> argumentLabels = new ArrayList<String>();
         ArrayList<PA> pas = sen.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] posTags = sen.getPosTags();
@@ -135,7 +130,7 @@ public class extract_argument_combination_classes {
 
                     seenTheMainPredicate = true;
 
-                    if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
+                    if (indexMap.int2str(posTags[predicateIndex]).startsWith("VB")) {
 
                         ArrayList<Argument> arguments = pa.getArguments();
                         boolean isAnyArgumentSeenAfterPredicate = isAnyArgumentSeenAfterPredicate(arguments);
@@ -193,7 +188,7 @@ public class extract_argument_combination_classes {
                 int predicateIndex = pa.getPredicateIndex();
 
                 //make sure predicate is a verb (conll08 data contains nominal predicates from NomaBank too)
-                if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
+                if (indexMap.int2str(posTags[predicateIndex]).startsWith("VB")) {
 
                     ArrayList<Argument> arguments = pa.getArguments();
                     boolean isAnyArgumentSeenAfterPredicate = isAnyArgumentSeenAfterPredicate(arguments);
@@ -249,9 +244,7 @@ public class extract_argument_combination_classes {
     public static ArrayList<HashSet<String>> extractPredicateArgumentLabel_unorderedFormat(Sentence sen,
                                                                                            IndexMap indexMap,
                                                                                            boolean justMainPredicate,
-                                                                                           boolean justCoreRoles) {
-
-        String[] int2stringMap = indexMap.getInt2stringMap();
+                                                                                           boolean justCoreRoles) throws Exception {
         ArrayList<HashSet<String>> argumentLabels = new ArrayList<HashSet<String>>();
         ArrayList<PA> pas = sen.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] posTags = sen.getPosTags();
@@ -271,12 +264,9 @@ public class extract_argument_combination_classes {
 
                     seenTheMainPredicate = true;
 
-                    if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
-
+                    if (indexMap.int2str(posTags[predicateIndex]).startsWith("VB")) {
                         ArrayList<Argument> arguments = pa.getArguments();
-
                         for (Argument ar : arguments) {
-
                             if (justCoreRoles == true) {
                                 if (isACoreRole(ar.getType()) == true) {
                                     label.add(ar.getType());
@@ -299,11 +289,10 @@ public class extract_argument_combination_classes {
                 int predicateIndex = pa.getPredicateIndex();
 
                 //make sure predicate is a verb (conll08 data contains nominal predicates from NomaBank too)
-                if (int2stringMap[posTags[predicateIndex]].startsWith("VB")) {
+                if (indexMap.int2str(posTags[predicateIndex]).startsWith("VB")) {
 
                     ArrayList<Argument> arguments = pa.getArguments();
                     for (Argument ar : arguments) {
-
                         if (justCoreRoles == true) {
                             if (isACoreRole(ar.getType()) == true) {
                                 label.add(ar.getType());

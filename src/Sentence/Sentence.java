@@ -28,9 +28,9 @@ public class Sentence {
         int predicatesSeq = -1;
 
         depHeads = new int[numTokens];
-        depHeads[0] = indexMap.getNullIdx();
+        depHeads[0] = IndexMap.nullIdx;
         depLabels = new int[numTokens];
-        depLabels[0] = indexMap.getNullIdx();
+        depLabels[0] = IndexMap.nullIdx;
         words = new int[numTokens];
         words[0] = indexMap.str2int("ROOT");
         posTags = new int[numTokens];

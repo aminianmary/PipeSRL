@@ -35,7 +35,7 @@ public class Project {
 
     static HashMap<Integer, HashMap<String, Integer>> depRel_dist_in_projection = new HashMap<Integer, HashMap<String, Integer>>();
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws Exception {
         //args[0]: source file with semantic roles in the conll09 format
         //args[1]: target file (each sentence in a separate line)
         //args[2]: source file with Google universal dependencies
@@ -141,9 +141,7 @@ public class Project {
     public static PAs projectSRLTagsFromSource2Target(Sentence sourceSent, Sentence targetSent,
                                                       HashMap<Integer, Integer> sentenceAlignmentDic,
                                                       IndexMap indexMap,
-                                                      BufferedWriter projectedFileWriter) throws IOException {
-
-        String[] int2stringMap = indexMap.getInt2stringMap();
+                                                      BufferedWriter projectedFileWriter) throws Exception {
         ArrayList<PA> sourcePredicateArguments = sourceSent.getPredicateArguments().getPredicateArgumentsAsArray();
         ArrayList<PA> projectedPredicateArguments = new ArrayList<PA>();
 
@@ -162,7 +160,7 @@ public class Project {
             int pPOS = sourcePOSTags[pIdx];
             //just project verbal predicates to target verbs (as it's the case in German supervised data)
 
-            if (int2stringMap[pPOS].startsWith("V")) {
+            if (indexMap.int2str(pPOS).startsWith("V")) {
                 int pIndex = pa.getPredicateIndex();
                 if (sentenceAlignmentDic.containsKey(pIndex)) {
 
@@ -170,7 +168,7 @@ public class Project {
                     int targetPPOS = targetSent.getPosTags()[targetPIndex];
                     int targetPWord = targetSent.getWords()[targetPIndex];
 
-                    if (int2stringMap[targetPPOS].contains("V")) {
+                    if (indexMap.int2str(targetPPOS).contains("V")) {
                         Predicate projectedPred = new Predicate(targetPIndex, pa.getPredicateLabel());
                         projectedPIndices.put(targetPIndex, pa.getPredicateLabel());
 

@@ -51,21 +51,21 @@ public class SentenceTest {
         assert depHeads[3] == 2;
 
         int[] depLabels = sentence.getDepLabels();
-        assert depLabels[3] == map.getString2intMap().get("SUFFIX");
-        assert depLabels[0] == map.getNullIdx();
+        assert depLabels[3] == map.str2int("SUFFIX");
+        assert depLabels[0] == IndexMap.nullIdx;
 
         int[] words = sentence.getWords();
-        assert words[11] == map.getString2intMap().get("points");
+        assert words[11] == map.str2int("points");
 
         int[] posTags = sentence.getPosTags();
-        assert posTags[10] == map.getString2intMap().get("NN");
+        assert posTags[10] == map.str2int("NN");
 
         int[] cPosTags = sentence.getCPosTags();
-        assert cPosTags[17] == map.getString2intMap().get("IN");
+        assert cPosTags[17] == map.str2int("IN");
 
         int[] lemmas = sentence.getLemmas();
-        assert lemmas[0] == map.getString2intMap().get("ROOT");
-        assert lemmas[8] == map.getString2intMap().get("from");
+        assert lemmas[0] == map.str2int("ROOT");
+        assert lemmas[8] == map.str2int("from");
 
         TreeSet<Integer>[] reverseHead = sentence.getReverseDepHeads();
         assert reverseHead[2].size() == 2;
