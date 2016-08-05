@@ -3,6 +3,7 @@ package Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TreeSet;
 
 /**
@@ -211,11 +212,11 @@ public class Sentence {
         return reverseDepHeads;
     }
 
-    public ArrayList<Predicate> getListOfPredicates() {
-        ArrayList<Predicate> predicates = new ArrayList<Predicate>();
+    public HashMap<Integer, String> getPredicatesInfo() {
+        HashMap<Integer, String> predicatesInfo = new HashMap<Integer, String>();
         for (PA pa : predicateArguments.getPredicateArgumentsAsArray())
-            predicates.add(pa.getPredicate());
+            predicatesInfo.put(pa.getPredicateIndex(), pa.getPredicateLabel());
 
-        return predicates;
+        return predicatesInfo;
     }
 }

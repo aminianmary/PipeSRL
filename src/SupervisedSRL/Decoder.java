@@ -106,7 +106,7 @@ public class Decoder {
     }
 
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
-            (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int maxBeamSize, int numOfFeatures) throws Exception
+            (Sentence sentence, int pIdx, IndexMap indexMap, int maxBeamSize, int numOfFeatures) throws Exception
 
     {
         ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
@@ -118,7 +118,7 @@ public class Decoder {
         for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
 
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
 
             double[] scores = aiClassifier.score(featVector);
             double score0 = scores[0];
@@ -158,7 +158,7 @@ public class Decoder {
     }
 
     //getting highest score AI candidate without Beam Search
-    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, int pIdx, String pLabel, IndexMap indexMap, int numOfFeatures) throws Exception {
+    private HashMap<Integer, Integer> getHighestScoreAISeq(Sentence sentence, int pIdx, IndexMap indexMap, int numOfFeatures) throws Exception {
         int[] sentenceWords = sentence.getWords();
         HashMap<Integer, Integer> highestScoreAISeq = new HashMap<Integer, Integer>();
 
@@ -168,7 +168,7 @@ public class Decoder {
                 continue;
 
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
             double score1 = aiClassifier.score(featVector)[1];
 
             if (score1 >= 0) {
@@ -180,7 +180,7 @@ public class Decoder {
     }
 
     private ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getBestACCandidates
-            (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
+            (Sentence sentence, int pIdx, IndexMap indexMap,
              ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates,
              int maxBeamSize, int numOfFeatures) throws Exception
 
@@ -201,7 +201,7 @@ public class Decoder {
             for (int wordIdx : aiCandidate.second) {
 
                 // retrieve candidates for the current word
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
                 double[] labelScores = acClassifier.score(featVector);
 
                 // build an intermediate beam
@@ -240,7 +240,7 @@ public class Decoder {
 
     //this function is used for joint ai-ac decoding
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestCandidates
-    (Sentence sentence, int pIdx, String pLabel, IndexMap indexMap,
+    (Sentence sentence, int pIdx, IndexMap indexMap,
      int maxBeamSize, int numOfFeatures) throws Exception
 
     {
@@ -253,7 +253,7 @@ public class Decoder {
         // Gradual building of the beam for all words in the sentence
         for (int wordIdx = 1; wordIdx < sentence.getWords().length; wordIdx++) {
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
             double[] labelScores = acClassifier.score(featVector);
 
             // build an intermediate beam
@@ -384,7 +384,7 @@ public class Decoder {
         for (int pIdx : predictedPredicates.keySet()) {
             // get best k argument assignment candidates
             String pLabel = predictedPredicates.get(pIdx);
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, pLabel, indexMap, aiMaxBeamSize, numOfFeatures);
+            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
@@ -410,11 +410,11 @@ public class Decoder {
             String pLabel = predictedPredicates.get(pIdx);
 
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates =
-                    getBestAICandidates(sentence, pIdx, pLabel, indexMap, aiMaxBeamSize, numOfAIFeatures);
+                    getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);
 
             // get best <=l argument label for each of these k assignments
             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
-                    pIdx, pLabel, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
+                    pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
 
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
 
@@ -462,20 +462,17 @@ public class Decoder {
             String pLabel = predictedPredicates.get(pIdx);
 
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence,
-                    pIdx, pLabel, indexMap,
+                    pIdx, indexMap,
                     aiMaxBeamSize, numOfAIFeatures);
 
             //gold arguments
             //ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = goldArgs.get(pIdx);
 
             // get best <=l argument label for each of these k assignments
-            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
-                    pIdx, pLabel, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
+            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates =
+                    getBestACCandidates(sentence, pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
-
-            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pIdx, pLabel,
-                    indexMap, numOfAIFeatures);
-
+            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pIdx, indexMap, numOfAIFeatures);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
         return predictedPAs;
@@ -502,7 +499,7 @@ public class Decoder {
 
         for (int pIdx : predictedPredicates.keySet()) {
             String pLabel = predictedPredicates.get(pIdx);
-            ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pIdx, pLabel, indexMap, maxBeamSize, numOfFeatures);
+            ArrayList<Pair<Double, ArrayList<Integer>>> candidates = getBestCandidates(sentence, pIdx, indexMap, maxBeamSize, numOfFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredicationJoint(candidates, pIdx);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
 

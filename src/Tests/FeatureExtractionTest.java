@@ -107,12 +107,12 @@ public class FeatureExtractionTest {
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
         Sentence sentence = new Sentence(conllText, map, false);
-        Object[] feats = FeatureExtractor.extractAIFeatures(4, "temperature.01", 20, sentence, aiFeatLength, map);
+        Object[] feats = FeatureExtractor.extractAIFeatures(4, 20, sentence, aiFeatLength, map);
         assert feats[3].equals(map.str2int("SBJ"));
         assert feats[14].equals("");
 
 
-        Object[] feats2 = FeatureExtractor.extractAIFeatures(7, "take.01", 20, sentence, aiFeatLength, map);
+        Object[] feats2 = FeatureExtractor.extractAIFeatures(7, 20, sentence, aiFeatLength, map);
         // subcat: ADV, TMP, ADV
         String expectedSubCat = map.str2int("ADV") + "\t" + map.str2int("TMP") + "\t" + map.str2int("ADV");
         assert feats2[7].equals(expectedSubCat);

@@ -215,7 +215,6 @@ public class Train {
 
             //making prediction over dev sentences
             System.out.println("****** DEV RESULTS ******");
-            //System.out.println("Making prediction on dev data started...");
             //instead of loading model from file, we just calculate the average weights
             Decoder argumentDecoder = new Decoder(ap.calculateAvgWeights(), "AI");
             boolean decode = true;
@@ -262,7 +261,8 @@ public class Train {
                            List<String> devSentencesInCONLLFormat,
                            HashSet<String> labelSet, IndexMap indexMap,
                            int numberOfTrainingIterations,
-                           String modelDir, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, int aiMaxBeamSize, int acMaxBeamSize)
+                           String modelDir, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                           int aiMaxBeamSize, int acMaxBeamSize)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -357,11 +357,10 @@ public class Train {
 
         for (PA pa : pas) {
             int pIdx = pa.getPredicateIndex();
-            String pLabel = pa.getPredicateLabel();
             ArrayList<Argument> currentArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, pLabel, wordIdx,
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx,
                         sentence, numOfFeatures, indexMap);
 
                 String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
@@ -382,12 +381,11 @@ public class Train {
 
         for (PA pa : pas) {
             int pIdx = pa.getPredicateIndex();
-            String pLabel = pa.getPredicateLabel();
             ArrayList<Argument> currentArgs = pa.getArguments();
             //extract features for arguments (not all words)
             for (Argument arg : currentArgs) {
                 int argIdx = arg.getIndex();
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, pLabel, argIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, argIdx, sentence, numOfFeatures, indexMap);
 
                 String label = arg.getType();
                 featVectors.add(featVector);
@@ -409,11 +407,10 @@ public class Train {
 
         for (PA pa : pas) {
             int pIdx = pa.getPredicateIndex();
-            String pLabel = pa.getPredicateLabel();
             ArrayList<Argument> currentArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                Object[] featVector = FeatureExtractor.extractJointFeatures(pIdx, pLabel, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractJointFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
 
                 String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : isArgument(wordIdx, currentArgs);
                 featVectors.add(featVector);
