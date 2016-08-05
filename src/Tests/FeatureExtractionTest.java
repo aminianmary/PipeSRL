@@ -1,5 +1,7 @@
 package Tests;
 
+import Sentence.Sentence;
+import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.PD.PredicateLexiconEntry;
 import SupervisedSRL.Strcutures.IndexMap;
@@ -95,6 +97,52 @@ public class FeatureExtractionTest {
             childWordSetStr += ch + "\t";
         childWordSetStr = childWordSetStr.trim();
         assert feats[8].equals(childWordSetStr);
+    }
+
+    @Test
+    public void testAIFeatures() throws Exception {
+        writeConllText();
+        int aiFeatLength = 25 + 13;
+        IndexMap map = new IndexMap(tmpFilePath);
+        List<String> textList = new ArrayList<String>();
+        textList.add(conllText);
+        Sentence sentence = new Sentence(conllText, map, false);
+        Object[] feats = FeatureExtractor.extractAIFeatures(4, "temperature.01", 20, sentence, aiFeatLength, map);
+        assert feats[3].equals(map.str2int("SBJ"));
+        assert feats[14].equals("");
+
+
+        Object[] feats2 = FeatureExtractor.extractAIFeatures(7, "take.01", 20, sentence, aiFeatLength, map);
+        // subcat: ADV, TMP, ADV
+        String expectedSubCat = map.str2int("ADV") + "\t" + map.str2int("TMP") + "\t" + map.str2int("ADV");
+        assert feats2[7].equals(expectedSubCat);
+
+        TreeSet<Integer> childWordSet = new TreeSet<Integer>();
+        childWordSet.add(map.str2int("from"));
+        childWordSet.add(map.str2int("week"));
+        childWordSet.add(map.str2int("with"));
+        String childWordSetStr = "";
+        for (int ch : childWordSet)
+            childWordSetStr += ch + "\t";
+        childWordSetStr = childWordSetStr.trim();
+        assert feats2[10].equals(childWordSetStr);
+        assert feats2[11].equals(map.str2int("output"));
+        assert feats2[12].equals(map.str2int("NN"));
+        assert feats2[13].equals(map.str2int("COORD"));
+        String depPath = (map.str2int("ADV") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0)
+                + "\t" + (map.str2int("NMOD") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0)
+                + "\t" + (map.str2int("COORD") << 1 | 0);
+        assert feats2[14].equals(depPath);
+
+        assert feats2[16].equals(2);
+        assert feats2[17].equals(IndexMap.nullIdx);
+        assert feats2[18].equals(IndexMap.nullIdx);
+        assert feats2[19].equals(map.str2int("housing"));
+        assert feats2[20].equals(map.str2int("NN"));
+        assert feats2[21].equals(map.str2int(","));
+        assert feats2[22].equals(map.str2int(","));
+        assert feats2[23].equals(IndexMap.nullIdx);
+        assert feats2[24].equals(IndexMap.nullIdx);
     }
 
     private void writeConllText() throws Exception {

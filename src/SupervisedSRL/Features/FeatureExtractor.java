@@ -56,8 +56,8 @@ public class FeatureExtractor {
         punctuations.add("?");
     }
 
-    public static Object[] extractPDFeatures(int pIdx, String pSense, int aIdx, Sentence sentence, int length,
-                                             IndexMap indexMap) throws Exception {
+    public static Object[] extractPDFeatures(int pIdx, Sentence sentence, int length, IndexMap indexMap)
+            throws Exception {
         Object[] features = new Object[length];
         int[] sentenceDepLabels = sentence.getDepLabels();
         int[] sentenceDepHeads = sentence.getDepHeads();
@@ -92,55 +92,32 @@ public class FeatureExtractor {
 
     public static Object[] extractAIFeatures(int pIdx, String pSense, int aIdx, Sentence sentence, int length,
                                              IndexMap indexMap) throws Exception {
-        // todo object; int; respectively
         Object[] features = new Object[length];
-        int[] sentenceDepLabels = sentence.getDepLabels();
-        int[] sentenceDepHeads = sentence.getDepHeads();
-        int[] sentenceWords = sentence.getWords();
-        int[] sentencePOSTags = sentence.getPosTags();
-        int[] sentenceLemmas = sentence.getLemmas();
-        TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
-
-        //predicate features
-        int pw = sentenceWords[pIdx];
-        int ppos = sentencePOSTags[pIdx];
-        int plem = sentenceLemmas[pIdx];
-        int pdeprel = sentenceDepLabels[pIdx];
-        int pprw = sentenceWords[sentenceDepHeads[pIdx]];
-        int pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
-        String pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
-        String pchilddepset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
-        String pchildposset = getChildSet(pIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
-        String pchildwset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
-
-        int leftMostDependentIndex = getLeftMostDependentIndex(aIdx, sentenceReverseDepHeads);
-        int rightMostDependentIndex = getRightMostDependentIndex(aIdx, sentenceReverseDepHeads);
-        int lefSiblingIndex = getLeftSiblingIndex(aIdx, pIdx, sentenceReverseDepHeads);
-        int rightSiblingIndex = getRightSiblingIndex(aIdx, pIdx, sentenceReverseDepHeads);
-
-        //argument features
-        int aw = sentenceWords[aIdx];
-        int apos = sentencePOSTags[aIdx];
-        int adeprel = sentenceDepLabels[aIdx];
-
-        //predicate-argument features
-        String deprelpath = StringUtils.convertPathArrayIntoString(sentence.getDepPath(pIdx, aIdx));
-        String pospath = StringUtils.convertPathArrayIntoString(sentence.getPOSPath(pIdx, aIdx));
-
-        int position = 0; //on
-        if (pIdx < aIdx)
-            position = 1; //before
-        else
-            position = 2; //after
-
-        int leftw = (leftMostDependentIndex != -1) ? sentenceWords[leftMostDependentIndex] : indexMap.getNullIdx();
-        int leftpos = (leftMostDependentIndex != -1) ? sentencePOSTags[leftMostDependentIndex] : indexMap.getNullIdx();
-        int rightw = (rightMostDependentIndex != -1) ? sentenceWords[rightMostDependentIndex] : indexMap.getNullIdx();
-        int rightpos = (rightMostDependentIndex != -1) ? sentencePOSTags[rightMostDependentIndex] : indexMap.getNullIdx();
-        int rightsiblingw = (rightSiblingIndex != -1) ? sentenceWords[rightSiblingIndex] : indexMap.getNullIdx();
-        int rightsiblingpos = (rightSiblingIndex != -1) ? sentencePOSTags[rightSiblingIndex] : indexMap.getNullIdx();
-        int leftsiblingw = (lefSiblingIndex != -1) ? sentenceWords[lefSiblingIndex] : indexMap.getNullIdx();
-        int leftsiblingpos = (lefSiblingIndex != -1) ? sentencePOSTags[lefSiblingIndex] : indexMap.getNullIdx();
+        BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
+        int pw = baseFeatureFields.getPw();
+        int ppos = baseFeatureFields.getPpos();
+        int plem = baseFeatureFields.getPlem();
+        int pdeprel = baseFeatureFields.getPdeprel();
+        int pprw = baseFeatureFields.getPprw();
+        int pprpos = baseFeatureFields.getPprpos();
+        String pdepsubcat = baseFeatureFields.getPdepsubcat();
+        String pchilddepset = baseFeatureFields.getPchilddepset();
+        String pchildposset = baseFeatureFields.getPchildposset();
+        String pchildwset = baseFeatureFields.getPchildwset();
+        int aw = baseFeatureFields.getAw();
+        int apos = baseFeatureFields.getApos();
+        int adeprel = baseFeatureFields.getAdeprel();
+        String deprelpath = baseFeatureFields.getDeprelpath();
+        String pospath = baseFeatureFields.getPospath();
+        int position = baseFeatureFields.getPosition();
+        int leftw = baseFeatureFields.getLeftw();
+        int leftpos = baseFeatureFields.getLeftpos();
+        int rightw = baseFeatureFields.getRightw();
+        int rightpos = baseFeatureFields.getRightpos();
+        int leftsiblingw = baseFeatureFields.getLeftsiblingw();
+        int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
+        int rightsiblingw = baseFeatureFields.getRightsiblingw();
+        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
 
         //build feature vector for argument identification/classification modules
         int index = 0;
@@ -220,56 +197,32 @@ public class FeatureExtractor {
     public static Object[] extractACFeatures(int pIdx, String pSense, int aIdx, Sentence sentence, int length,
                                              IndexMap indexMap) throws Exception {
 
-        // todo object; int; respectively
         Object[] features = new Object[length];
-        int[] sentenceDepLabels = sentence.getDepLabels();
-        int[] sentenceDepHeads = sentence.getDepHeads();
-        int[] sentenceWords = sentence.getWords();
-        int[] sentencePOSTags = sentence.getPosTags();
-        int[] sentenceLemmas = sentence.getLemmas();
-        TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
-
-        //predicate features
-        int pw = sentenceWords[pIdx];
-        int ppos = sentencePOSTags[pIdx];
-        int plem = sentenceLemmas[pIdx];
-        int pdeprel = sentenceDepLabels[pIdx];
-        int pprw = sentenceWords[sentenceDepHeads[pIdx]];
-        int pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
-        String pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
-        String pchilddepset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
-        String pchildposset = getChildSet(pIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
-        String pchildwset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
-
-
-        int leftMostDependentIndex = getLeftMostDependentIndex(aIdx, sentenceReverseDepHeads);
-        int rightMostDependentIndex = getRightMostDependentIndex(aIdx, sentenceReverseDepHeads);
-        int lefSiblingIndex = getLeftSiblingIndex(aIdx, pIdx, sentenceReverseDepHeads);
-        int rightSiblingIndex = getRightSiblingIndex(aIdx, pIdx, sentenceReverseDepHeads);
-
-        //argument features
-        int aw = sentenceWords[aIdx];
-        int apos = sentencePOSTags[aIdx];
-        int adeprel = sentenceDepLabels[aIdx];
-
-        //predicate-argument features
-        String deprelpath = StringUtils.convertPathArrayIntoString(sentence.getDepPath(pIdx, aIdx));
-        String pospath = StringUtils.convertPathArrayIntoString(sentence.getPOSPath(pIdx, aIdx));
-
-        int position = 0; //on
-        if (pIdx < aIdx)
-            position = 1; //before
-        else
-            position = 2; //after
-
-        int leftw = (leftMostDependentIndex != -1) ? sentenceWords[leftMostDependentIndex] : indexMap.getNullIdx();
-        int leftpos = (leftMostDependentIndex != -1) ? sentencePOSTags[leftMostDependentIndex] : indexMap.getNullIdx();
-        int rightw = (rightMostDependentIndex != -1) ? sentenceWords[rightMostDependentIndex] : indexMap.getNullIdx();
-        int rightpos = (rightMostDependentIndex != -1) ? sentencePOSTags[rightMostDependentIndex] : indexMap.getNullIdx();
-        int rightsiblingw = (rightSiblingIndex != -1) ? sentenceWords[rightSiblingIndex] : indexMap.getNullIdx();
-        int rightsiblingpos = (rightSiblingIndex != -1) ? sentencePOSTags[rightSiblingIndex] : indexMap.getNullIdx();
-        int leftsiblingw = (lefSiblingIndex != -1) ? sentenceWords[lefSiblingIndex] : indexMap.getNullIdx();
-        int leftsiblingpos = (lefSiblingIndex != -1) ? sentencePOSTags[lefSiblingIndex] : indexMap.getNullIdx();
+        BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
+        int pw = baseFeatureFields.getPw();
+        int ppos = baseFeatureFields.getPpos();
+        int plem = baseFeatureFields.getPlem();
+        int pdeprel = baseFeatureFields.getPdeprel();
+        int pprw = baseFeatureFields.getPprw();
+        int pprpos = baseFeatureFields.getPprpos();
+        String pdepsubcat = baseFeatureFields.getPdepsubcat();
+        String pchilddepset = baseFeatureFields.getPchilddepset();
+        String pchildposset = baseFeatureFields.getPchildposset();
+        String pchildwset = baseFeatureFields.getPchildwset();
+        int aw = baseFeatureFields.getAw();
+        int apos = baseFeatureFields.getApos();
+        int adeprel = baseFeatureFields.getAdeprel();
+        String deprelpath = baseFeatureFields.getDeprelpath();
+        String pospath = baseFeatureFields.getPospath();
+        int position = baseFeatureFields.getPosition();
+        int leftw = baseFeatureFields.getLeftw();
+        int leftpos = baseFeatureFields.getLeftpos();
+        int rightw = baseFeatureFields.getRightw();
+        int rightpos = baseFeatureFields.getRightpos();
+        int leftsiblingw = baseFeatureFields.getLeftsiblingw();
+        int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
+        int rightsiblingw = baseFeatureFields.getRightsiblingw();
+        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
 
         //build feature vector for argument identification/classification modules
         int index = 0;
@@ -650,56 +603,32 @@ public class FeatureExtractor {
     public static Object[] extractJointFeatures(int pIdx, String pSense, int aIdx, Sentence sentence, int length,
                                                 IndexMap indexMap) throws Exception {
 
-        // todo object; int; respectively
         Object[] features = new Object[length];
-        int[] sentenceDepLabels = sentence.getDepLabels();
-        int[] sentenceDepHeads = sentence.getDepHeads();
-        int[] sentenceWords = sentence.getWords();
-        int[] sentencePOSTags = sentence.getPosTags();
-        int[] sentenceLemmas = sentence.getLemmas();
-        TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
-
-        //predicate features
-        int pw = sentenceWords[pIdx];
-        int ppos = sentencePOSTags[pIdx];
-        int plem = sentenceLemmas[pIdx];
-        int pdeprel = sentenceDepLabels[pIdx];
-        int pprw = sentenceWords[sentenceDepHeads[pIdx]];
-        int pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
-        String pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
-        String pchilddepset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
-        String pchildposset = getChildSet(pIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
-        String pchildwset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
-
-
-        int leftMostDependentIndex = getLeftMostDependentIndex(aIdx, sentenceReverseDepHeads);
-        int rightMostDependentIndex = getRightMostDependentIndex(aIdx, sentenceReverseDepHeads);
-        int lefSiblingIndex = getLeftSiblingIndex(aIdx, pIdx, sentenceReverseDepHeads);
-        int rightSiblingIndex = getRightSiblingIndex(aIdx, pIdx, sentenceReverseDepHeads);
-
-        //argument features
-        int aw = sentenceWords[aIdx];
-        int apos = sentencePOSTags[aIdx];
-        int adeprel = sentenceDepLabels[aIdx];
-
-        //predicate-argument features
-        String deprelpath = StringUtils.convertPathArrayIntoString(sentence.getDepPath(pIdx, aIdx));
-        String pospath = StringUtils.convertPathArrayIntoString(sentence.getPOSPath(pIdx, aIdx));
-
-        int position = 0; //on
-        if (pIdx < aIdx)
-            position = 1; //before
-        else
-            position = 2; //after
-
-        int leftw = (leftMostDependentIndex != -1) ? sentenceWords[leftMostDependentIndex] : indexMap.getNullIdx();
-        int leftpos = (leftMostDependentIndex != -1) ? sentencePOSTags[leftMostDependentIndex] : indexMap.getNullIdx();
-        int rightw = (rightMostDependentIndex != -1) ? sentenceWords[rightMostDependentIndex] : indexMap.getNullIdx();
-        int rightpos = (rightMostDependentIndex != -1) ? sentencePOSTags[rightMostDependentIndex] : indexMap.getNullIdx();
-        int rightsiblingw = (rightSiblingIndex != -1) ? sentenceWords[rightSiblingIndex] : indexMap.getNullIdx();
-        int rightsiblingpos = (rightSiblingIndex != -1) ? sentencePOSTags[rightSiblingIndex] : indexMap.getNullIdx();
-        int leftsiblingw = (lefSiblingIndex != -1) ? sentenceWords[lefSiblingIndex] : indexMap.getNullIdx();
-        int leftsiblingpos = (lefSiblingIndex != -1) ? sentencePOSTags[lefSiblingIndex] : indexMap.getNullIdx();
+        BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
+        int pw = baseFeatureFields.getPw();
+        int ppos = baseFeatureFields.getPpos();
+        int plem = baseFeatureFields.getPlem();
+        int pdeprel = baseFeatureFields.getPdeprel();
+        int pprw = baseFeatureFields.getPprw();
+        int pprpos = baseFeatureFields.getPprpos();
+        String pdepsubcat = baseFeatureFields.getPdepsubcat();
+        String pchilddepset = baseFeatureFields.getPchilddepset();
+        String pchildposset = baseFeatureFields.getPchildposset();
+        String pchildwset = baseFeatureFields.getPchildwset();
+        int aw = baseFeatureFields.getAw();
+        int apos = baseFeatureFields.getApos();
+        int adeprel = baseFeatureFields.getAdeprel();
+        String deprelpath = baseFeatureFields.getDeprelpath();
+        String pospath = baseFeatureFields.getPospath();
+        int position = baseFeatureFields.getPosition();
+        int leftw = baseFeatureFields.getLeftw();
+        int leftpos = baseFeatureFields.getLeftpos();
+        int rightw = baseFeatureFields.getRightw();
+        int rightpos = baseFeatureFields.getRightpos();
+        int leftsiblingw = baseFeatureFields.getLeftsiblingw();
+        int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
+        int rightsiblingw = baseFeatureFields.getRightsiblingw();
+        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
 
         //build feature vector for argument identification/classification modules
         int index = 0;
@@ -1119,37 +1048,229 @@ public class FeatureExtractor {
     private static int getLeftMostDependentIndex(int aIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
         if (sentenceReverseDepHeads[aIdx] != null) {
             //this argument has at least one child
-            return sentenceReverseDepHeads[aIdx].first();
+            int firstChild = sentenceReverseDepHeads[aIdx].first();
+            // this should be on the left side.
+            if (firstChild < aIdx) {
+                return firstChild;
+            }
         }
-        return -1;
+        return IndexMap.nullIdx;
     }
 
     private static int getRightMostDependentIndex(int aIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
         if (sentenceReverseDepHeads[aIdx] != null) {
-            return sentenceReverseDepHeads[aIdx].last();
+            int last = sentenceReverseDepHeads[aIdx].last();
+            if (last > aIdx) {
+                return sentenceReverseDepHeads[aIdx].last();
+            }
         }
-        return -1;
+        return IndexMap.nullIdx;
     }
 
-    private static int getLeftSiblingIndex(int aIdx, int pIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
+    private static int getLeftSiblingIndex(int aIdx, int parIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
         TreeSet<Integer> argSiblings = new TreeSet<Integer>();
-        if (sentenceReverseDepHeads[pIdx] != null) {
-            argSiblings = sentenceReverseDepHeads[pIdx];
+        if (sentenceReverseDepHeads[parIdx] != null) {
+            argSiblings = sentenceReverseDepHeads[parIdx];
         }
 
         if (argSiblings.lower(aIdx) != null)
             return argSiblings.lower(aIdx);
-        return -1;
+        return IndexMap.nullIdx;
     }
 
-    private static int getRightSiblingIndex(int aIdx, int pIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
+    private static int getRightSiblingIndex(int aIdx, int parIdx, TreeSet<Integer>[] sentenceReverseDepHeads) {
         TreeSet<Integer> argSiblings = new TreeSet<Integer>();
-        if (sentenceReverseDepHeads[pIdx] != null)
-            argSiblings = sentenceReverseDepHeads[pIdx];
+        if (sentenceReverseDepHeads[parIdx] != null)
+            argSiblings = sentenceReverseDepHeads[parIdx];
 
         if (argSiblings.higher(aIdx) != null)
             return argSiblings.higher(aIdx);
-        return -1;
+        return IndexMap.nullIdx;
     }
 
+    private static class BaseFeatureFields {
+        private int pIdx;
+        private int aIdx;
+        private Sentence sentence;
+        private IndexMap indexMap;
+        private int pw;
+        private int ppos;
+        private int plem;
+        private int pdeprel;
+        private int pprw;
+        private int pprpos;
+        private String pdepsubcat;
+        private String pchilddepset;
+        private String pchildposset;
+        private String pchildwset;
+        private int aw;
+        private int apos;
+        private int adeprel;
+        private String deprelpath;
+        private String pospath;
+        private int position;
+        private int leftw;
+        private int leftpos;
+        private int rightw;
+        private int rightpos;
+        private int rightsiblingw;
+        private int rightsiblingpos;
+        private int leftsiblingw;
+        private int leftsiblingpos;
+
+        public BaseFeatureFields(int pIdx, int aIdx, Sentence sentence, IndexMap indexMap) {
+            this.pIdx = pIdx;
+            this.aIdx = aIdx;
+            this.sentence = sentence;
+            this.indexMap = indexMap;
+        }
+
+        public int getPw() {
+            return pw;
+        }
+
+        public int getPpos() {
+            return ppos;
+        }
+
+        public int getPlem() {
+            return plem;
+        }
+
+        public int getPdeprel() {
+            return pdeprel;
+        }
+
+        public int getPprw() {
+            return pprw;
+        }
+
+        public int getPprpos() {
+            return pprpos;
+        }
+
+        public String getPdepsubcat() {
+            return pdepsubcat;
+        }
+
+        public String getPchilddepset() {
+            return pchilddepset;
+        }
+
+        public String getPchildposset() {
+            return pchildposset;
+        }
+
+        public String getPchildwset() {
+            return pchildwset;
+        }
+
+        public int getAw() {
+            return aw;
+        }
+
+        public int getApos() {
+            return apos;
+        }
+
+        public int getAdeprel() {
+            return adeprel;
+        }
+
+        public String getDeprelpath() {
+            return deprelpath;
+        }
+
+        public String getPospath() {
+            return pospath;
+        }
+
+        public int getPosition() {
+            return position;
+        }
+
+        public int getLeftw() {
+            return leftw;
+        }
+
+        public int getLeftpos() {
+            return leftpos;
+        }
+
+        public int getRightw() {
+            return rightw;
+        }
+
+        public int getRightpos() {
+            return rightpos;
+        }
+
+        public int getRightsiblingw() {
+            return rightsiblingw;
+        }
+
+        public int getRightsiblingpos() {
+            return rightsiblingpos;
+        }
+
+        public int getLeftsiblingw() {
+            return leftsiblingw;
+        }
+
+        public int getLeftsiblingpos() {
+            return leftsiblingpos;
+        }
+
+        public BaseFeatureFields invoke() throws Exception {
+            int[] sentenceDepLabels = sentence.getDepLabels();
+            int[] sentenceDepHeads = sentence.getDepHeads();
+            int[] sentenceWords = sentence.getWords();
+            int[] sentencePOSTags = sentence.getPosTags();
+            int[] sentenceLemmas = sentence.getLemmas();
+            TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
+
+            //predicate features
+            pw = sentenceWords[pIdx];
+            ppos = sentencePOSTags[pIdx];
+            plem = sentenceLemmas[pIdx];
+            pdeprel = sentenceDepLabels[pIdx];
+            pprw = sentenceWords[sentenceDepHeads[pIdx]];
+            pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
+            pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
+            pchilddepset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
+            pchildposset = getChildSet(pIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
+            pchildwset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
+
+            int leftMostDependentIndex = getLeftMostDependentIndex(aIdx, sentenceReverseDepHeads);
+            int rightMostDependentIndex = getRightMostDependentIndex(aIdx, sentenceReverseDepHeads);
+            int parIndex = sentenceDepHeads[aIdx];
+            int lefSiblingIndex = getLeftSiblingIndex(aIdx, parIndex, sentenceReverseDepHeads);
+            int rightSiblingIndex = getRightSiblingIndex(aIdx, parIndex, sentenceReverseDepHeads);
+
+            //argument features
+            aw = sentenceWords[aIdx];
+            apos = sentencePOSTags[aIdx];
+            adeprel = sentenceDepLabels[aIdx];
+
+            //predicate-argument features
+            deprelpath = StringUtils.convertPathArrayIntoString(sentence.getDepPath(pIdx, aIdx));
+            pospath = StringUtils.convertPathArrayIntoString(sentence.getPOSPath(pIdx, aIdx));
+
+            position = 0;
+            if (pIdx < aIdx)
+                position = 2; //after
+            else if (pIdx > aIdx)
+                position = 1; //before
+
+            leftw = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[leftMostDependentIndex];
+            leftpos = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[leftMostDependentIndex];
+            rightw = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[rightMostDependentIndex];
+            rightpos = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightMostDependentIndex];
+            rightsiblingw = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[rightSiblingIndex];
+            rightsiblingpos = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightSiblingIndex];
+            leftsiblingw = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[lefSiblingIndex];
+            leftsiblingpos = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[lefSiblingIndex];
+            return this;
+        }
+    }
 }

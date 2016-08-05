@@ -3,7 +3,6 @@ package Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.TreeSet;
 
 /**
@@ -23,7 +22,6 @@ public class Sentence {
 
 
     public Sentence(String sentence, IndexMap indexMap, boolean decode) {
-        HashMap<String, Integer> wordMap = indexMap.getString2intMap();
         String[] tokens = sentence.trim().split("\n");
 
         int numTokens = tokens.length + 1; //add one more token for ROOT
@@ -55,46 +53,16 @@ public class Sentence {
             int depHead = Integer.parseInt(fields[9]);
             depHeads[index] = depHead;
 
-            if (decode == false) {
-                words[index] = wordMap.get(fields[1]);
-                depLabels[index] = wordMap.get(fields[11]);
-                posTags[index] = wordMap.get(fields[5]);
-                cPosTags[index] = wordMap.get(util.StringUtils.getCoarsePOS(fields[5]));
-                lemmas[index] = wordMap.get(fields[3]);
-            } else {
-                lemmas_str[index] = fields[3];
-
-                if (wordMap.containsKey(fields[1]))
-                    words[index] = wordMap.get(fields[1]);
-                else
-                    words[index] = indexMap.getUnknownIdx();
-
-                if (wordMap.containsKey(fields[11]))
-                    depLabels[index] = wordMap.get(fields[11]);
-                else
-                    depLabels[index] = indexMap.getUnknownIdx();
-
-                if (wordMap.containsKey(fields[5]))
-                    posTags[index] = wordMap.get(fields[5]);
-                else
-                    posTags[index] = indexMap.getUnknownIdx();
-
-                if (wordMap.containsKey(util.StringUtils.getCoarsePOS(fields[5])))
-                    cPosTags[index] = wordMap.get(util.StringUtils.getCoarsePOS(fields[5]));
-                else
-                    cPosTags[index] = indexMap.getUnknownIdx();
-
-                if (wordMap.containsKey(fields[3]))
-                    lemmas[index] = wordMap.get(fields[3]);
-                else
-                    lemmas[index] = indexMap.getUnknownIdx();
-            }
+            words[index] = indexMap.str2int(fields[1]);
+            depLabels[index] = indexMap.str2int(fields[11]);
+            posTags[index] = indexMap.str2int(fields[5]);
+            cPosTags[index] = indexMap.str2int(util.StringUtils.getCoarsePOS(fields[5]));
+            lemmas[index] = indexMap.str2int(fields[3]);
 
             if (reverseDepHeads[depHead] == null) {
                 TreeSet<Integer> children = new TreeSet<Integer>();
                 children.add(index);
                 reverseDepHeads[depHead] = children;
-
             } else
                 reverseDepHeads[depHead].add(index);
 
@@ -109,14 +77,12 @@ public class Sentence {
             if (fields.length > 14) //we have at least one argument
             {
                 for (int i = 14; i < fields.length; i++) {
-
                     if (!fields[i].equals("_")) //found an argument
                     {
                         String argumentType = fields[i];
                         int associatedPredicateSeq = i - 14;
                         predicateArguments.setArgument(associatedPredicateSeq, index, argumentType);
                     }
-
                 }
             }
         }

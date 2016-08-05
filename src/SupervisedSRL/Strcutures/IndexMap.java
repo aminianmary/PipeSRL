@@ -9,8 +9,8 @@ import java.util.HashSet;
  */
 public class IndexMap implements Serializable {
 
-    final int nullIdx = 0;
-    final int unknownIdx = 1;
+    public final static int nullIdx = 0;
+    public final static int unknownIdx = 1;
     private HashMap<String, Integer> string2intMap;
     private String[] int2stringMap;
 

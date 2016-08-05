@@ -108,7 +108,7 @@ public class PD {
             int plem = sentenceLemmas[pIdx];
             //we use coarse POS tags instead of original POS tags
             int ppos = sentenceCPOSTags[pIdx]; //sentencePOSTags[pIdx];
-            Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, "", -1, sentence, numOfPDFeatures, indexMap);
+            Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
             f1 = new File(modelDir + "/" + plem + "_" + ppos);
             if (f1.exists() && !f1.isDirectory()) {
                 //seen predicates
@@ -147,7 +147,7 @@ public class PD {
                 //instead of original POS tags, we use coarse POS tags
                 int ppos = sentenceCPOSTags[pIdx];
 
-                Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, plabel, -1, sentence, numOfPDFeatures, indexMap);
+                Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
                 PredicateLexiconEntry ple = new PredicateLexiconEntry(plabel, pdfeats);
 
                 if (!pLexicon.containsKey(plem)) {
