@@ -71,6 +71,7 @@ public class Train {
         long endTime = 0;
         double bestFScore = 0;
         String modelPath = modelDir + "/joint.model";
+        int noImprovement = 0;
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
@@ -117,14 +118,20 @@ public class Train {
             //evaluation
             double f1 = Evaluation.evaluate(outputPrefix + "_" + iter, devData, indexMap, ap.getReverseLabelMap());
             if (f1 > bestFScore) {
+                noImprovement = 0;
                 bestFScore = f1;
                 System.out.print("\nSaving final model (including indexMap)...");
                 ModelInfo.saveModel(ap, indexMap, modelPath);
                 System.out.println("Done!");
+            } else {
+                noImprovement++;
+                if (noImprovement > 5) {
+                    System.out.print("\nEarly Stopping");
+                    break;
+                }
             }
             endTime = System.currentTimeMillis();
             System.out.println("Total time for decoding on dev data: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
-
         }
         return modelPath;
     }
@@ -149,6 +156,7 @@ public class Train {
         long endTime = 0;
         double bestFScore = 0;
         String modelPath = modelDir + "/AI.model";
+        int noImprovement = 0;
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
@@ -232,10 +240,17 @@ public class Train {
             }
             double f1 = Evaluation.computePrecisionRecall(aiConfusionMatrix);
             if (f1 > bestFScore) {
+                noImprovement = 0;
                 bestFScore = f1;
                 System.out.print("\nSaving the new model...");
                 ModelInfo.saveModel(ap, indexMap, modelPath);
                 System.out.println("Done!");
+            } else {
+                noImprovement++;
+                if (noImprovement > 5) {
+                    System.out.print("\nEarly stopping...");
+                    break;
+                }
             }
         }
 
@@ -258,6 +273,7 @@ public class Train {
         long startTime = 0;
         long endTime = 0;
         double bestFScore = 0;
+        int noImprovement = 0;
         String modelPath = modelDir + "/AC.model";
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
@@ -314,10 +330,17 @@ public class Train {
             }
             double f1 = Evaluation.computePrecisionRecall(acConfusionMatrix, reverseLabelMap);
             if (f1 > bestFScore) {
+                noImprovement = 0;
                 bestFScore = f1;
                 System.out.print("\nSaving final model...");
                 ModelInfo.saveModel(ap, modelPath);
                 System.out.println("Done!");
+            } else {
+                noImprovement++;
+                if (noImprovement > 5) {
+                    System.out.print("\nEarly stopping...");
+                    break;
+                }
             }
         }
         return modelPath;

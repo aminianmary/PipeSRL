@@ -77,20 +77,14 @@ public class PD {
                     for (PredicateLexiconEntry ple : trainPLexicon.get(plem).get(ppos)) {
                         //trainJoint average perceptron
                         String plabel = ple.getPlabel();
-
                         ap.learnInstance(ple.getPdfeats(), plabel);
                     }
                 }
-
-                //System.out.print("\nSaving model...");
                 ap.saveModel(modelDir + "/" + plem + "_" + ppos);
-                //System.out.println("Done!");
-
             }
         }
         System.out.println("Done!");
     }
-
 
     public static HashMap<Integer, String> predict(Sentence sentence, IndexMap indexMap, String modelDir, int numOfPDFeatures) throws Exception {
         File f1;
