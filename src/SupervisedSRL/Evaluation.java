@@ -358,7 +358,6 @@ public class Evaluation {
                             acConfusionMatrix.get(predictedLabel)[reverseLabelMap.get("0")]++;
                         }
                     }
-
                     //update acConfusionMatrix for false negatives
                     for (int goldArgIdx : goldArgMap.keySet()) {
                         if (!sysOutArgs.containsKey(goldArgIdx)) {
@@ -375,50 +374,6 @@ public class Evaluation {
         return acConfusionMatrix;
     }
 
-
-    /*
-    private static void compareWithGoldJoint(PA pa, HashMap<Integer, Integer> highestScorePrediction) {
-
-        ArrayList<Argument> goldArgs = pa.getArguments();
-        HashMap<Integer, String> goldArgMap = getGoldArgMap(goldArgs);
-        Set<Integer> goldArgsIndices = goldArgMap.keySet();
-
-        HashSet<Integer> exclusiveGoldArgIndices = new HashSet(goldArgsIndices);
-        HashSet<Integer> commonGoldPredictedArgIndices = getNonZeroArgs(highestScorePrediction);
-        HashSet<Integer> exclusivePredicatedArgIndices = getNonZeroArgs(highestScorePrediction);
-
-        exclusivePredicatedArgIndices.removeAll(goldArgsIndices); //contains argument indices only identified by AI module
-        commonGoldPredictedArgIndices.retainAll(goldArgsIndices);
-        exclusiveGoldArgIndices.removeAll(highestScorePrediction.keySet());
-
-        aiConfusionMatrix[1][1] += commonGoldPredictedArgIndices.size();
-        aiConfusionMatrix[1][0] += exclusivePredicatedArgIndices.size();
-        aiConfusionMatrix[0][1] += exclusiveGoldArgIndices.size();
-
-        HashMap<String, Integer> reverseLabelMap = acClassifier.getReverseLabelMap();
-        for (int predictedArgIdx : highestScorePrediction.keySet()) {
-            int predictedLabel = highestScorePrediction.get(predictedArgIdx);
-            if (goldArgMap.containsKey(predictedArgIdx)) {
-                //ai_tp --> (ac_tp/ac_fp)
-                int goldLabel = reverseLabelMap.get(goldArgMap.get(predictedArgIdx));
-                acConfusionMatrix.get(predictedLabel)[goldLabel]++;
-            } else {
-                //ai_fp --> ac_fp
-                acConfusionMatrix.get(predictedLabel)[reverseLabelMap.get("0")]++;
-            }
-        }
-
-        //update acConfusionMatrix for false negatives
-        for (int goldArgIdx : goldArgMap.keySet()) {
-            if (!highestScorePrediction.containsKey(goldArgIdx)) {
-                //ai_fn --> ac_fn
-                int goldLabel = reverseLabelMap.get(goldArgMap.get(goldArgIdx));
-                acConfusionMatrix.get(reverseLabelMap.get("0"))
-                        [goldLabel]++;
-            }
-        }
-    }
-    */
 
     //////////// SUPPORTING FUNCTIONS /////////////////////////////////////////////////
 

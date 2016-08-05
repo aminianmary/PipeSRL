@@ -396,14 +396,8 @@ public class Decoder {
                                                   int acMaxBeamSize, int aiMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
 
-        //Predicate disambiguation step
-        //System.out.println("Disambiguating predicates of this sentence...");
+
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
-
-        /*
-        ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
-        */
-
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
 
         for (int pIdx : predictedPredicates.keySet()) {
@@ -427,35 +421,9 @@ public class Decoder {
     public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                                                 int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
-        //Predicate disambiguation step
-        //System.out.println("Disambiguating predicates of this sentence...");
+
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
-        /*
-        /////////////////////////////
-        HashMap<Integer, String> predictedPredicates= new HashMap<Integer, String>();
-        ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
-        HashMap<Integer, ArrayList<Pair<Double, ArrayList<Integer>>>> goldArgs =
-                new HashMap<Integer, ArrayList<Pair<Double, ArrayList<Integer>>>>();
-
-        for (PA pa: goldPAs) {
-            predictedPredicates.put(pa.getPredicateIndex(), pa.getPredicateLabel());
-            ArrayList<Integer> args =  new ArrayList<Integer>();
-            for (Argument argument: pa.getArguments())
-                args.add(argument.getIndex());
-
-            ArrayList<Pair<Double, ArrayList<Integer>>> goldList = new ArrayList<Pair<Double, ArrayList<Integer>>>();
-            Pair<Double, ArrayList<Integer>> temp = new Pair<Double, ArrayList<Integer>>(1.0, args);
-            goldList.add(temp);
-
-            goldArgs.put(pa.getPredicateIndex(), goldList);
-        }
-        /////////////////////////////
-        */
-
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
-
-        //if (predictedPredicates.keySet().size()==0)
-        //System.out.print("no predicate predicted...");
 
         for (int pIdx : predictedPredicates.keySet()) {
             // get best k argument assignment candidates
@@ -465,14 +433,10 @@ public class Decoder {
                     pIdx, indexMap,
                     aiMaxBeamSize, numOfAIFeatures);
 
-            //gold arguments
-            //ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = goldArgs.get(pIdx);
-
             // get best <=l argument label for each of these k assignments
             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates =
                     getBestACCandidates(sentence, pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures);
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
-            HashMap<Integer, Integer> highestScorePrediction2 = getHighestScoreAISeq(sentence, pIdx, indexMap, numOfAIFeatures);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
         return predictedPAs;

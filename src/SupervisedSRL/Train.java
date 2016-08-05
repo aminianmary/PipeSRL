@@ -318,9 +318,6 @@ public class Train {
             }
 
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
-
-                // if (d%1000==0)
-                //System.out.println(d+"/"+devSentencesInCONLLFormat.size());
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
                 HashMap<Integer, Prediction> prediction = argumentDecoder.predictAC(sentence, indexMap,
                         acMaxBeamSize, aiMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir);
