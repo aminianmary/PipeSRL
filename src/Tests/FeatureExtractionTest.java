@@ -102,7 +102,7 @@ public class FeatureExtractionTest {
     @Test
     public void testAIFeatures() throws Exception {
         writeConllText();
-        int aiFeatLength = 25 + 13;
+        int aiFeatLength = 25 + 154;
         IndexMap map = new IndexMap(tmpFilePath);
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
@@ -143,7 +143,20 @@ public class FeatureExtractionTest {
         assert feats2[22].equals(map.str2int(","));
         assert feats2[23].equals(IndexMap.nullIdx);
         assert feats2[24].equals(IndexMap.nullIdx);
+        long expected_pw_aw = map.str2int("taken") << 20 | map.str2int("output");
+        assert feats2[25].equals(expected_pw_aw);
+        int expected_pw_adeprel = map.str2int("taken") << 10 | map.str2int("COORD");
+        assert feats2[27].equals(expected_pw_adeprel);
+        String posPath = (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NNS") << 1 | 0) + "\t" +
+                (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NN") << 1 | 0) + "\t" + (0);
+        assert feats2[29].equals(map.str2int("taken") + " " + posPath);
+        assert feats2[30].equals(map.str2int("taken") << 2 | 2);
+        String expected_deprelpath = (map.str2int("ADV") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0) + "\t" +
+                (map.str2int("NMOD") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0) + "\t" + (map.str2int("COORD") << 1 | 0);
+        assert feats2[56].equals(map.str2int("VC") + " " + expected_deprelpath);
+
     }
+
 
     private void writeConllText() throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(tmpFilePath));

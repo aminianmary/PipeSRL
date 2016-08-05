@@ -35,7 +35,7 @@ public class Pipeline {
         //joined features based on original paper (ai) 13
         //joined features based on original paper (ac) 15
 
-        int numOfAIFeatures = 25 + 13; // 154 + 55 + 91 + 91 + 6; //25 + 13;
+        int numOfAIFeatures = 25 + 154; // 154 + 55 + 91 + 91 + 6; //25 + 13;
         int numOfACFeatures = 25 + 154;// + 55 + 91 + 91 + 6;
         int numOfPDFeatures = 9;
 
