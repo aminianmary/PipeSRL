@@ -69,6 +69,8 @@ public class Train {
         //training averaged perceptron
         long startTime = 0;
         long endTime = 0;
+        double bestFScore = 0;
+        String modelPath = modelDir + "/joint.model";
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
@@ -113,18 +115,17 @@ public class Train {
             IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, ap.getLabelMap(), outputPrefix + "_" + iter);
 
             //evaluation
-            Evaluation.evaluate(outputPrefix + "_" + iter, devData, indexMap, ap.getReverseLabelMap());
-
+            double f1 = Evaluation.evaluate(outputPrefix + "_" + iter, devData, indexMap, ap.getReverseLabelMap());
+            if (f1 > bestFScore) {
+                bestFScore = f1;
+                System.out.print("\nSaving final model (including indexMap)...");
+                ModelInfo.saveModel(ap, indexMap, modelPath);
+                System.out.println("Done!");
+            }
             endTime = System.currentTimeMillis();
             System.out.println("Total time for decoding on dev data: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
         }
-
-        System.out.print("\nSaving final model (including indexMap)...");
-        String modelPath = modelDir + "/joint.model";
-        ModelInfo.saveModel(ap, indexMap, modelPath);
-        System.out.println("Done!");
-
         return modelPath;
     }
 
@@ -146,6 +147,8 @@ public class Train {
         //training averaged perceptron
         long startTime = 0;
         long endTime = 0;
+        double bestFScore = 0;
+        String modelPath = modelDir + "/AI.model";
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
@@ -175,11 +178,11 @@ public class Train {
                 ///////////////////////////////////////////////////////////////////
                 /////////******** DOWN SAMPLING NEG EXAMPLES ******///////////
                 ///////////////////////////////////////////////////////////////////
-                /*
-                Object[] downSampledInstances = downSample(featVectors, labels);
-                featVectors =  (ArrayList<Object[]>) downSampledInstances[0];
-                labels =  (ArrayList<String>) downSampledInstances[1];
-                */
+                /**
+                 Object[] downSampledInstances = downSample(featVectors, labels);
+                 featVectors =  (ArrayList<Object[]>) downSampledInstances[0];
+                 labels =  (ArrayList<String>) downSampledInstances[1];
+                 **/
                 ///////////////////////////////////////////////////////////////////
                 ///////////////////////////////////////////////////////////////////
 
@@ -227,13 +230,14 @@ public class Train {
                 //we do evaluation for each sentence and update confusion matrix right here
                 aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
             }
-            Evaluation.computePrecisionRecall(aiConfusionMatrix);
+            double f1 = Evaluation.computePrecisionRecall(aiConfusionMatrix);
+            if (f1 > bestFScore) {
+                bestFScore = f1;
+                System.out.print("\nSaving the new model...");
+                ModelInfo.saveModel(ap, indexMap, modelPath);
+                System.out.println("Done!");
+            }
         }
-
-        System.out.println("\nSaving final model...");
-        String modelPath = modelDir + "/AI.model";
-        ModelInfo.saveModel(ap, indexMap, modelPath);
-        System.out.println("Done!");
 
         return modelPath;
     }
@@ -253,6 +257,8 @@ public class Train {
         //training average perceptron
         long startTime = 0;
         long endTime = 0;
+        double bestFScore = 0;
+        String modelPath = modelDir + "/AC.model";
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
@@ -306,14 +312,14 @@ public class Train {
                 //we do evaluation for each sentence and update confusion matrix right here
                 acConfusionMatrix = Evaluation.evaluateAC4ThisSentence(sentence, prediction, acConfusionMatrix, reverseLabelMap);
             }
-            Evaluation.computePrecisionRecall(acConfusionMatrix, reverseLabelMap);
+            double f1 = Evaluation.computePrecisionRecall(acConfusionMatrix, reverseLabelMap);
+            if (f1 > bestFScore) {
+                bestFScore = f1;
+                System.out.print("\nSaving final model...");
+                ModelInfo.saveModel(ap, modelPath);
+                System.out.println("Done!");
+            }
         }
-
-        System.out.print("\nSaving final model...");
-        String modelPath = modelDir + "/AC.model";
-        ModelInfo.saveModel(ap, modelPath);
-        System.out.println("Done!");
-
         return modelPath;
     }
 

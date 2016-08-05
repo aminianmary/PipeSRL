@@ -18,8 +18,8 @@ import java.util.*;
 public class Evaluation {
 
 
-    public static void evaluate(String systemOutput, String goldOutput, IndexMap indexMap,
-                                HashMap<String, Integer> reverseLabelMap) throws IOException {
+    public static double evaluate(String systemOutput, String goldOutput, IndexMap indexMap,
+                                  HashMap<String, Integer> reverseLabelMap) throws IOException {
         DecimalFormat format = new DecimalFormat("##.00");
 
         List<String> systemOutputInCONLLFormat = IO.readCoNLLFile(systemOutput);
@@ -43,7 +43,7 @@ public class Evaluation {
 
         if (systemOutputInCONLLFormat.size() != goldOutputInCONLLFormat.size()) {
             System.out.print("WARNING --> Number of sentences in System output does not match with number of sentences in the Gold data");
-            return;
+            return -1;
         }
 
         boolean decode = true;
@@ -92,7 +92,7 @@ public class Evaluation {
         System.out.println("Total Number of Predicate Tokens in dev data: " + PD.totalPreds);
         System.out.println("Total Number of Unseen Predicate Tokens in dev data: " + PD.unseenPreds);
         System.out.println("*********************************************");
-        computePrecisionRecall(aiConfusionMatrix, acConfusionMatrix, reverseLabelMap);
+        return computePrecisionRecall(aiConfusionMatrix, acConfusionMatrix, reverseLabelMap);
     }
 
 
@@ -162,9 +162,9 @@ public class Evaluation {
     }
 
 
-    public static void computePrecisionRecall(int[][] aiConfusionMatrix,
-                                              HashMap<Integer, int[]> acConfusionMatrix,
-                                              HashMap<String, Integer> reverseLabelMap) {
+    public static double computePrecisionRecall(int[][] aiConfusionMatrix,
+                                                HashMap<Integer, int[]> acConfusionMatrix,
+                                                HashMap<String, Integer> reverseLabelMap) {
         DecimalFormat format = new DecimalFormat("##.00");
         //binary classification
         int aiTP = aiConfusionMatrix[1][1];
@@ -223,11 +223,11 @@ public class Evaluation {
         System.out.println("Micro Precision: " + format.format(micro_precision));
         System.out.println("Micro Recall: " + format.format(micro_recall));
         System.out.println("Averaged F1-score: " + format.format(FScore));
-
+        return FScore;
     }
 
 
-    public static void computePrecisionRecall(int[][] aiConfusionMatrix) {
+    public static double computePrecisionRecall(int[][] aiConfusionMatrix) {
         DecimalFormat format = new DecimalFormat("##.00");
         //binary classification
         int aiTP = aiConfusionMatrix[1][1];
@@ -240,13 +240,15 @@ public class Evaluation {
         System.out.println("Total AI prediction " + total_ai_predictions);
         System.out.println("AI Precision: " + format.format(precision));
         System.out.println("AI Recall: " + format.format(recall));
-        System.out.println("AI F1-score: " + format.format((2 * precision * recall) / (precision + recall)));
+        double fscore = (2 * precision * recall) / (precision + recall);
+        System.out.println("AI F1-score: " + format.format(fscore));
         System.out.println("*********************************************");
+        return fscore;
     }
 
 
-    public static void computePrecisionRecall(HashMap<Integer, int[]> acConfusionMatrix,
-                                              HashMap<String, Integer> reverseLabelMap) {
+    public static double computePrecisionRecall(HashMap<Integer, int[]> acConfusionMatrix,
+                                                HashMap<String, Integer> reverseLabelMap) {
         DecimalFormat format = new DecimalFormat("##.00");
 
         String[] labelMap = new String[reverseLabelMap.size()];
@@ -276,12 +278,8 @@ public class Evaluation {
                     total_gold_4_this_label += acConfusionMatrix.get(pLabel)[predicatedLabel];
 
                 total_gold += total_gold_4_this_label;
-
-                double precision = 100. * (double) tp / total_prediction_4_this_label;
-                double recall = 100. * (double) tp / total_gold_4_this_label;
-                //System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
-                //System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
             }
+
         }
 
         System.out.println("*********************************************");
@@ -295,7 +293,7 @@ public class Evaluation {
         System.out.println("Micro Precision: " + format.format(micro_precision));
         System.out.println("Micro Recall: " + format.format(micro_recall));
         System.out.println("Averaged F1-score: " + format.format(FScore));
-
+        return FScore;
     }
 
 
