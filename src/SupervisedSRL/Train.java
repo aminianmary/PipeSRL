@@ -39,7 +39,7 @@ public class Train {
         String aiModelPath = trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
                 numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
 
-        String acModelPath = trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap,
+        String acModelPath = trainAC(trainSentencesInCONLLFormat, devData, argLabels, indexMap,
                 numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize);
 
         return new String[]{aiModelPath, acModelPath};
@@ -258,7 +258,7 @@ public class Train {
 
 
     private String trainAC(List<String> trainSentencesInCONLLFormat,
-                           List<String> devSentencesInCONLLFormat,
+                           String devData,
                            HashSet<String> labelSet, IndexMap indexMap,
                            int numberOfTrainingIterations,
                            String modelDir, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
@@ -299,33 +299,20 @@ public class Train {
             endTime = System.currentTimeMillis();
             System.out.println("Total time of this iteration: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
-            //making prediction over dev sentences
             System.out.println("****** DEV RESULTS ******");
-            //System.out.println("Making prediction on dev data started...");
-
             //instead of loading model from file, we just calculate the average weights
             String aiModelPath = modelDir + "/AI.model";
+            String outputFile = modelDir +"dev_output_"+iter;
+
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
+            Decoder.decode(argumentDecoder, indexMap, devData, ap.getLabelMap(),
+                    aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
+                    modelDir, outputFile);
+
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());
-            boolean decode = true;
 
-            //ac confusion matrix
-            HashMap<Integer, int[]> acConfusionMatrix = new HashMap<Integer, int[]>();
-            for (int k = 0; k < reverseLabelMap.keySet().size(); k++) {
-                int[] acGoldLabels = new int[reverseLabelMap.keySet().size()];
-                acConfusionMatrix.put(k, acGoldLabels);
-            }
-
-            for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
-                Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
-                HashMap<Integer, Prediction> prediction = argumentDecoder.predictAC(sentence, indexMap,
-                        acMaxBeamSize, aiMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir);
-
-                //we do evaluation for each sentence and update confusion matrix right here
-                acConfusionMatrix = Evaluation.evaluateAC4ThisSentence(sentence, prediction, acConfusionMatrix, reverseLabelMap);
-            }
-            double f1 = Evaluation.computePrecisionRecall(acConfusionMatrix, reverseLabelMap);
+            double f1 = Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
             if (f1 > bestFScore) {
                 noImprovement = 0;
                 bestFScore = f1;

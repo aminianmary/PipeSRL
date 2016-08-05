@@ -56,7 +56,6 @@ public class Decoder {
 
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap, decode);
-            //todo think about the correct way to show final predications
             predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
@@ -64,7 +63,6 @@ public class Decoder {
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap, outputFile);
         long endTime = System.currentTimeMillis();
         System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
-
     }
 
 
