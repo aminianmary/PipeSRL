@@ -22,6 +22,8 @@ import java.util.*;
  */
 public class Train {
 
+    public static String unseenSymbol= ";;?;;";
+
     //this function is used to train stacked ai-ac models
     public String[] train(String trainData,
                           String devData,
@@ -302,15 +304,20 @@ public class Train {
                 for (int i = 0; i < featVectors.size(); i++) {
                     //we may see an unseen label in dev/test data
                     int goldLabel = labelDict.containsKey(labels.get(i))? labelDict.get(labels.get(i)):-1;
+
                     ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                    ArrayList<FeatureNode> unseenfeats = new ArrayList<FeatureNode>();
+                    int unseenFeatIndex = numOfLiblinearFeatures+1;
                     for (int d = 0; d < featVectors.get(i).length; d++) {
                         if (featDict[d].containsKey(featVectors.get(i)[d]))
                             //seen feature value
                             feats.add(new FeatureNode(featDict[d].get(featVectors.get(i)[d]), 1));
-                        //else
-                            //System.out.print("unseen feature!");
+                        else
+                            //unseen feature value
+                            feats.add(new FeatureNode(featDict[d].get(unseenSymbol), 1));
                     }
                     FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+
                     double[] probEstimates = new double[labelDict.size()];
                     int prediction = (int) Linear.predictProbability(model, featureNodes, probEstimates);
                     if (prediction == goldLabel)
@@ -367,8 +374,13 @@ public class Train {
         int featureIndex = 1;
         //for each feature slot
         for (int i = 0; i < numOfFeatures; i++) {
-            for (Object feat : featuresSeen[i])
+            //adding seen feature indices
+            for (Object feat : featuresSeen[i]) {
                 featureDic[i].put(feat, featureIndex++);
+            }
+            //unseen feature index
+            featureDic[i].put(unseenSymbol, featureIndex++);
+            assert !featuresSeen[i].contains(unseenSymbol);
         }
 
         System.out.print("...done!\n");
