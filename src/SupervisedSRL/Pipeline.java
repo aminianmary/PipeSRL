@@ -12,6 +12,10 @@ import java.util.HashMap;
  */
 public class Pipeline {
 
+    public static int numOfAIFeatures = 25 + 154 + 91 + 6; // 154 + 55 + 91 + 91 + 6; //25 + 13;
+    public static int numOfACFeatures = 25 + 154 + 91 + 6;// + 55 + 91 + 91 + 6;
+    public static int numOfPDFeatures = 9;
+
     public static void main(String[] args) throws Exception {
 
         //getting trainJoint/test sentences
@@ -34,10 +38,6 @@ public class Pipeline {
         //some msc tri-gram feature 6
         //joined features based on original paper (ai) 13
         //joined features based on original paper (ac) 15
-
-        int numOfAIFeatures = 25 + 154; // 154 + 55 + 91 + 91 + 6; //25 + 13;
-        int numOfACFeatures = 25 + 154;// + 55 + 91 + 91 + 6;
-        int numOfPDFeatures = 9;
 
         if (evalOnly) {
 

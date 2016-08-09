@@ -97,7 +97,8 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] AIFeatures = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] AIFeatures = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
         //Object[] AIFeatures = addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
         return (Object[]) AIFeatures[0];
     }
@@ -109,7 +110,8 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] ACFeatures = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] ACFeatures = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
         return (Object[]) ACFeatures[0];
     }
 
@@ -982,7 +984,7 @@ public class FeatureExtractor {
         return new Object[]{features, index};
     }
 
-    private static Object[] addAllTrigramFeatures(BaseFeatureFields baseFeatureFields, Object[] features, int length) {
+    private static Object[] addTrigramFeatures(BaseFeatureFields baseFeatureFields, Object[] features, int length) {
         int index = length;
         int ppos = baseFeatureFields.getPpos();
         int plem = baseFeatureFields.getPlem();

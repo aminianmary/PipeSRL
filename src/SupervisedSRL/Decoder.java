@@ -394,7 +394,6 @@ public class Decoder {
                                                   int acMaxBeamSize, int aiMaxBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures, String modelDir) throws Exception {
 
 
-
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
 

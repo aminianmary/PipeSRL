@@ -7,10 +7,13 @@ import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
+import SupervisedSRL.Strcutures.Pair;
 import SupervisedSRL.Strcutures.Prediction;
+import de.bwaldvogel.liblinear.*;
 import ml.AveragedPerceptron;
 import util.IO;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -36,6 +39,10 @@ public class Train {
 
 
         //training AI and AC models separately
+        String aiModelPath_ll = trainLiblinear(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, "AI", indexMap, numberOfTrainingIterations, modelDir + "AI_LL.model", numOfAIFeatures);
+        String acModelPath_ll = trainLiblinear(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, "AC", indexMap, numberOfTrainingIterations, modelDir + "AC_LL.model", numOfACFeatures);
+
+
         String aiModelPath = trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
                 numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
 
@@ -170,31 +177,6 @@ public class Train {
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
-
-                ///////////////////////////////////////////////////////////////////
-                /////////******** OVER SAMPLING POSITIVE EXAMPLES ******///////////
-                ///////////////////////////////////////////////////////////////////
-                /*
-                Object[] overSampledInstances = overSample(featVectors, labels);
-                featVectors =  (ArrayList<Object[]>) overSampledInstances[0];
-                labels =  (ArrayList<String>) overSampledInstances[1];
-                 */
-                ///////////////////////////////////////////////////////////////////
-                ///////////////////////////////////////////////////////////////////
-
-
-                ///////////////////////////////////////////////////////////////////
-                /////////******** DOWN SAMPLING NEG EXAMPLES ******///////////
-                ///////////////////////////////////////////////////////////////////
-                /**
-                 Object[] downSampledInstances = downSample(featVectors, labels);
-                 featVectors =  (ArrayList<Object[]>) downSampledInstances[0];
-                 labels =  (ArrayList<String>) downSampledInstances[1];
-                 **/
-                ///////////////////////////////////////////////////////////////////
-                ///////////////////////////////////////////////////////////////////
-
-
                 for (int d = 0; d < featVectors.size(); d++) {
                     ap.learnInstance(featVectors.get(d), labels.get(d));
                     if (labels.get(d).equals("0"))
@@ -257,6 +239,145 @@ public class Train {
     }
 
 
+    public String trainLiblinear(List<String> trainSentencesInCONLLFormat,
+                                 List<String> devSentencesInCONLLFormat,
+                                 String taskType,
+                                 IndexMap indexMap,
+                                 int numberOfTrainingIterations,
+                                 String modelPath, int numOfFeatures)
+            throws Exception {
+        Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>> featLabelDicPair =
+                constructFeatureDict4LibLinear(trainSentencesInCONLLFormat, indexMap, numOfFeatures, taskType);
+        HashMap<Object, Integer>[] featDict = featLabelDicPair.first;
+        HashMap<String, Integer> labelDict = featLabelDicPair.second.first;
+        int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
+        int numOfTrainInstances = featLabelDicPair.second.second.second;
+
+        FeatureNode[][] features = new FeatureNode[numOfTrainInstances][numOfFeatures];
+        double[] l = new double[numOfTrainInstances];
+        int dataIndex = 0;
+        for (String sentence : trainSentencesInCONLLFormat) {
+            Object[] instances = null;
+            if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
+            else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
+            else if (taskType.equals("joint"))
+                instances = obtainTrainInstance4JointModel(sentence, indexMap, numOfFeatures);
+            ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
+            ArrayList<String> labels = (ArrayList<String>) instances[1];
+            for (int i = 0; i < featVectors.size(); i++) {
+                l[dataIndex] = labelDict.get(labels.get(i));
+                for (int d = 0; d < featVectors.get(i).length; d++)
+                    features[dataIndex][d] = new FeatureNode(featDict[d].get(featVectors.get(i)[d]), 1);
+                dataIndex++;
+            }
+        }
+
+        Problem problem = new Problem();
+        problem.l = numOfTrainInstances; // number of training examples
+        problem.n = numOfLiblinearFeatures; // number of features
+        problem.x = features; // feature nodes
+        problem.y = l; // target values
+
+        SolverType solver = SolverType.L2R_LR; // -s 0
+        double C = 1.0;    // cost of constraints violation
+        double eps = 0.01; // stopping criteria
+
+        Parameter parameter = new Parameter(solver, C, eps);
+        Model model = Linear.train(problem, parameter);
+
+        //MAKING PREDICTION ON DEV DATA
+        if (devSentencesInCONLLFormat != null) {
+            int goldNum = 0;
+            int correct = 0;
+
+            for (String sentence : devSentencesInCONLLFormat) {
+                Object[] instances = null;
+                if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
+                else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
+                else if (taskType.equalsIgnoreCase("JOINT"))
+                    instances = obtainTrainInstance4JointModel(sentence, indexMap, numOfFeatures);
+                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
+                ArrayList<String> labels = (ArrayList<String>) instances[1];
+
+                for (int i = 0; i < featVectors.size(); i++) {
+                    //we may see an unseen label in dev/test data
+                    int goldLabel = labelDict.containsKey(labels.get(i))? labelDict.get(labels.get(i)):-1;
+                    ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                    for (int d = 0; d < featVectors.get(i).length; d++) {
+                        if (featDict[d].containsKey(featVectors.get(i)[d]))
+                            //seen feature value
+                            feats.add(new FeatureNode(featDict[d].get(featVectors.get(i)[d]), 1));
+                        //else
+                            //System.out.print("unseen feature!");
+                    }
+                    FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+                    double[] probEstimates = new double[labelDict.size()];
+                    int prediction = (int) Linear.predictProbability(model, featureNodes, probEstimates);
+                    if (prediction == goldLabel)
+                        correct++;
+                    goldNum++;
+                    dataIndex++;
+                }
+            }
+            double acc = 100 * correct / goldNum;
+            System.out.println("accuracy for task " + taskType + ": " + acc);
+        }
+
+        model.save(new File(modelPath));
+        return modelPath;
+    }
+
+
+    private Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>
+    constructFeatureDict4LibLinear(List<String> trainSentencesInCONLLFormat,
+                                   IndexMap indexMap, int numOfFeatures, String taskType) throws Exception {
+        HashMap<Object, Integer>[] featureDic = new HashMap[numOfFeatures];
+        HashSet<Object>[] featuresSeen = new HashSet[numOfFeatures];
+
+        for (int i = 0; i < numOfFeatures; i++) {
+            featureDic[i] = new HashMap<Object, Integer>();
+            featuresSeen[i] = new HashSet<Object>();
+        }
+        HashMap<String, Integer> labelDic = new HashMap<String, Integer>();
+
+        System.out.print("extracting mapping dictionary...");
+        int numOfTrainInstances = 0;
+        for (String sentence : trainSentencesInCONLLFormat) {
+            Object[] instances = null;
+            if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
+            else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
+            else if (taskType.equalsIgnoreCase("JOINT"))
+                instances = obtainTrainInstance4JointModel(sentence, indexMap, numOfFeatures);
+            else if (taskType.equals("PD")) throw new Exception("task not supported");
+
+            ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0]; //in the format averaged perceptron supports
+            ArrayList<String> labels = (ArrayList<String>) instances[1];
+
+            numOfTrainInstances += labels.size();
+            //getting set of all possible values for each slot
+            for (int instance = 0; instance < labels.size(); instance++) {
+                for (int dim = 0; dim < numOfFeatures; dim++) {
+                    featuresSeen[dim].add(featVectors.get(instance)[dim]);
+                }
+                if (!labelDic.containsKey(labels.get(instance)))
+                    labelDic.put(labels.get(instance), labelDic.size());
+            }
+        }
+        //constructing featureDic
+        int featureIndex = 1;
+        //for each feature slot
+        for (int i = 0; i < numOfFeatures; i++) {
+            for (Object feat : featuresSeen[i])
+                featureDic[i].put(feat, featureIndex++);
+        }
+
+        System.out.print("...done!\n");
+
+        return new Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>(featureDic,
+                new Pair<HashMap<String, Integer>, Pair<Integer, Integer>>(labelDic, new Pair<Integer, Integer>(featureIndex, numOfTrainInstances)));
+    }
+
+
     private String trainAC(List<String> trainSentencesInCONLLFormat,
                            String devData,
                            HashSet<String> labelSet, IndexMap indexMap,
@@ -302,7 +423,7 @@ public class Train {
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
             String aiModelPath = modelDir + "/AI.model";
-            String outputFile = modelDir +"dev_output_"+iter;
+            String outputFile = modelDir + "dev_output_" + iter;
 
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
             Decoder.decode(argumentDecoder, indexMap, devData, ap.getLabelMap(),
@@ -355,6 +476,7 @@ public class Train {
 
         return new Object[]{featVectors, labels};
     }
+
 
     private Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
