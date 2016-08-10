@@ -8,12 +8,10 @@ import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;
 import de.bwaldvogel.liblinear.*;
 import ml.AveragedPerceptron;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import util.IO;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
@@ -75,75 +73,42 @@ public class Train {
         HashMap<String, Integer> labelDict = featLabelDicPair.second.first;
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
         int numOfTrainInstances = featLabelDicPair.second.second.second;
-
-        FeatureNode[][] features = new FeatureNode[numOfTrainInstances][numOfFeatures];
-        double[] l = new double[numOfTrainInstances];
-        int dataIndex = 0;
-        for (String sentence : trainSentencesInCONLLFormat) {
-            Object[] instances = null;
-            if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
-            else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
-            else if (taskType.equalsIgnoreCase("joint"))
-                instances = obtainTrainInstance4JointModel(sentence, indexMap, numOfFeatures);
-            ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
-            ArrayList<String> labels = (ArrayList<String>) instances[1];
-            for (int i = 0; i < featVectors.size(); i++) {
-                l[dataIndex] = labelDict.get(labels.get(i));
-                for (int d = 0; d < featVectors.get(i).length; d++)
-                    features[dataIndex][d] = new FeatureNode(featDict[d].get(featVectors.get(i)[d]), 1);
-                dataIndex++;
-            }
-        }
-
-        Problem problem = new Problem();
-        problem.l = numOfTrainInstances; // number of training examples
-        problem.n = numOfLiblinearFeatures; // number of features
-        problem.x = features; // feature nodes
-        problem.y = l; // target values
+        String trainLiblinearFormatFile = modelDir+"/train_ll";
+        double bias = 1.0;
+        writeLiblinearFeats(trainSentencesInCONLLFormat,indexMap,numOfFeatures,featDict,labelDict,taskType,trainLiblinearFormatFile);
+        Problem trainProblem = Problem.readFromFile(new File(trainLiblinearFormatFile), bias);
+        assert trainProblem.l== numOfTrainInstances;
+        assert trainProblem.n == numOfLiblinearFeatures;
+        assert trainProblem.y.length==trainProblem.x.length;
+        assert trainProblem.y.length==trainProblem.l;
 
         SolverType solver = SolverType.L2R_LR; // -s 0
         double C = 1.0;    // cost of constraints violation
         double eps = 0.01; // stopping criteria
 
         Parameter parameter = new Parameter(solver, C, eps);
-        Model model = Linear.train(problem, parameter);
+        Model model = Linear.train(trainProblem, parameter);
 
         //MAKING PREDICTION ON DEV DATA
         if (devSentencesInCONLLFormat != null) {
             int goldNum = 0;
             int correct = 0;
 
-            for (String sentence : devSentencesInCONLLFormat) {
-                Object[] instances = null;
-                if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
-                else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
-                else if (taskType.equalsIgnoreCase("JOINT"))
-                    instances = obtainTrainInstance4JointModel(sentence, indexMap, numOfFeatures);
-                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
-                ArrayList<String> labels = (ArrayList<String>) instances[1];
+            String devLiblinearFormatFile = modelDir + "/dev_ll";
+            writeLiblinearFeats(devSentencesInCONLLFormat, indexMap, numOfFeatures, featDict, labelDict, taskType, devLiblinearFormatFile);
+            Problem devProblem = Problem.readFromFile(new File(devLiblinearFormatFile), bias);
+            assert devProblem.l == numOfTrainInstances;
+            assert devProblem.n == numOfLiblinearFeatures;
+            assert devProblem.y.length == devProblem.x.length;
+            assert devProblem.y.length == devProblem.l;
 
-                for (int i = 0; i < featVectors.size(); i++) {
-                    //we may see an unseen label in dev/test data
-                    int goldLabel = labelDict.containsKey(labels.get(i))? labelDict.get(labels.get(i)):-1;
-
-                    ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
-                    for (int d = 0; d < featVectors.get(i).length; d++) {
-                        if (featDict[d].containsKey(featVectors.get(i)[d]))
-                            //seen feature value
-                            feats.add(new FeatureNode(featDict[d].get(featVectors.get(i)[d]), 1));
-                        else
-                            //unseen feature value
-                            feats.add(new FeatureNode(featDict[d].get(Pipeline.unseenSymbol), 1));
-                    }
-                    FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
-
-                    double[] probEstimates = new double[labelDict.size()];
-                    int prediction = (int) Linear.predictProbability(model, featureNodes, probEstimates);
-                    if (prediction == goldLabel)
-                        correct++;
-                    goldNum++;
-                    dataIndex++;
-                }
+            for (int i = 0; i < devProblem.l; i++) {
+                int goldLabel = (int) devProblem.y[i];
+                double[] probEstimates = new double[labelDict.size()];
+                int prediction = (int) Linear.predictProbability(model, devProblem.x[i], probEstimates);
+                if (prediction == goldLabel)
+                    correct++;
+                goldNum++;
             }
             double acc = 100 * correct / goldNum;
             System.out.println("accuracy for task " + taskType + ": " + acc);
@@ -155,6 +120,46 @@ public class Train {
         return new String[]{modelPath, mappingDictsPath};
     }
 
+
+    private void writeLiblinearFeats (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numOfFeatures,
+                                      HashMap<Object, Integer>[] featDict, HashMap<String, Integer> labelDict,
+                                      String taskType, String filePath) throws Exception {
+        System.out.println("Writing "+ filePath +"...");
+        DecimalFormat format = new DecimalFormat("##.00");
+        long startTime = System.currentTimeMillis();
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+        //writing train data in Liblinear format
+        for (String sentence : trainSentencesInCONLLFormat) {
+            Object[] instances = null;
+            if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
+            else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
+            else if (taskType.equalsIgnoreCase("joint"))
+                instances = obtainTrainInstance4JointModel(sentence, indexMap, numOfFeatures);
+
+            ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
+            ArrayList<String> labels = (ArrayList<String>) instances[1];
+            for (int i = 0; i < featVectors.size(); i++) {
+                int label = labelDict.containsKey(labels.get(i)) ? labelDict.get(labels.get(i)) : -1;
+                writer.write(label + " ");
+                for (int d = 0; d < featVectors.get(i).length; d++) {
+                    if (featDict[d].containsKey(featVectors.get(i)[d]))
+                        //seen feature value
+                        writer.write(featDict[d].get(featVectors.get(i)[d]) + ":1");
+                    else
+                        //unseen feature value
+                        writer.write(featDict[d].get(Pipeline.unseenSymbol) + ":1");
+                    if (d != featVectors.get(i).length - 1)
+                        writer.write(" ");
+                }
+                writer.write("\n");
+            }
+        }
+        writer.flush();
+        writer.close();
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time for writing: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        System.out.println("Done!");
+    }
 
 
     private Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>
