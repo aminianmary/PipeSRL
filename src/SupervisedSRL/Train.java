@@ -73,7 +73,7 @@ public class Train {
         HashMap<String, Integer> labelDict = featLabelDicPair.second.first;
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
         int numOfTrainInstances = featLabelDicPair.second.second.second;
-        String trainLiblinearFormatFile = modelDir+"/train_ll";
+        String trainLiblinearFormatFile = modelDir+"/train_ll_2";
         double bias = 1.0;
         writeLiblinearFeats(trainSentencesInCONLLFormat,indexMap,numOfFeatures,featDict,labelDict,taskType,trainLiblinearFormatFile);
         Problem trainProblem = Problem.readFromFile(new File(trainLiblinearFormatFile), bias);
@@ -128,8 +128,11 @@ public class Train {
         DecimalFormat format = new DecimalFormat("##.00");
         long startTime = System.currentTimeMillis();
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+        int numOfSentences2write = 0;
+        StringBuilder sentences2write = new StringBuilder();
         //writing train data in Liblinear format
         for (String sentence : trainSentencesInCONLLFormat) {
+            numOfSentences2write++;
             Object[] instances = null;
             if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
             else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
@@ -138,20 +141,27 @@ public class Train {
 
             ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
             ArrayList<String> labels = (ArrayList<String>) instances[1];
+
             for (int i = 0; i < featVectors.size(); i++) {
                 int label = labelDict.containsKey(labels.get(i)) ? labelDict.get(labels.get(i)) : -1;
-                writer.write(label + " ");
+                sentences2write.append(label + " ");
                 for (int d = 0; d < featVectors.get(i).length; d++) {
                     if (featDict[d].containsKey(featVectors.get(i)[d]))
                         //seen feature value
-                        writer.write(featDict[d].get(featVectors.get(i)[d]) + ":1");
+                        sentences2write.append(featDict[d].get(featVectors.get(i)[d]) + ":1");
                     else
                         //unseen feature value
-                        writer.write(featDict[d].get(Pipeline.unseenSymbol) + ":1");
+                        sentences2write.append(featDict[d].get(Pipeline.unseenSymbol) + ":1");
                     if (d != featVectors.get(i).length - 1)
-                        writer.write(" ");
+                        sentences2write.append(" ");
                 }
-                writer.write("\n");
+                sentences2write.append("\n");
+            }
+
+            if (numOfSentences2write%1000 ==0 || numOfSentences2write ==trainSentencesInCONLLFormat.size())
+            {
+                writer.write(sentences2write.toString());
+                sentences2write= new StringBuilder();
             }
         }
         writer.flush();
@@ -174,7 +184,9 @@ public class Train {
         }
         HashMap<String, Integer> labelDic = new HashMap<String, Integer>();
 
-        System.out.print("extracting mapping dictionary...");
+        System.out.print("Extracting mapping dictionary...");
+        DecimalFormat format = new DecimalFormat("##.00");
+        long startTime = System.currentTimeMillis();
         int numOfTrainInstances = 0;
         for (String sentence : trainSentencesInCONLLFormat) {
             Object[] instances = null;
@@ -209,9 +221,9 @@ public class Train {
             featureDic[i].put(Pipeline.unseenSymbol, featureIndex++);
             assert !featuresSeen[i].contains(Pipeline.unseenSymbol);
         }
-
-        System.out.print("...done!\n");
-
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time for extraction" + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        System.out.println("Done!");
         return new Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>(featureDic,
                 new Pair<HashMap<String, Integer>, Pair<Integer, Integer>>(labelDic, new Pair<Integer, Integer>(featureIndex, numOfTrainInstances)));
     }
