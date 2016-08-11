@@ -97,9 +97,8 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
-        Object[] AIFeatures = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
-        //Object[] AIFeatures = addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer)argFeats[1]);
+        Object[] AIFeatures = bigramFeatures4AIFromNuguesSystem;
         return (Object[]) AIFeatures[0];
     }
 
@@ -110,8 +109,8 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
-        Object[] ACFeatures = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
+        Object[] bigramFeatures4ACFromNuguesSystem= addBigramFeatures4ACFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] ACFeatures = bigramFeatures4ACFromNuguesSystem;
         return (Object[]) ACFeatures[0];
     }
 
@@ -981,6 +980,55 @@ public class FeatureExtractor {
         features[index++] = leftpos_rightpos;
         int pdeprel_adeprel = (pdeprel << 10) | adeprel;
         features[index++] = pdeprel_adeprel;
+        return new Object[]{features, index};
+    }
+
+    private static Object[] addBigramFeatures4ACFromNuguesSystem(BaseFeatureFields baseFeatureFields, Object[] features, int length) {
+        int index = length;
+        int plem = baseFeatureFields.getPlem();
+        String pSense = baseFeatureFields.getpSense();
+        String pchilddepset = baseFeatureFields.getPchilddepset();
+        int aw = baseFeatureFields.getAw();
+        int apos = baseFeatureFields.getApos();
+        int adeprel = baseFeatureFields.getAdeprel();
+        String pospath = baseFeatureFields.getPospath();
+        int position = baseFeatureFields.getPosition();
+        int leftpos = baseFeatureFields.getLeftpos();
+        int rightpos = baseFeatureFields.getRightpos();
+        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
+        int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
+
+        String aw_psense = aw+" "+ pSense;
+        features[index++] = aw_psense;
+        String psense_apos = pSense + " " + apos;
+        features[index++] = psense_apos;
+        String posPath_pSense = pospath+" "+ pSense;
+        features[index++] = posPath_pSense;
+        int aw_position = (aw << 2) | position;
+        features[index++] = aw_position;
+        String psense_position = pSense + " " + position;
+        features[index++] = psense_position;
+        String pSense_rightSiblingPos = pSense+" "+ rightsiblingpos;
+        features[index++] = pSense_rightSiblingPos;
+        int leftPos_rightSiblingPos = (leftpos<<10) | rightsiblingpos;
+        features[index++] = leftPos_rightSiblingPos;
+        int apos_position = (apos<<2) | position;
+        features[index++] = apos_position;
+        String pSense_leftSiblingPos = pSense+" "+ leftsiblingpos;
+        features[index++] = pSense_leftSiblingPos;
+        String pSense_aDepRel = pSense+" "+ adeprel;
+        features[index++] = pSense_aDepRel;
+        String pchilddepset_position = pchilddepset+" "+ position;
+        features[index++] = pchilddepset_position;
+        int adeprel_rightPos=  (adeprel <<10) | rightpos;
+        features[index++] = adeprel_rightPos;
+        int aw_apos = (aw <<20) | apos;
+        features[index++] = aw_apos;
+        int plemm_apos = (plem<<10) | apos;
+        features[index++] = plemm_apos;
+        int apos_adeprel = (apos <<10) | adeprel;
+        features[index++] = apos_adeprel;
+
         return new Object[]{features, index};
     }
 

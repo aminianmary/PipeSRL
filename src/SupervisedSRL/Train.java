@@ -73,7 +73,7 @@ public class Train {
         HashMap<String, Integer> labelDict = featLabelDicPair.second.first;
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
         int numOfTrainInstances = featLabelDicPair.second.second.second;
-        String trainLiblinearFormatFile = modelDir+"/train_ll_2";
+        String trainLiblinearFormatFile = modelDir+"/train_ll_"+ taskType;
         double bias = 1.0;
         writeLiblinearFeats(trainSentencesInCONLLFormat,indexMap,numOfFeatures,featDict,labelDict,taskType,trainLiblinearFormatFile);
         Problem trainProblem = Problem.readFromFile(new File(trainLiblinearFormatFile), bias);

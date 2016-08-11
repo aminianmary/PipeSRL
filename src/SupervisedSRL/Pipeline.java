@@ -19,8 +19,8 @@ import java.util.zip.GZIPInputStream;
  */
 public class Pipeline {
 
-    public static int numOfAIFeatures = 25 + 154 + 91 + 6; // 154 + 55 + 91 + 91 + 6; //25 + 13;
-    public static int numOfACFeatures = 25 + 154 + 91 + 6;// + 55 + 91 + 91 + 6;
+    public static int numOfAIFeatures = 25 + 13; //+ 91 + 6; // 154 + 55 + 91 + 91 + 6; //25 + 13;
+    public static int numOfACFeatures = 25 + 15; //+ 91 + 6;// + 55 + 91 + 91 + 6;
     public static int numOfPDFeatures = 9;
     public static String unseenSymbol = ";;?;;";
 
