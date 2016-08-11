@@ -48,6 +48,7 @@ public class Adam implements Serializable {
         this.learningRate = learningRate;
         this.beta1 = beta1;
         this.beta2 = beta2;
+        this.beta2 = beta2;
         this.beta1_ = beta1;
         this.beta2_ = beta2;
         this.regularizer = regularizer;
