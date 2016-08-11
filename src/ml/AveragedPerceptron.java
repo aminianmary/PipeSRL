@@ -19,10 +19,8 @@ import java.util.zip.GZIPOutputStream;
 public class AveragedPerceptron implements Serializable {
     public int correct = 0;
     public int[][] confusionMatrix = new int[2][2];
-    // todo change every String to Object
     private HashMap<Object, CompactArray>[] weights;
     private HashMap<Object, CompactArray>[] avgWeights;
-    // todo Keep these as strings
     private String[] labelMap;
     private HashMap<String, Integer> reverseLabelMap;
     private int iteration;
@@ -196,7 +194,6 @@ public class AveragedPerceptron implements Serializable {
         return score;
     }
 
-    // todo can copy this to the new class "ModelInformation" and just add writeObject(indexMaps)
     public void saveModel(String filePath) throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 

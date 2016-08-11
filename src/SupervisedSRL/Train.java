@@ -8,6 +8,7 @@ import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;
 import de.bwaldvogel.liblinear.*;
 import ml.AveragedPerceptron;
+import ml.Adam;
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import util.IO;
 
@@ -55,6 +56,10 @@ public class Train {
             acModelPath = acModelFeatDicPath[0];
             aiMappingDictsPath= aiModelFeatDicPath[1];
             acMappingDictsPath= acModelFeatDicPath[1];
+        }
+        else if (classifierType == ClassifierType.Adam) {
+            aiModelPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir, numOfAIFeatures, "AI", 100);
+            acModelPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir, numOfACFeatures, "AC", 100);
         }
         return new String[]{aiModelPath, aiMappingDictsPath, acModelPath, acMappingDictsPath};
     }
@@ -118,6 +123,119 @@ public class Train {
         String mappingDictsPath = modelDir+"/mappingDicts_"+taskType;
         ModelInfo.saveModel(model, indexMap, featDict, labelDict, modelPath, mappingDictsPath);
         return new String[]{modelPath, mappingDictsPath};
+    }
+
+
+
+    private String trainAdam (List<String> trainSentencesInCONLLFormat,
+                              List<String> devSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations,
+                              String modelDir, int numOfFeatures, String taskType, int batchSize)throws Exception {
+        System.out.println("Training for task " + taskType);
+        DecimalFormat format = new DecimalFormat("##.00");
+
+        //training averaged perceptron
+        long startTime = 0;
+        long endTime = 0;
+
+        double bestFScore = 0;
+        int noImprovement = 0;
+
+        String modelPath = modelDir + "/"+taskType+"_Adam.model";
+        ArrayList<ArrayList<Integer>> batchFeatures = new ArrayList<ArrayList<Integer>>();
+        ArrayList<String> batchLabels = new ArrayList<String>();
+        Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>> featLabelDicPair =
+                constructFeatureDict4LibLinear(trainSentencesInCONLLFormat,indexMap,numOfFeatures,taskType);
+        HashMap<Object, Integer>[] featDict = featLabelDicPair.first;
+        HashMap<String, Integer> labelDict = featLabelDicPair.second.first;
+        int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
+        int numOfTrainInstances = featLabelDicPair.second.second.second;
+        HashSet<String> labelSet = new HashSet<String>(labelDict.keySet());
+        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, 0.002, 0.9, 0.9999, 1e-4);
+
+        for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
+            System.out.println("iter: "+(iter+1) );
+            startTime = System.currentTimeMillis();
+            System.out.print("iteration:" + iter + "...\n");
+            int negInstances = 0;
+            int dataSize = 0;
+            int s = 0;
+            adam.correct = 0;
+
+            for (String sentence : trainSentencesInCONLLFormat) {
+                Object[] instances = null;
+                if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
+                else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, numOfFeatures);
+                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
+                ArrayList<String> labels = (ArrayList<String>) instances[1];
+
+                for(int i=0;i<featVectors.size();i++){
+                    ArrayList<Integer> ar = new ArrayList<Integer>();
+                    for(int d=0; d<featVectors.get(i).length; d++){
+                        ar.add(featDict[d].get(featVectors.get(i)[d]));
+                    }
+                    batchFeatures.add(ar);
+                }
+
+                batchLabels.addAll(labels);
+
+                if (batchLabels.size() > batchSize) {
+                    adam.learnInstance(batchFeatures, batchLabels);
+                    dataSize+= batchLabels.size();
+                    batchFeatures = new ArrayList<ArrayList<Integer>>();
+                    batchLabels = new ArrayList<String>();
+                }
+
+                s++;
+                if (s % 1000 == 0)
+                    System.out.print(s + "...");
+            }
+            adam.learnInstance(batchFeatures, batchLabels);
+            dataSize+= batchLabels.size();
+            batchFeatures = new ArrayList<ArrayList<Integer>>();
+            batchLabels = new ArrayList<String>();
+
+            System.out.print(s + "\n");
+            double ac = 100. * (double) adam.correct / dataSize;
+            System.out.println("data size:" + dataSize + " neg_instances: " + negInstances + " accuracy: " + ac);
+            endTime = System.currentTimeMillis();
+            System.out.println("Total time for this iteration " + format.format(((endTime - startTime) / 1000.0) / 60.0));
+
+            //MAKING PREDICTION ON DEV DATA
+            if (devSentencesInCONLLFormat != null) {
+                int goldNum = 0;
+                int correct = 0;
+                String[] labelMap = adam.getLabelMap();
+                for (String devSentence: devSentencesInCONLLFormat) {
+                    Object[] instances = null;
+                    if (taskType.equals("AI")) instances = obtainTrainInstance4AI(devSentence, indexMap, numOfFeatures);
+                    else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(devSentence, indexMap, numOfFeatures);
+                    ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
+                    ArrayList<String> labels = (ArrayList<String>) instances[1];
+
+                    for(int i=0;i<featVectors.size();i++){
+                        String goldLabel = labelDict.containsKey(labels.get(i)) ? labels.get(i) : "-1";
+                        ArrayList<Integer> adamFeats = new ArrayList<Integer>();
+                        for (int d = 0; d < featVectors.get(i).length; d++) {
+                            if (featDict[d].containsKey(featVectors.get(i)[d]))
+                                //seen feature value
+                                adamFeats.add(featDict[d].get(featVectors.get(i)[d]));
+                            else
+                                //unseen feature value
+                                adamFeats.add(featDict[d].get(Pipeline.unseenSymbol));
+                        }
+                        double[] probs = new double[labelDict.size()];
+                        String prediction= labelMap[adam.argmax(adamFeats,probs)];
+                        if (prediction.equals(goldLabel))
+                            correct++;
+                        goldNum++;
+                    }
+                }
+                double acc = 100 * correct / goldNum;
+                System.out.println("accuracy for task " + taskType + " on dev: " + acc);
+            }
+        }
+        adam.saveModel(modelPath);
+        return modelPath;
     }
 
 

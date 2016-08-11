@@ -35,10 +35,19 @@ public class Pipeline {
         int aiMaxBeamSize = Integer.parseInt(args[4]);
         int acMaxBeamSize = Integer.parseInt(args[5]);
         int numOfTrainingIterations = Integer.parseInt(args[6]);
-        boolean decodeJoint = Boolean.parseBoolean(args[7]);
-        boolean decodeOnly = Boolean.parseBoolean(args[8]);
-        //true: liblinear, false: AP
-        ClassifierType classifierType = (Boolean.parseBoolean(args[9]))? ClassifierType.Liblinear: ClassifierType.AveragedPerceptron;
+        int learnerType = Integer.parseInt(args[7]);
+        boolean decodeJoint = Boolean.parseBoolean(args[8]); //1: ap 2: ll 3:adam
+        boolean decodeOnly = Boolean.parseBoolean(args[9]);
+        ClassifierType classifierType = ClassifierType.AveragedPerceptron;
+        switch (learnerType)
+        {
+            case(1):
+                classifierType= ClassifierType.AveragedPerceptron;
+            case(2):
+                classifierType = ClassifierType.Liblinear;
+            case(3):
+                classifierType = ClassifierType.Adam;
+        }
 
         //single features 25
         //p-p features 55
@@ -165,6 +174,11 @@ public class Pipeline {
                             modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Liblinear);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                }else if (classifierType == ClassifierType.Adam)
+                {
+                    modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir,
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize,
+                            ClassifierType.Adam);
                 }
             }
         } else {
