@@ -23,6 +23,7 @@ public class Pipeline {
     public static int numOfAIFeatures = 25 + 13; //+ 91 + 6; // 154 + 55 + 91 + 91 + 6; //25 + 13;
     public static int numOfACFeatures = 25 + 15; //+ 91 + 6;// + 55 + 91 + 91 + 6;
     public static int numOfPDFeatures = 9;
+    public static int numOfPDTrainingIterations = 10;
     public static String unseenSymbol = ";;?;;";
 
 
@@ -94,7 +95,7 @@ public class Pipeline {
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
                 }else if (classifierType == ClassifierType.Adam) {
                     modelPaths = train.trainJointAdam(trainData, devData, numOfTrainingIterations, modelDir,
-                            numOfACFeatures, numOfPDFeatures, adamBatchSize);
+                            numOfACFeatures, numOfPDFeatures, adamBatchSize, acMaxBeamSize);
                     ModelInfo modelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Adam);
                     IndexMap indexMap = modelInfo.getIndexMap();
                     Adam classifier = modelInfo.getClassifierAdam();

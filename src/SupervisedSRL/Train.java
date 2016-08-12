@@ -42,7 +42,7 @@ public class Train {
         String acMappingDictsPath="";
 
         //training PD module
-        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir, numOfPDFeatures);
+        PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, modelDir, numOfPDFeatures);
 
         if (classifierType == ClassifierType.AveragedPerceptron)
         {
@@ -63,10 +63,13 @@ public class Train {
             acMappingDictsPath= acModelFeatDicPath[1];
         }
         else if (classifierType == ClassifierType.Adam) {
-            String[] aiModelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
-                    numberOfTrainingIterations, modelDir, numOfAIFeatures, "AI", adamBatchSize);
-            String[] acModelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
-                    numberOfTrainingIterations, modelDir, numOfACFeatures, "AC", adamBatchSize);
+            String[] aiModelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, devData, indexMap,
+                    numberOfTrainingIterations, modelDir, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, "AI",
+                    adamBatchSize, aiMaxBeamSize, acMaxBeamSize);
+            String[] acModelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, devData, indexMap,
+                    numberOfTrainingIterations, modelDir, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, "AC",
+                    adamBatchSize, aiMaxBeamSize, acMaxBeamSize);
+
             aiModelPath= aiModelFeatDicPath[0];
             acModelPath = acModelFeatDicPath[0];
             aiMappingDictsPath= aiModelFeatDicPath[1];
@@ -139,8 +142,9 @@ public class Train {
 
 
     private String[] trainAdam (List<String> trainSentencesInCONLLFormat,
-                              List<String> devSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations,
-                              String modelDir, int numOfFeatures, String taskType, int batchSize)throws Exception {
+                              List<String> devSentencesInCONLLFormat, String devData, IndexMap indexMap, int numberOfTrainingIterations,
+                              String modelDir, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, String taskType,
+                                int batchSize, int aiMaxBeamSize, int acMaxBeamSize)throws Exception {
         System.out.println("Training for task " + taskType);
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -148,8 +152,10 @@ public class Train {
         long startTime = 0;
         long endTime = 0;
 
-        double bestAcc = 0.0;
+        double bestFScore = 0.0;
         int noImprovement = 0;
+
+        int numOfFeatures = (taskType.equals("AI"))? numOfAIFeatures: numOfACFeatures;
 
         String modelPath = modelDir+"/"+taskType+"_adam.model";
         String mappingDictsPath = modelDir+"/mappingDicts_adam_"+taskType;
@@ -163,10 +169,10 @@ public class Train {
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
         int numOfTrainInstances = featLabelDicPair.second.second.second;
         HashSet<String> labelSet = new HashSet<String>(labelDict.keySet());
-        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, 0.01, 0.9, 0.9999, 1e-8);
+        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, 0.005, 0.9, 0.9999, 1e-8);
 
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
-            System.out.println("<><><><><><><><><><><><><><><><><><><> iter: "+(iter+1) );
+            System.out.println("<><><><><><><><><><><><><><><><><><><> iter: " + (iter + 1));
             startTime = System.currentTimeMillis();
             int negInstances = 0;
             int dataSize = 0;
@@ -180,9 +186,9 @@ public class Train {
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
-                for(int i=0;i<featVectors.size();i++){
+                for (int i = 0; i < featVectors.size(); i++) {
                     ArrayList<Integer> ar = new ArrayList<Integer>();
-                    for(int d=0; d<featVectors.get(i).length; d++){
+                    for (int d = 0; d < featVectors.get(i).length; d++) {
                         ar.add(featDict[d].get(featVectors.get(i)[d]));
                     }
                     batchFeatures.add(ar);
@@ -192,7 +198,7 @@ public class Train {
 
                 if (batchLabels.size() > batchSize) {
                     adam.learnInstance(batchFeatures, batchLabels);
-                    dataSize+= batchLabels.size();
+                    dataSize += batchLabels.size();
                     batchFeatures = new ArrayList<ArrayList<Integer>>();
                     batchLabels = new ArrayList<String>();
                 }
@@ -202,7 +208,7 @@ public class Train {
                     System.out.print(s + "...");
             }
             adam.learnInstance(batchFeatures, batchLabels);
-            dataSize+= batchLabels.size();
+            dataSize += batchLabels.size();
             batchFeatures = new ArrayList<ArrayList<Integer>>();
             batchLabels = new ArrayList<String>();
 
@@ -215,47 +221,62 @@ public class Train {
             //MAKING PREDICTION ON DEV DATA
             System.out.println("DEV RESULTS");
             if (devSentencesInCONLLFormat != null) {
-                int goldNum = 0;
-                int correct = 0;
-                String[] labelMap = adam.getLabelMap();
-                for (String devSentence: devSentencesInCONLLFormat) {
-                    Object[] instances = null;
-                    if (taskType.equals("AI")) instances = obtainTrainInstance4AI(devSentence, indexMap, numOfFeatures);
-                    else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(devSentence, indexMap, numOfFeatures);
-                    ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
-                    ArrayList<String> labels = (ArrayList<String>) instances[1];
+                boolean decode = true;
+                double f1= 0.0;
+                if (taskType.equals("AI")) {
+                    //ai confusion matrix
+                    int[][] aiConfusionMatrix = new int[2][2];
+                    aiConfusionMatrix[0][0] = 0;
+                    aiConfusionMatrix[0][1] = 0;
+                    aiConfusionMatrix[1][0] = 0;
+                    aiConfusionMatrix[1][1] = 0;
+                    Decoder argumentDecoder = new Decoder(adam, "AI");
 
-                    for(int i=0;i<featVectors.size();i++){
-                        String goldLabel = labelDict.containsKey(labels.get(i)) ? labels.get(i) : "-1";
-                        ArrayList<Integer> adamFeats = new ArrayList<Integer>();
-                        for (int d = 0; d < featVectors.get(i).length; d++) {
-                            if (featDict[d].containsKey(featVectors.get(i)[d]))
-                                //seen feature value
-                                adamFeats.add(featDict[d].get(featVectors.get(i)[d]));
-                            else
-                                //unseen feature value
-                                adamFeats.add(featDict[d].get(Pipeline.unseenSymbol));
-                        }
-                        double[] probs = new double[labelDict.size()];
-                        String prediction= labelMap[adam.argmax(adamFeats,probs)];
-                        if (prediction.equals(goldLabel))
-                            correct++;
-                        goldNum++;
+                    for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
+                        Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
+                        HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
+                                numOfAIFeatures, modelDir, numOfPDFeatures, featDict, ClassifierType.Adam);
+
+                        //we do evaluation for each sentence and update confusion matrix right here
+                        aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
                     }
-                }
-                double acc = 100 * correct / goldNum;
-                System.out.println("accuracy for task " + taskType + " on dev: " + acc);
+                    f1 = Evaluation.computePrecisionRecall(aiConfusionMatrix);
 
-                if (acc > bestAcc)
-                {
-                    noImprovement =0;
-                    bestAcc = acc;
-                    ModelInfo.saveModel(adam, indexMap, featDict, labelDict, modelPath, mappingDictsPath);
-                }else
-                {
+                }else if (taskType.equals("AC")){
+                    String aiModelPath = modelDir+"/AI_adam.model";
+                    String aiMappingDicPath = modelDir+"/mappingDicts_adam_AI";
+                    String outputFile = modelDir +"_"+taskType+"_dev_output_adam_" + iter;
+
+                    ModelInfo aiModelInfo = new ModelInfo(aiModelPath, aiMappingDicPath, ClassifierType.Adam);
+                    Adam aiClassifier = aiModelInfo.getClassifierAdam();
+                    Decoder argumentDecoder = new Decoder(aiClassifier, adam);
+                    Decoder.decode(argumentDecoder, indexMap, devData, adam.getLabelMap(),
+                            aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
+                            modelDir, outputFile, aiModelInfo.getFeatDict(), featDict, ClassifierType.Adam);
+
+                    HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(adam.getReverseLabelMap());
+                    reverseLabelMap.put("0", reverseLabelMap.size());
+
+                    f1 = Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                }else if (taskType.equalsIgnoreCase("JOINT")){
+                    String outputFile = modelDir +"_"+taskType+"_dev_output_adam_" + iter;
+
+                    Decoder.decode(new Decoder(adam,"JOINT"),
+                            indexMap, devData, adam.getLabelMap(),
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam);
+                    f1 = Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
+                }
+
+                if (f1 > bestFScore) {
+                    noImprovement = 0;
+                    bestFScore = f1;
+                    System.out.print("\nSaving final model...");
+                    ModelInfo.saveModel(adam, indexMap, featDict, labelDict,modelPath, mappingDictsPath);
+                    System.out.println("Done!");
+                } else {
                     noImprovement++;
-                    if (noImprovement >10) {
-                        System.out.print("Early stopping...");
+                    if (noImprovement > 10) {
+                        System.out.println("\nEarly stopping...");
                         break;
                     }
                 }
@@ -389,7 +410,7 @@ public class Train {
         final IndexMap indexMap = new IndexMap(trainData);
 
         //training PD module
-        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir, numOFPDFeaturs);
+        PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, modelDir, numOFPDFeaturs);
 
         AveragedPerceptron ap = new AveragedPerceptron(argLabels, numOfFeatures);
 
@@ -476,7 +497,7 @@ public class Train {
         String modelPath="";
         String mappingDictsPath ="";
 
-        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir, numOfPDFeatures);
+        PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, modelDir, numOfPDFeatures);
         String[] modelFeatDicPath = trainLiblinear(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, "JOINT", indexMap, modelDir, numOfFeatures);
         modelPath= modelFeatDicPath[0];
         mappingDictsPath=  modelFeatDicPath[1];
@@ -489,7 +510,7 @@ public class Train {
                                         String devData,
                                         int numberOfTrainingIterations,
                                         String modelDir,
-                                        int numOfFeatures, int numOfPDFeatures, int adamBatchSize) throws Exception {
+                                        int numOfFeatures, int numOfPDFeatures, int adamBatchSize, int maxBeamSize) throws Exception {
 
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
@@ -498,9 +519,9 @@ public class Train {
         String modelPath="";
         String mappingDictsPath ="";
 
-        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, modelDir, numOfPDFeatures);
-        String[] modelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
-                numberOfTrainingIterations, modelDir, numOfFeatures, "JOINT", adamBatchSize);
+        PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, modelDir, numOfPDFeatures);
+        String[] modelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, devData, indexMap,
+                numberOfTrainingIterations, modelDir, numOfPDFeatures, numOfFeatures, numOfFeatures, "JOINT", adamBatchSize, maxBeamSize, maxBeamSize);
         modelPath= modelFeatDicPath[0];
         mappingDictsPath=  modelFeatDicPath[1];
 

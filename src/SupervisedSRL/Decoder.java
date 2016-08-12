@@ -265,7 +265,6 @@ public class Decoder {
         return currentBeam;
     }
 
-
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidatesAdam
             (Sentence sentence, int pIdx, IndexMap indexMap, int maxBeamSize, int numOfFeatures,
              HashMap<Object, Integer>[] featDict) throws Exception
@@ -812,6 +811,8 @@ public class Decoder {
                 aiCandidates= getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfFeatures);
             else if (classifierType == ClassifierType.Liblinear)
                 aiCandidates= getBestAICandidatesLiblinear(sentence, pIdx, indexMap, aiMaxBeamSize, numOfFeatures, featDict);
+            else if (classifierType == ClassifierType.Adam)
+                aiCandidates = getBestAICandidatesAdam(sentence, pIdx, indexMap, aiMaxBeamSize, numOfFeatures, featDict);
 
             HashMap<Integer, Integer> highestScorePrediction = getHighestScorePredication(aiCandidates);
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
