@@ -148,8 +148,11 @@ public class Train {
         long startTime = 0;
         long endTime = 0;
 
-        double bestFScore = 0;
+        double bestAcc = 0.0;
         int noImprovement = 0;
+
+        String modelPath = modelDir+"/"+taskType+"_adam.model";
+        String mappingDictsPath = modelDir+"/mappingDicts_adam_"+taskType;
 
         ArrayList<ArrayList<Integer>> batchFeatures = new ArrayList<ArrayList<Integer>>();
         ArrayList<String> batchLabels = new ArrayList<String>();
@@ -160,7 +163,7 @@ public class Train {
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
         int numOfTrainInstances = featLabelDicPair.second.second.second;
         HashSet<String> labelSet = new HashSet<String>(labelDict.keySet());
-        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, 0.002, 0.9, 0.9999, 1e-8);
+        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, 0.01, 0.9, 0.9999, 1e-8);
 
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             System.out.println("<><><><><><><><><><><><><><><><><><><> iter: "+(iter+1) );
@@ -242,11 +245,22 @@ public class Train {
                 }
                 double acc = 100 * correct / goldNum;
                 System.out.println("accuracy for task " + taskType + " on dev: " + acc);
+
+                if (acc > bestAcc)
+                {
+                    noImprovement =0;
+                    bestAcc = acc;
+                    ModelInfo.saveModel(adam, indexMap, featDict, labelDict, modelPath, mappingDictsPath);
+                }else
+                {
+                    noImprovement++;
+                    if (noImprovement >10) {
+                        System.out.print("Early stopping...");
+                        break;
+                    }
+                }
             }
         }
-        String modelPath = modelDir+"/"+taskType+"_adam.model";
-        String mappingDictsPath = modelDir+"/mappingDicts_adam_"+taskType;
-        ModelInfo.saveModel(adam, indexMap, featDict, labelDict, modelPath, mappingDictsPath);
         return new String[]{modelPath, mappingDictsPath};
     }
 
