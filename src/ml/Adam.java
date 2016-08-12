@@ -233,11 +233,15 @@ public class Adam implements Serializable {
             probs[l] += w[l][w[l].length-1];
             for (int f = 0; f < features.size(); f++)
                 probs[l] += w[l][features.get(f)];
+            if (probs[l] > argmaxValue) {
+                argmaxValue = probs[l];
+                argmax = l;
+            }
         }
 
         double sum = 0;
         for (int l = 0; l < probs.length; l++) {
-            probs[l] = Math.exp(probs[l]);
+            probs[l] = Math.exp(probs[l]-argmaxValue);
             if (Double.isNaN(probs[l]))
                 throw new Exception("prob is NAN in regularizer");
             sum += probs[l];
@@ -246,12 +250,11 @@ public class Adam implements Serializable {
         for (int l = 0; l < probs.length; l++) {
             if (sum != 0)
                 probs[l] /= sum;
+            else
+                probs[l] = 1.0/probs.length;
+
             if (Double.isNaN(probs[l]))
                 throw new Exception("prob is NAN in regularizer");
-            if (probs[l] > argmaxValue) {
-                argmaxValue = probs[l];
-                argmax = l;
-            }
         }
         return argmax;
     }

@@ -37,8 +37,8 @@ public class Pipeline {
         int acMaxBeamSize = Integer.parseInt(args[5]);
         int numOfTrainingIterations = Integer.parseInt(args[6]);
         int adamBatchSize = Integer.parseInt(args[7]);
-        int learnerType = Integer.parseInt(args[8]);
-        boolean decodeJoint = Boolean.parseBoolean(args[9]); //1: ap 2: ll 3:adam
+        int learnerType = Integer.parseInt(args[8]); //1: ap 2: ll 3:adam
+        boolean decodeJoint = Boolean.parseBoolean(args[9]);
         boolean decodeOnly = Boolean.parseBoolean(args[10]);
         ClassifierType classifierType = ClassifierType.AveragedPerceptron;
         switch (learnerType)

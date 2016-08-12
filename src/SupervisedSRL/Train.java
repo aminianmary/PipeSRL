@@ -165,7 +165,6 @@ public class Train {
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             System.out.println("<><><><><><><><><><><><><><><><><><><> iter: "+(iter+1) );
             startTime = System.currentTimeMillis();
-            System.out.print("iteration:" + iter + "...\n");
             int negInstances = 0;
             int dataSize = 0;
             int s = 0;
@@ -211,6 +210,7 @@ public class Train {
             System.out.println("Total time for this iteration " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
             //MAKING PREDICTION ON DEV DATA
+            System.out.println("DEV RESULTS");
             if (devSentencesInCONLLFormat != null) {
                 int goldNum = 0;
                 int correct = 0;
@@ -242,8 +242,6 @@ public class Train {
                 }
                 double acc = 100 * correct / goldNum;
                 System.out.println("accuracy for task " + taskType + " on dev: " + acc);
-                //reporting precision, recall and F-score on dev data
-
             }
         }
         String modelPath = modelDir+"/"+taskType+"_adam.model";
