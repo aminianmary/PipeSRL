@@ -20,8 +20,17 @@ import java.util.zip.GZIPInputStream;
  */
 public class Pipeline {
 
-    public static int numOfAIFeatures = 25 + 13; //+ 91 + 6; // 154 + 55 + 91 + 91 + 6; //25 + 13;
-    public static int numOfACFeatures = 25 + 15; //+ 91 + 6;// + 55 + 91 + 91 + 6;
+    //single features 25
+    //p-p features 55
+    //a-a feature 91
+    //p-a features 154
+    //p-a-a features 91
+    //some msc tri-gram feature 6
+    //joined features based on original paper (ai) 13
+    //joined features based on original paper (ac) 15
+
+    public static int numOfAIFeatures = 25 + 154 + 91 +6 ; // 154 + 55 + 91 + 91 + 6; //25 + 13;
+    public static int numOfACFeatures = 25 + 154 + 91 +6 ; //+ 91 + 6;// + 55 + 91 + 91 + 6;
     public static int numOfPDFeatures = 9;
     public static int numOfPDTrainingIterations = 10;
     public static String unseenSymbol = ";;?;;";
@@ -39,28 +48,22 @@ public class Pipeline {
         int numOfTrainingIterations = Integer.parseInt(args[6]);
         int adamBatchSize = Integer.parseInt(args[7]);
         int learnerType = Integer.parseInt(args[8]); //1: ap 2: ll 3:adam
-        boolean decodeJoint = Boolean.parseBoolean(args[9]);
-        boolean decodeOnly = Boolean.parseBoolean(args[10]);
+        double adamLearningRate = Double.parseDouble(args[9]);
+        boolean decodeJoint = Boolean.parseBoolean(args[10]);
+        boolean decodeOnly = Boolean.parseBoolean(args[11]);
+        boolean greedy = Boolean.parseBoolean(args[12]);
         ClassifierType classifierType = ClassifierType.AveragedPerceptron;
         switch (learnerType)
         {
             case(1):
                 classifierType= ClassifierType.AveragedPerceptron;
+                break;
             case(2):
                 classifierType = ClassifierType.Liblinear;
+                break;
             case(3):
                 classifierType = ClassifierType.Adam;
         }
-
-        //single features 25
-        //p-p features 55
-        //a-a feature 91
-        //p-a features 154
-        //p-a-a features 91
-        //some msc tri-gram feature 6
-        //joined features based on original paper (ai) 13
-        //joined features based on original paper (ac) 15
-
 
         if (!decodeOnly) {
             Train train = new Train();
@@ -68,13 +71,13 @@ public class Pipeline {
             if (decodeJoint) {
                 //joint decoding
                 if (classifierType == ClassifierType.AveragedPerceptron) {
-                    modelPaths[0] = train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, outputFile, numOfACFeatures, numOfPDFeatures, acMaxBeamSize);
+                    modelPaths[0] = train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, outputFile, numOfACFeatures, numOfPDFeatures, acMaxBeamSize, greedy);
                     ModelInfo modelInfo = new ModelInfo(modelPaths[0]);
                     IndexMap indexMap = modelInfo.getIndexMap();
                     AveragedPerceptron classifier = modelInfo.getClassifier();
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, classifier.getLabelMap(),
-                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, null, ClassifierType.AveragedPerceptron);
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, null, ClassifierType.AveragedPerceptron, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
                 } else if (classifierType == ClassifierType.Liblinear) {
@@ -90,12 +93,12 @@ public class Pipeline {
                         labelMap[labelDict.get(label)] = label;
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, labelMap,
-                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Liblinear);
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Liblinear, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
                 }else if (classifierType == ClassifierType.Adam) {
                     modelPaths = train.trainJointAdam(trainData, devData, numOfTrainingIterations, modelDir,
-                            numOfACFeatures, numOfPDFeatures, adamBatchSize, acMaxBeamSize);
+                            numOfACFeatures, numOfPDFeatures, adamBatchSize, acMaxBeamSize, adamLearningRate, greedy);
                     ModelInfo modelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Adam);
                     IndexMap indexMap = modelInfo.getIndexMap();
                     Adam classifier = modelInfo.getClassifierAdam();
@@ -106,7 +109,7 @@ public class Pipeline {
                         labelMap[labelDict.get(label)] = label;
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, labelMap,
-                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam);
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
                 }
@@ -115,44 +118,27 @@ public class Pipeline {
                 if (classifierType == ClassifierType.AveragedPerceptron) {
 
                     modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize,
-                            ClassifierType.AveragedPerceptron);
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
+                            ClassifierType.AveragedPerceptron, greedy);
 
                     ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
                     IndexMap indexMap = aiModelInfo.getIndexMap();
                     AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
                     AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[2]);
-                    System.out.println("<><><><><><><><><><><><><><><>beam "+acMaxBeamSize);
                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
                             aiModelInfo.getIndexMap(),
                             devData, acClassifier.getLabelMap(),
                             aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron);
+                            modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron, greedy);
 
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
                     reverseLabelMap.put("0", reverseLabelMap.size());
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
 
-                    System.out.println("<><><><><><><><><><><><><><><>beam 1");
-                    Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                            aiModelInfo.getIndexMap(),
-                            devData, acClassifier.getLabelMap(),
-                            1, 1, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron);
-                    Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
-
-                    System.out.println("<><><><><><><><><><><><><><><>beam 8");
-                    Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                            aiModelInfo.getIndexMap(),
-                            devData, acClassifier.getLabelMap(),
-                            8, 8, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron);
-                    Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
-
                 }else if (classifierType == ClassifierType.Liblinear) {
                     modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize,
-                            ClassifierType.Liblinear);
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
+                            ClassifierType.Liblinear, greedy);
 
                     ModelInfo aiModelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Liblinear);
                     ModelInfo acModelInfo = new ModelInfo(modelPaths[2], modelPaths[3], ClassifierType.Liblinear);
@@ -166,36 +152,20 @@ public class Pipeline {
                     for (String label: acLabelDict.keySet())
                         acLabelMap[acLabelDict.get(label)]= label;
 
-                    System.out.println("<><><><><><><><><><><><><><><>beam "+acMaxBeamSize);
                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
                         indexMap, devData, acLabelMap, aiMaxBeamSize, acMaxBeamSize,
                         numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                        modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Liblinear);
+                        modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Liblinear, greedy);
 
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
                     reverseLabelMap.put("0", reverseLabelMap.size());
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
 
-                    System.out.println("<><><><><><><><><><><><><><><>beam 1");
-                    Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                            indexMap, devData, acLabelMap, 1, 1,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Liblinear);
-
-                    Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
-
-                    System.out.println("<><><><><><><><><><><><><><><>beam 8");
-                    Decoder.decode(new Decoder(aiClassifier, acClassifier),
-                            indexMap, devData, acLabelMap, 8, 8,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Liblinear);
-
-                    Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
                 }else if (classifierType == ClassifierType.Adam)
                 {
                     modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            aiMaxBeamSize, acMaxBeamSize, adamBatchSize, ClassifierType.Adam);
+                            aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate, ClassifierType.Adam, greedy);
 
                     ModelInfo aiModelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Adam);
                     ModelInfo acModelInfo = new ModelInfo(modelPaths[2], modelPaths[3], ClassifierType.Adam);
@@ -212,7 +182,7 @@ public class Pipeline {
                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
                             indexMap, devData, acLabelMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Adam);
+                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Adam, greedy);
 
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
                     reverseLabelMap.put("0", reverseLabelMap.size());
@@ -228,7 +198,7 @@ public class Pipeline {
                     AveragedPerceptron classifier = modelInfo.getClassifier();
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, classifier.getLabelMap(),
-                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, null, ClassifierType.AveragedPerceptron);
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, null, ClassifierType.AveragedPerceptron, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, classifier.getReverseLabelMap());
                 }else if (classifierType == ClassifierType.Liblinear)
@@ -243,7 +213,7 @@ public class Pipeline {
                         labelMap[labelDict.get(label)]= label;
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, labelMap,
-                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Liblinear);
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Liblinear, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap,labelDict);
                 }else if (classifierType == ClassifierType.Adam) {
@@ -257,7 +227,7 @@ public class Pipeline {
                         labelMap[labelDict.get(label)] = label;
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, labelMap,
-                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam);
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
                 }
@@ -273,7 +243,7 @@ public class Pipeline {
                             aiModelInfo.getIndexMap(),
                             devData, acClassifier.getLabelMap(),
                             aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron);
+                            modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron, greedy);
 
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
                     reverseLabelMap.put("0", reverseLabelMap.size());
@@ -294,7 +264,7 @@ public class Pipeline {
                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
                             indexMap, devData, acLabelMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Liblinear);
+                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Liblinear, greedy);
 
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
                     reverseLabelMap.put("0", reverseLabelMap.size());
@@ -315,7 +285,7 @@ public class Pipeline {
                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
                             indexMap, devData, acLabelMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Adam);
+                            modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Adam, greedy);
 
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
                     reverseLabelMap.put("0", reverseLabelMap.size());

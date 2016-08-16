@@ -74,6 +74,7 @@ public class Adam implements Serializable {
         m = new double[labelMap.length][maxNumOfFeatures + 1];
         v = new double[labelMap.length][maxNumOfFeatures + 1];
 
+        //todo how is w initialized?
         for (i = 0; i < w.length; i++) {
             for (int j = 0; j < w[i].length - 1; j++)
                 w[i][j] = random.nextDouble()*2*initRange - initRange;
@@ -152,13 +153,14 @@ public class Adam implements Serializable {
                 correct++;
                 curCorr++;
             }
+            //todo
             cost -= Math.log(probs[gold]) / batchSize;
             if (Double.isNaN(cost))
                 System.out.println("cost NAN error!");
 
             double[] delta = new double[probs.length];
             for (int l = 0; l < probs.length; l++) {
-                int lb = gold == l ? 1 : 0;
+                int lb = (gold == l) ? 1 : 0;
                 delta[l] = (-lb + probs[l]) / batchSize;
                 if (Double.isNaN(delta[l]))
                     throw new Exception("delta is NAN in gradients");

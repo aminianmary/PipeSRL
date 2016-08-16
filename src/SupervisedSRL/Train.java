@@ -28,8 +28,8 @@ public class Train {
                           int numberOfTrainingIterations,
                           String modelDir,
                           int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                          int aiMaxBeamSize, int acMaxBeamSize, int adamBatchSize,
-                          ClassifierType classifierType) throws Exception {
+                          int aiMaxBeamSize, int acMaxBeamSize, int adamBatchSize, double learningRate,
+                          ClassifierType classifierType, boolean greedy) throws Exception {
 
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
@@ -47,10 +47,10 @@ public class Train {
         if (classifierType == ClassifierType.AveragedPerceptron)
         {
             aiModelPath = trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap,
-                    numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
+                    numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize, greedy);
             acModelPath = trainAC(trainSentencesInCONLLFormat, devData, argLabels, indexMap,
                     numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                    aiMaxBeamSize, acMaxBeamSize);
+                    aiMaxBeamSize, acMaxBeamSize, greedy);
 
         }else if (classifierType == ClassifierType.Liblinear) {
             String[] aiModelFeatDicPath = trainLiblinear(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, "AI",
@@ -65,10 +65,10 @@ public class Train {
         else if (classifierType == ClassifierType.Adam) {
             String[] aiModelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, devData, indexMap,
                     numberOfTrainingIterations, modelDir, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, "AI",
-                    adamBatchSize, aiMaxBeamSize, acMaxBeamSize);
+                    adamBatchSize, aiMaxBeamSize, acMaxBeamSize, learningRate, greedy);
             String[] acModelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, devData, indexMap,
                     numberOfTrainingIterations, modelDir, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, "AC",
-                    adamBatchSize, aiMaxBeamSize, acMaxBeamSize);
+                    adamBatchSize, aiMaxBeamSize, acMaxBeamSize, learningRate, greedy);
 
             aiModelPath= aiModelFeatDicPath[0];
             acModelPath = acModelFeatDicPath[0];
@@ -144,7 +144,7 @@ public class Train {
     private String[] trainAdam (List<String> trainSentencesInCONLLFormat,
                               List<String> devSentencesInCONLLFormat, String devData, IndexMap indexMap, int numberOfTrainingIterations,
                               String modelDir, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, String taskType,
-                                int batchSize, int aiMaxBeamSize, int acMaxBeamSize)throws Exception {
+                                int batchSize, int aiMaxBeamSize, int acMaxBeamSize, double learningRate, boolean greedy)throws Exception {
         System.out.println("Training for task " + taskType);
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -169,7 +169,7 @@ public class Train {
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
         int numOfTrainInstances = featLabelDicPair.second.second.second;
         HashSet<String> labelSet = new HashSet<String>(labelDict.keySet());
-        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, 0.005, 0.9, 0.9999, 1e-8);
+        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, learningRate, 0.9, 0.9999, 1e-8);
 
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             System.out.println("<><><><><><><><><><><><><><><><><><><> iter: " + (iter + 1));
@@ -235,7 +235,7 @@ public class Train {
                     for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
                         Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
                         HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
-                                numOfAIFeatures, modelDir, numOfPDFeatures, featDict, ClassifierType.Adam);
+                                numOfAIFeatures, modelDir, numOfPDFeatures, featDict, ClassifierType.Adam, greedy);
 
                         //we do evaluation for each sentence and update confusion matrix right here
                         aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
@@ -252,7 +252,7 @@ public class Train {
                     Decoder argumentDecoder = new Decoder(aiClassifier, adam);
                     Decoder.decode(argumentDecoder, indexMap, devData, adam.getLabelMap(),
                             aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            modelDir, outputFile, aiModelInfo.getFeatDict(), featDict, ClassifierType.Adam);
+                            modelDir, outputFile, aiModelInfo.getFeatDict(), featDict, ClassifierType.Adam, greedy);
 
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(adam.getReverseLabelMap());
                     reverseLabelMap.put("0", reverseLabelMap.size());
@@ -263,7 +263,7 @@ public class Train {
 
                     Decoder.decode(new Decoder(adam,"JOINT"),
                             indexMap, devData, adam.getLabelMap(),
-                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam);
+                            acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam, greedy);
                     f1 = Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
                 }
 
@@ -399,7 +399,7 @@ public class Train {
                              String devData,
                              int numberOfTrainingIterations,
                              String modelDir, String outputPrefix, int numOfFeatures, int numOFPDFeaturs,
-                             int maxBeamSize)
+                             int maxBeamSize, boolean greedy)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -458,7 +458,7 @@ public class Train {
 
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
                 sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentencesInCONLLFormat.get(d)));
-                predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOFPDFeaturs, modelDir, null, ClassifierType.AveragedPerceptron);
+                predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOFPDFeaturs, modelDir, null, ClassifierType.AveragedPerceptron, greedy);
             }
 
             IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, ap.getLabelMap(), outputPrefix + "_" + iter);
@@ -510,7 +510,7 @@ public class Train {
                                         String devData,
                                         int numberOfTrainingIterations,
                                         String modelDir,
-                                        int numOfFeatures, int numOfPDFeatures, int adamBatchSize, int maxBeamSize) throws Exception {
+                                        int numOfFeatures, int numOfPDFeatures, int adamBatchSize, int maxBeamSize, double learningRate, boolean greedy) throws Exception {
 
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
@@ -521,7 +521,7 @@ public class Train {
 
         PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, modelDir, numOfPDFeatures);
         String[] modelFeatDicPath = trainAdam(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, devData, indexMap,
-                numberOfTrainingIterations, modelDir, numOfPDFeatures, numOfFeatures, numOfFeatures, "JOINT", adamBatchSize, maxBeamSize, maxBeamSize);
+                numberOfTrainingIterations, modelDir, numOfPDFeatures, numOfFeatures, numOfFeatures, "JOINT", adamBatchSize, maxBeamSize, maxBeamSize, learningRate, greedy);
         modelPath= modelFeatDicPath[0];
         mappingDictsPath=  modelFeatDicPath[1];
 
@@ -533,7 +533,7 @@ public class Train {
                            List<String> devSentencesInCONLLFormat,
                            IndexMap indexMap,
                            int numberOfTrainingIterations,
-                           String modelDir, int numOfFeatures, int numOfPDFeatures, int aiMaxBeamSize)
+                           String modelDir, int numOfFeatures, int numOfPDFeatures, int aiMaxBeamSize, boolean greedy)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -596,11 +596,9 @@ public class Train {
 
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
-                //if (d%1000==0)
-                //System.out.println(d+"/"+devSentencesInCONLLFormat.size());
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
                 HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
-                        numOfFeatures, modelDir, numOfPDFeatures, null, ClassifierType.AveragedPerceptron);
+                        numOfFeatures, modelDir, numOfPDFeatures, null, ClassifierType.AveragedPerceptron, greedy);
 
                 //we do evaluation for each sentence and update confusion matrix right here
                 aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
@@ -630,7 +628,7 @@ public class Train {
                            HashSet<String> labelSet, IndexMap indexMap,
                            int numberOfTrainingIterations,
                            String modelDir, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                           int aiMaxBeamSize, int acMaxBeamSize)
+                           int aiMaxBeamSize, int acMaxBeamSize, boolean greedy)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -675,7 +673,7 @@ public class Train {
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
             Decoder.decode(argumentDecoder, indexMap, devData, ap.getLabelMap(),
                     aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                    modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron);
+                    modelDir, outputFile, null, null, ClassifierType.AveragedPerceptron, greedy);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());
