@@ -297,9 +297,6 @@ public class Decoder {
                     if (featDict[d].containsKey(featVector[d]))
                         //seen feature value
                         feats.add(featDict[d].get(featVector[d]));
-                    else
-                        //unseen feature value
-                        feats.add(featDict[d].get(Pipeline.unseenSymbol));
 
                 double[] probEstimates = new double[2];
                 int prediction= aiClassifier_adam.argmax(feats,probEstimates);
@@ -379,9 +376,6 @@ public class Decoder {
                     if (featDict[d].containsKey(featVector[d]))
                         //seen feature value
                         feats.add(featDict[d].get(featVector[d]));
-                    else
-                        //unseen feature value
-                        feats.add(featDict[d].get(Pipeline.unseenSymbol));
 
                 double[] probEstimates = new double[2];
                 int prediction = aiClassifier_adam.argmax(feats, probEstimates);
@@ -445,10 +439,6 @@ public class Decoder {
                         if (featDict[d].containsKey(featVector[d]))
                             //seen feature value
                             feats.add(featDict[d].get(featVector[d]));
-                        else
-                            //unseen feature value
-                            feats.add(featDict[d].get(Pipeline.unseenSymbol));
-
                     double[] probEstimates = new double[numOfLabels];
                     int prediction = acClassifier_adam.argmax(feats, probEstimates);
                     for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
@@ -531,9 +521,6 @@ public class Decoder {
                     if (featDict[d].containsKey(featVector[d]))
                         //seen feature value
                         feats.add(featDict[d].get(featVector[d]));
-                    else
-                        //unseen feature value
-                        feats.add(featDict[d].get(Pipeline.unseenSymbol));
 
                 double[] probEstimates = new double[labelMap.length];
                 int prediction = acClassifier_adam.argmax(feats, probEstimates);
@@ -593,9 +580,7 @@ public class Decoder {
                     if (featDict[d].containsKey(featVector[d]))
                         //seen feature value
                         feats.add(featDict[d].get(featVector[d]));
-                    else
-                        //unseen feature value
-                        feats.add(featDict[d].get(Pipeline.unseenSymbol));
+
                 double[] probEstimates = new double[numOfLabels];
                 int prediction = acClassifier_adam.argmax(feats, probEstimates);
                 for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
@@ -675,9 +660,7 @@ public class Decoder {
                     if (featDict[d].containsKey(featVector[d]))
                         //seen feature value
                         feats.add(featDict[d].get(featVector[d]));
-                    else
-                        //unseen feature value
-                        feats.add(featDict[d].get(Pipeline.unseenSymbol));
+
                 double[] probEstimates = new double[numOfLabels];
                 int prediction = acClassifier_adam.argmax(feats, probEstimates);
                 for (int labelIdx = 0; labelIdx < numOfLabels; labelIdx++)
