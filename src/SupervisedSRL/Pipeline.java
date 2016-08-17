@@ -35,7 +35,7 @@ public class Pipeline {
     public static int numOfACFeatures = 25 + 5 + 3 + 154 + 55 + 91 +91 + 6;
     public static int numOfPDFeatures = 9;
     public static int numOfPDTrainingIterations = 10;
-    public static String unseenSymbol = ";?;";
+    public static String unseenSymbol = ";?;;";
 
 
     public static void main(String[] args) throws Exception {
