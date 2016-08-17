@@ -20,7 +20,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class Pipeline {
 
-    //single features 25
+    //single features 25 + 3 (predicate cluster features) + 5(argument cluster features)
     //p-p features 55
     //a-a feature 91
     //p-a features 154
@@ -28,30 +28,32 @@ public class Pipeline {
     //some msc tri-gram feature 6
     //joined features based on original paper (ai) 13
     //joined features based on original paper (ac) 15
+    //predicate cluster features 3
+    //argument cluster features 5
 
-    public static int numOfAIFeatures = 25 + 154 + 91 +6 ; // 154 + 55 + 91 + 91 + 6; //25 + 13;
-    public static int numOfACFeatures = 25 + 154 + 91 +6 ; //+ 91 + 6;// + 55 + 91 + 91 + 6;
+    public static int numOfAIFeatures = 25 + 5 + 3 + 154 + 55 + 91 +91 + 6;
+    public static int numOfACFeatures = 25 + 5 + 3 + 154 + 55 + 91 +91 + 6;
     public static int numOfPDFeatures = 9;
     public static int numOfPDTrainingIterations = 10;
     public static String unseenSymbol = ";;?;;";
 
 
     public static void main(String[] args) throws Exception {
-
         //getting trainJoint/test sentences
         String trainData = args[0];
         String devData = args[1];
-        String modelDir = args[2];
-        String outputFile = args[3];
-        int aiMaxBeamSize = Integer.parseInt(args[4]);
-        int acMaxBeamSize = Integer.parseInt(args[5]);
-        int numOfTrainingIterations = Integer.parseInt(args[6]);
-        int adamBatchSize = Integer.parseInt(args[7]);
-        int learnerType = Integer.parseInt(args[8]); //1: ap 2: ll 3:adam
-        double adamLearningRate = Double.parseDouble(args[9]);
-        boolean decodeJoint = Boolean.parseBoolean(args[10]);
-        boolean decodeOnly = Boolean.parseBoolean(args[11]);
-        boolean greedy = Boolean.parseBoolean(args[12]);
+        String clusterFile = args[2];
+        String modelDir = args[3];
+        String outputFile = args[4];
+        int aiMaxBeamSize = Integer.parseInt(args[5]);
+        int acMaxBeamSize = Integer.parseInt(args[6]);
+        int numOfTrainingIterations = Integer.parseInt(args[7]);
+        int adamBatchSize = Integer.parseInt(args[8]);
+        int learnerType = Integer.parseInt(args[9]); //1: ap 2: ll 3:adam
+        double adamLearningRate = Double.parseDouble(args[10]);
+        boolean decodeJoint = Boolean.parseBoolean(args[11]);
+        boolean decodeOnly = Boolean.parseBoolean(args[12]);
+        boolean greedy = Boolean.parseBoolean(args[13]);
         ClassifierType classifierType = ClassifierType.AveragedPerceptron;
         switch (learnerType)
         {
@@ -71,7 +73,7 @@ public class Pipeline {
             if (decodeJoint) {
                 //joint decoding
                 if (classifierType == ClassifierType.AveragedPerceptron) {
-                    modelPaths[0] = train.trainJoint(trainData, devData, numOfTrainingIterations, modelDir, outputFile, numOfACFeatures, numOfPDFeatures, acMaxBeamSize, greedy);
+                    modelPaths[0] = train.trainJoint(trainData, devData, clusterFile, numOfTrainingIterations, modelDir, outputFile, numOfACFeatures, numOfPDFeatures, acMaxBeamSize, greedy);
                     ModelInfo modelInfo = new ModelInfo(modelPaths[0]);
                     IndexMap indexMap = modelInfo.getIndexMap();
                     AveragedPerceptron classifier = modelInfo.getClassifier();
@@ -81,7 +83,7 @@ public class Pipeline {
 
                     Evaluation.evaluate(outputFile, devData, indexMap, modelInfo.getClassifier().getReverseLabelMap());
                 } else if (classifierType == ClassifierType.Liblinear) {
-                    modelPaths = train.trainJointLiblinear(trainData, devData, numOfTrainingIterations, modelDir,
+                    modelPaths = train.trainJointLiblinear(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfACFeatures, numOfPDFeatures);
                     ModelInfo modelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Liblinear);
                     IndexMap indexMap = modelInfo.getIndexMap();
@@ -97,7 +99,7 @@ public class Pipeline {
 
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
                 }else if (classifierType == ClassifierType.Adam) {
-                    modelPaths = train.trainJointAdam(trainData, devData, numOfTrainingIterations, modelDir,
+                    modelPaths = train.trainJointAdam(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfACFeatures, numOfPDFeatures, adamBatchSize, acMaxBeamSize, adamLearningRate, greedy);
                     ModelInfo modelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Adam);
                     IndexMap indexMap = modelInfo.getIndexMap();
@@ -117,7 +119,7 @@ public class Pipeline {
                 //stacked decoding
                 if (classifierType == ClassifierType.AveragedPerceptron) {
 
-                    modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir,
+                    modelPaths = train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
                             ClassifierType.AveragedPerceptron, greedy);
 
@@ -136,7 +138,7 @@ public class Pipeline {
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
 
                 }else if (classifierType == ClassifierType.Liblinear) {
-                    modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir,
+                    modelPaths = train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
                             ClassifierType.Liblinear, greedy);
 
@@ -163,7 +165,7 @@ public class Pipeline {
 
                 }else if (classifierType == ClassifierType.Adam)
                 {
-                    modelPaths = train.train(trainData, devData, numOfTrainingIterations, modelDir,
+                    modelPaths = train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                             aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate, ClassifierType.Adam, greedy);
 

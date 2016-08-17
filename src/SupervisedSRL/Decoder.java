@@ -97,7 +97,7 @@ public class Decoder {
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
             String devSentence = devSentencesInCONLLFormat.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap, decode);
+            Sentence sentence = new Sentence(devSentence, indexMap);
 
             predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir,aiFeatDict,acFeatDict, classifierType, greedy);
@@ -131,7 +131,7 @@ public class Decoder {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
             String devSentence = devSentencesInCONLLFormat.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap, decode);
+            Sentence sentence = new Sentence(devSentence, indexMap);
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
             predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOfPDFeatures, modelDir,featDict, classifierType, greedy);

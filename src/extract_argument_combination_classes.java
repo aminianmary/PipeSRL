@@ -20,8 +20,9 @@ public class extract_argument_combination_classes {
         String propBankFile = args[0];
         String output_dir_path = args[1];
         boolean justCoreRoles = Boolean.parseBoolean(args[2]);
+        String clusterFilePath = args[3];
 
-        final IndexMap indexMap = new IndexMap(propBankFile);
+        final IndexMap indexMap = new IndexMap(propBankFile, clusterFilePath);
 
         //output files
         String predArgLabelFile = output_dir_path + "predArgLabel.out";
@@ -56,7 +57,7 @@ public class extract_argument_combination_classes {
                     System.out.println(sentenceCounter);
 
                 boolean decode = false;
-                Sentence sen = new Sentence(sentence, indexMap, decode);
+                Sentence sen = new Sentence(sentence, indexMap);
 
                 //extracts data for treeLSTM
                 ArrayList<String> treeLSTM_format_sentence = StanfordTreeLSTM.generateData4StanfordTreeLSTM(sen,

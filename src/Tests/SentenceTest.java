@@ -14,6 +14,7 @@ import java.util.TreeSet;
  */
 public class SentenceTest {
     final String tmpFilePath = "/tmp/tmp.tmp";
+    final String clusterFilePath = "/tmp/cluster.tmp";
     final String conllText = "1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
             "2\teconomy\teconomy\teconomy\tNN\tNN\t_\t_\t4\t4\tNMOD\tNMOD\t_\t_\tA1\t_\t_\t_\n" +
             "3\t's\t's\t's\tPOS\tPOS\t_\t_\t2\t2\tSUFFIX\tSUFFIX\t_\t_\t_\t_\t_\t_\n" +
@@ -40,11 +41,28 @@ public class SentenceTest {
             "24\tinflation\tinflation\tinflation\tNN\tNN\t_\t_\t23\t23\tCONJ\tCONJ\t_\t_\t_\t_\t_\t_\n" +
             "25\t.\t.\t.\t.\t.\t_\t_\t5\t5\tP\tP\t_\t_\t_\t_\t_\t_\n\n";
 
+    final String clusters = "111101110\tinvented\t11905\n" +
+            "111101110\tinaugurated\t9276\n" +
+            "111101110\tconsecrated\t8603\n" +
+            "111101110\tconceived\t8168\n" +
+            "111101110\tconstituted\t7906\n" +
+            "111101110\tpatented\t5497\n" +
+            "111101110\tdevised\t5143\n" +
+            "111101110\tknighted\t4955\n" +
+            "111101110\tcoined\t2530\n" +
+            "111101110\tplatted\t2241\n" +
+            "111101110\tbaptised\t2093\n" +
+            "111101110\tpopularized\t2026\n" +
+            "111101110\tgazetted\t1877\n" +
+            "111101110\trediscovered\t1817\n" +
+            "111101110\tconsummated\t1505\n";
+
     @Test
     public void testConstructor() throws Exception {
         writeConllText();
-        IndexMap map = new IndexMap(tmpFilePath);
-        Sentence sentence = new Sentence(conllText, map, false);
+        writeClusterFile();
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
+        Sentence sentence = new Sentence(conllText, map);
 
         int[] depHeads = sentence.getDepHeads();
         assert depHeads[0] == 0;
@@ -98,8 +116,9 @@ public class SentenceTest {
     @Test
     public void testGetDepPath() throws Exception {
         writeConllText();
-        IndexMap map = new IndexMap(tmpFilePath);
-        Sentence sentence = new Sentence(conllText, map, false);
+        writeClusterFile();
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
+        Sentence sentence = new Sentence(conllText, map);
         ArrayList<Integer> depPath = sentence.getDepPath(5, 12);
 
         assert depPath.get(0) == (map.str2int("VC") << 1 | 0);
@@ -109,8 +128,9 @@ public class SentenceTest {
     @Test
     public void testGetPOSPath() throws Exception {
         writeConllText();
-        IndexMap map = new IndexMap(tmpFilePath);
-        Sentence sentence = new Sentence(conllText, map, false);
+        writeClusterFile();
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
+        Sentence sentence = new Sentence(conllText, map);
         ArrayList<Integer> depPath = sentence.getPOSPath(5, 12);
 
         assert depPath.get(0) == (map.str2int("VB") << 1 | 0);
@@ -120,6 +140,11 @@ public class SentenceTest {
     private void writeConllText() throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(tmpFilePath));
         writer.write(conllText);
+        writer.close();
+    }
+    private void writeClusterFile() throws Exception {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(clusterFilePath));
+        writer.write(clusters);
         writer.close();
     }
 }

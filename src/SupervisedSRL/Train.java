@@ -25,6 +25,7 @@ public class Train {
     //this function is used to train stacked ai-ac models
     public String[] train(String trainData,
                           String devData,
+                          String clusterFile,
                           int numberOfTrainingIterations,
                           String modelDir,
                           int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
@@ -35,7 +36,7 @@ public class Train {
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
 
-        final IndexMap indexMap = new IndexMap(trainData);
+        final IndexMap indexMap = new IndexMap(trainData, clusterFile);
         String aiModelPath="";
         String acModelPath="";
         String aiMappingDictsPath ="";
@@ -233,7 +234,7 @@ public class Train {
                     Decoder argumentDecoder = new Decoder(adam, "AI");
 
                     for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
-                        Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
+                        Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap);
                         HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
                                 numOfAIFeatures, modelDir, numOfPDFeatures, featDict, ClassifierType.Adam, greedy);
 
@@ -397,6 +398,7 @@ public class Train {
     //this function is used to train the joint ai-ac model
     public String trainJoint(String trainData,
                              String devData,
+                             String clusterFile,
                              int numberOfTrainingIterations,
                              String modelDir, String outputPrefix, int numOfFeatures, int numOFPDFeaturs,
                              int maxBeamSize, boolean greedy)
@@ -407,7 +409,7 @@ public class Train {
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         argLabels.add("0");
-        final IndexMap indexMap = new IndexMap(trainData);
+        final IndexMap indexMap = new IndexMap(trainData, clusterFile);
 
         //training PD module
         PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, modelDir, numOFPDFeaturs);
@@ -456,7 +458,7 @@ public class Train {
                 if (d % 1000 == 0)
                     System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
-                Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
+                Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap);
                 sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentencesInCONLLFormat.get(d)));
                 predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOFPDFeaturs, modelDir, null, ClassifierType.AveragedPerceptron, greedy);
             }
@@ -484,8 +486,9 @@ public class Train {
         return modelPath;
     }
 
+
     public String[] trainJointLiblinear(String trainData,
-                          String devData,
+                          String devData, String clusterFile,
                           int numberOfTrainingIterations,
                           String modelDir,
                           int numOfFeatures, int numOfPDFeatures) throws Exception {
@@ -493,7 +496,7 @@ public class Train {
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
 
-        final IndexMap indexMap = new IndexMap(trainData);
+        final IndexMap indexMap = new IndexMap(trainData, clusterFile);
         String modelPath="";
         String mappingDictsPath ="";
 
@@ -508,6 +511,7 @@ public class Train {
 
     public String[] trainJointAdam(String trainData,
                                         String devData,
+                                        String clusterFile,
                                         int numberOfTrainingIterations,
                                         String modelDir,
                                         int numOfFeatures, int numOfPDFeatures, int adamBatchSize, int maxBeamSize, double learningRate, boolean greedy) throws Exception {
@@ -515,7 +519,7 @@ public class Train {
         List<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
 
-        final IndexMap indexMap = new IndexMap(trainData);
+        final IndexMap indexMap = new IndexMap(trainData, clusterFile);
         String modelPath="";
         String mappingDictsPath ="";
 
@@ -596,7 +600,7 @@ public class Train {
 
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
-                Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap, decode);
+                Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap);
                 HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
                         numOfFeatures, modelDir, numOfPDFeatures, null, ClassifierType.AveragedPerceptron, greedy);
 
@@ -701,7 +705,7 @@ public class Train {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
+        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
 
@@ -727,7 +731,7 @@ public class Train {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
+        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
         for (PA pa : pas) {
@@ -753,7 +757,7 @@ public class Train {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap, decode);
+        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
 
