@@ -167,7 +167,7 @@ public class Adam implements Serializable {
 
                 g[l][g.length - 1] += delta[l];
                 for (int f = 0; f < feats.size(); f++) {
-                    g[l][f] += delta[l];
+                    g[l][feats.get(f)] += delta[l];
                     if (Double.isNaN(g[l][f]))
                         throw new Exception("g is NAN in gradients");
                 }

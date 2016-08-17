@@ -98,9 +98,7 @@ public class FeatureExtractor {
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
         Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
-        Object[] predPredFeats = addPredicatePredicateBigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
-        Object[] argArgFeats = addArgumentArgumentBigramFeatures(baseFeatureFields, (Object[]) predPredFeats[0], (Integer) predPredFeats[1]);
-        Object[] trigramFeats = addTrigramFeatures(baseFeatureFields, (Object[]) argArgFeats[0], (Integer) argArgFeats[1]);
+        Object[] trigramFeats = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
 
         Object[] AIFeatures = trigramFeats;
         return (Object[]) AIFeatures[0];
@@ -114,9 +112,7 @@ public class FeatureExtractor {
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
         Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
-        Object[] predPredFeats = addPredicatePredicateBigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
-        Object[] argArgFeats = addArgumentArgumentBigramFeatures(baseFeatureFields, (Object[]) predPredFeats[0], (Integer) predPredFeats[1]);
-        Object[] trigramFeats = addTrigramFeatures(baseFeatureFields, (Object[]) argArgFeats[0], (Integer) argArgFeats[1]);
+        Object[] trigramFeats = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
         Object[] ACFeatures = trigramFeats;
         return (Object[]) ACFeatures[0];
     }
