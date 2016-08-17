@@ -49,8 +49,8 @@ public class Evaluation {
         boolean decode = true;
         for (int senIdx = 0; senIdx < systemOutputInCONLLFormat.size(); senIdx++) {
             //System.out.println("sen: "+senIdx);
-            Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap, decode);
-            Sentence goldSen = new Sentence(goldOutputInCONLLFormat.get(senIdx), indexMap, decode);
+            Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap);
+            Sentence goldSen = new Sentence(goldOutputInCONLLFormat.get(senIdx), indexMap);
 
             ArrayList<PA> sysOutPAs = sysOutSen.getPredicateArguments().getPredicateArgumentsAsArray();
             ArrayList<PA> goldPAs = goldSen.getPredicateArguments().getPredicateArgumentsAsArray();

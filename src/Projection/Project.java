@@ -49,6 +49,7 @@ public class Project {
         String targetFile_GD = args[3];
         String alignmentFile = args[4];
         String projectedTargetFile = args[5];
+        String clusterFilePath = args[6];
 
         BufferedWriter projectedFileWriter = new BufferedWriter(new FileWriter(projectedTargetFile, true));
 
@@ -56,7 +57,7 @@ public class Project {
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDic = alignment.getSourceTargetAlignmentDic();
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDicReverse = alignment.getTargetSourceAlignmentDic();
 
-        final IndexMap indexMap = new IndexMap(sourceFile);
+        final IndexMap indexMap = new IndexMap(sourceFile, clusterFilePath);
 
         ArrayList<String> sourceSents = IO.readCoNLLFile(sourceFile);
         ArrayList<String> targetSents = IO.readCoNLLFile(targetFile);
@@ -74,8 +75,8 @@ public class Project {
                 String targetSent_GD = targetSents_GD.get(idx);
 
                 boolean decode = false;
-                Sentence sourceSentObj = new Sentence(sourceSent, indexMap, false);
-                Sentence targetSentObj = new Sentence(targetSent, indexMap, false);
+                Sentence sourceSentObj = new Sentence(sourceSent, indexMap);
+                Sentence targetSentObj = new Sentence(targetSent, indexMap);
 
                 //do projection for sentences with alignment for > 0.9 of source words
                 //if (alignmentDic.get(idx).keySet().size() >= (0.9* sourceSentObj.getWords().length)) {

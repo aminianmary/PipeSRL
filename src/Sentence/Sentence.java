@@ -14,15 +14,17 @@ public class Sentence {
     int[] depHeads;
     int[] depLabels;
     int[] words;
+    int[] wordClusterIds;
     int[] posTags;
     int[] cPosTags;
     int[] lemmas;
+    int[] lemmaClusterIds;
     String[] lemmas_str;
     TreeSet<Integer>[] reverseDepHeads;
     PAs predicateArguments;
 
 
-    public Sentence(String sentence, IndexMap indexMap, boolean decode) {
+    public Sentence(String sentence, IndexMap indexMap) {
         String[] tokens = sentence.trim().split("\n");
 
         int numTokens = tokens.length + 1; //add one more token for ROOT
@@ -42,6 +44,10 @@ public class Sentence {
         lemmas[0] = words[0];
         lemmas_str = new String[numTokens];
         lemmas_str[0] = "ROOT";
+        wordClusterIds = new int[numTokens];
+        wordClusterIds[0] = indexMap.ROOTClusterIdx;
+        lemmaClusterIds = new int[numTokens];
+        lemmaClusterIds[0] = indexMap.ROOTClusterIdx;
 
         reverseDepHeads = new TreeSet[numTokens];
         predicateArguments = new PAs();
@@ -55,10 +61,12 @@ public class Sentence {
             depHeads[index] = depHead;
 
             words[index] = indexMap.str2int(fields[1]);
+            wordClusterIds[index] = indexMap.getClusterId(fields[1]);
             depLabels[index] = indexMap.str2int(fields[11]);
             posTags[index] = indexMap.str2int(fields[5]);
             cPosTags[index] = indexMap.str2int(util.StringUtils.getCoarsePOS(fields[5]));
             lemmas[index] = indexMap.str2int(fields[3]);
+            lemmaClusterIds[index]= indexMap.getClusterId(fields[3]);
 
             if (reverseDepHeads[depHead] == null) {
                 TreeSet<Integer> children = new TreeSet<Integer>();
@@ -207,6 +215,10 @@ public class Sentence {
     public int[] getLemmas() {
         return lemmas;
     }
+
+    public int[] getWordClusterIds() {return wordClusterIds;}
+
+    public int[] getLemmaClusterIds() {return lemmaClusterIds;}
 
     public TreeSet<Integer>[] getReverseDepHeads() {
         return reverseDepHeads;

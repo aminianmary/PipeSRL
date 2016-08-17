@@ -26,10 +26,11 @@ public class PD {
 
         String inputFile = args[0];
         String modelDir = args[1];
+        String clusterFile = args[2];
 
         int numOfPDFeatures = 9;
 
-        final IndexMap indexMap = new IndexMap(inputFile);
+        final IndexMap indexMap = new IndexMap(inputFile, clusterFile);
 
         //read trainJoint and test sentences
         ArrayList<String> sentencesInCONLLFormat = IO.readCoNLLFile(inputFile);
@@ -48,7 +49,7 @@ public class PD {
         System.out.println("Prediction started...");
         for (int senIdx = 0; senIdx < test.size(); senIdx++) {
             boolean decode = true;
-            Sentence sentence = new Sentence(test.get(senIdx), indexMap, decode);
+            Sentence sentence = new Sentence(test.get(senIdx), indexMap);
             predictions[senIdx] = predict(sentence, indexMap, modelDir, numOfPDFeatures);
         }
 
@@ -128,7 +129,7 @@ public class PD {
 
         boolean decode = false;
         for (int senID = 0; senID < sentencesInCONLLFormat.size(); senID++) {
-            Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap, decode);
+            Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap);
 
             ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
             int[] sentenceLemmas = sentence.getLemmas();
