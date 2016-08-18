@@ -1,8 +1,11 @@
 package ml;
 
+import SupervisedSRL.Strcutures.Pair;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -35,7 +38,9 @@ public class Adam implements Serializable {
     private String[] labelMap;
     private HashMap<String, Integer> reverseLabelMap;
     private int t;
-
+    ExecutorService executor;
+    CompletionService<Pair<Pair<Double, Double>, double[][]>> pool;
+    int numOfThreads ;
     /**
      * @param possibleLabels
      * @param maxNumOfFeatures
@@ -44,7 +49,7 @@ public class Adam implements Serializable {
      * @param beta2            good value 0.9999
      */
     public Adam(HashSet<String> possibleLabels, int maxNumOfFeatures, double learningRate, double beta1, double beta2,
-                double regularizer) {
+                double regularizer, int numOfThreads) {
         this.t = 1;
         this.learningRate = learningRate;
         this.beta1 = beta1;
@@ -91,6 +96,9 @@ public class Adam implements Serializable {
         System.out.println("done!");
 
         confusionMatrix = new int[2][2];
+this.numOfThreads = numOfThreads;
+        executor = Executors.newFixedThreadPool(numOfThreads);
+        pool = new ExecutorCompletionService<Pair<Pair<Double, Double>, double[][]>>(executor);
     }
 
 
@@ -125,10 +133,44 @@ public class Adam implements Serializable {
         return reverseLabelMap;
     }
 
-    public void learnInstance(ArrayList<ArrayList<Integer>> features, ArrayList<String> labels) throws Exception {
+    public void learnInstance(ArrayList<ArrayList<Integer>> features, ArrayList<String> labels)
+            throws Exception {
         cost = 0;
         System.out.println("calculating gradients for batch " + labels.size());
-        double[][] gradients = calculateGradients(features, labels);
+
+        int chunkSize = Math.min(labels.size() / numOfThreads, labels.size());
+        int s = 0;
+        int e = chunkSize;
+
+        int numOfChunks = 0;
+        while (true) {
+            numOfChunks++;
+            pool.submit(new CostThread(labels.subList(s, e), features.subList(s, e), labels.size()));
+            s = e;
+            e = Math.min(labels.size(), e + chunkSize);
+            if (s >= labels.size())
+                break;
+        }
+
+        Pair<Pair<Double, Double>, double[][]> firstResult = pool.take().get();
+        double[][] gradients = firstResult.second;
+        cost += firstResult.first.first;
+        correct += firstResult.first.second;
+
+        for (int i = 1; i < numOfChunks; i++) {
+            Pair<Pair<Double, Double>, double[][]> res = pool.take().get();
+
+            double[][] g = res.second;
+
+            for (int ind = 0; ind < g.length; ind++) {
+                for (int k = 0; k < g[ind].length; k++) {
+                    gradients[ind][k] += g[ind][k];
+                }
+            }
+            cost += res.first.first;
+            correct += res.first.second;
+        }
+
         System.out.println("updating weights");
         updateWeights(gradients);
         System.out.println("regularizing weights");
@@ -146,12 +188,13 @@ public class Adam implements Serializable {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
     }
 
-    private double[][] calculateGradients(ArrayList<ArrayList<Integer>> features, ArrayList<String> labels) throws Exception {
-        int batchSize = labels.size();
-        double[][] g = new double[w.length][w[0].length];
+    private Pair<Double, Double> calculateGradients(List<ArrayList<Integer>> features, List<String> labels,
+                                                    double[][] g, int batchSize) throws Exception {
         double curCorr = 0;
         confusionMatrix = new int[2][2];
-        for (int i = 0; i < batchSize; i++) {
+        int correct = 0;
+        double cost = 0;
+        for (int i = 0; i < labels.size(); i++) {
             ArrayList<Integer> feats = features.get(i);
             int gold = reverseLabelMap.get(labels.get(i));
             double[] probs = new double[labelMap.length];
@@ -193,7 +236,7 @@ public class Adam implements Serializable {
             }
         }
         System.out.println("batch acc: " + curCorr / batchSize);
-        return g;
+        return new Pair<Double, Double>(cost, (double) correct);
     }
 
     private void updateWeights(double[][] g) throws Exception {
@@ -286,5 +329,32 @@ public class Adam implements Serializable {
         writer.writeObject(labelMap);
         writer.writeObject(reverseLabelMap);
         writer.close();
+    }
+
+    public class CostThread implements Callable<Pair<Pair<Double, Double>, double[][]>> {
+        List<ArrayList<Integer>> features;
+        List<String> labels;
+        int batchSize;
+
+        public CostThread(List<String> labels, List<ArrayList<Integer>> features,  int batchSize) {
+            this.labels = labels;
+            this.features = features;
+            this.batchSize = batchSize;
+        }
+
+        @Override
+        public Pair<Pair<Double, Double>, double[][]> call() throws Exception {
+            double[][] g = new double[w.length][w[0].length];
+            Pair<Double, Double> costCorrectPair = calculateGradients(features,labels,g,batchSize);
+            return new Pair<Pair<Double, Double>, double[][]>(costCorrectPair,g);
+        }
+    }
+
+    public void shutDownLiveThreads() {
+        boolean isTerminated = executor.isTerminated();
+        while (!isTerminated) {
+            executor.shutdownNow();
+            isTerminated = executor.isTerminated();
+        }
     }
 }

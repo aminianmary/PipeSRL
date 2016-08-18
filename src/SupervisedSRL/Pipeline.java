@@ -38,6 +38,7 @@ public class Pipeline {
     public static String unseenSymbol = ";?;;";
 
 
+
     public static void main(String[] args) throws Exception {
         //getting trainJoint/test sentences
         String trainData = args[0];
@@ -54,6 +55,7 @@ public class Pipeline {
         boolean decodeJoint = Boolean.parseBoolean(args[11]);
         boolean decodeOnly = Boolean.parseBoolean(args[12]);
         boolean greedy = Boolean.parseBoolean(args[13]);
+        int numOfThreads = Integer.parseInt(args[14]);
         ClassifierType classifierType = ClassifierType.AveragedPerceptron;
         switch (learnerType)
         {
@@ -100,7 +102,8 @@ public class Pipeline {
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
                 }else if (classifierType == ClassifierType.Adam) {
                     modelPaths = train.trainJointAdam(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
-                            numOfACFeatures, numOfPDFeatures, adamBatchSize, acMaxBeamSize, adamLearningRate, greedy);
+                            numOfACFeatures, numOfPDFeatures, adamBatchSize, acMaxBeamSize, adamLearningRate,
+                            greedy, numOfThreads);
                     ModelInfo modelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Adam);
                     IndexMap indexMap = modelInfo.getIndexMap();
                     Adam classifier = modelInfo.getClassifierAdam();
@@ -114,6 +117,7 @@ public class Pipeline {
                             acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
+                    classifier.shutDownLiveThreads();
                 }
             } else {
                 //stacked decoding
@@ -121,7 +125,7 @@ public class Pipeline {
 
                     modelPaths = train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
-                            ClassifierType.AveragedPerceptron, greedy);
+                            ClassifierType.AveragedPerceptron, greedy, numOfThreads);
 
                     ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
                     IndexMap indexMap = aiModelInfo.getIndexMap();
@@ -140,7 +144,7 @@ public class Pipeline {
                 }else if (classifierType == ClassifierType.Liblinear) {
                     modelPaths = train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
-                            ClassifierType.Liblinear, greedy);
+                            ClassifierType.Liblinear, greedy, numOfThreads);
 
                     ModelInfo aiModelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Liblinear);
                     ModelInfo acModelInfo = new ModelInfo(modelPaths[2], modelPaths[3], ClassifierType.Liblinear);
@@ -167,7 +171,7 @@ public class Pipeline {
                 {
                     modelPaths = train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                            aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate, ClassifierType.Adam, greedy);
+                            aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate, ClassifierType.Adam, greedy, numOfThreads);
 
                     ModelInfo aiModelInfo = new ModelInfo(modelPaths[0], modelPaths[1], ClassifierType.Adam);
                     ModelInfo acModelInfo = new ModelInfo(modelPaths[2], modelPaths[3], ClassifierType.Adam);
@@ -189,6 +193,8 @@ public class Pipeline {
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
                     reverseLabelMap.put("0", reverseLabelMap.size());
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                    aiClassifier.shutDownLiveThreads();
+                    acClassifier.shutDownLiveThreads();
                 }
             }
         } else {
@@ -232,6 +238,7 @@ public class Pipeline {
                             acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam, greedy);
 
                     Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
+                    classifier.shutDownLiveThreads();
                 }
 
             } else {
@@ -292,6 +299,8 @@ public class Pipeline {
                     HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
                     reverseLabelMap.put("0", reverseLabelMap.size());
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                    aiClassifier.shutDownLiveThreads();
+                    acClassifier.shutDownLiveThreads();
                 }
             }
         }
