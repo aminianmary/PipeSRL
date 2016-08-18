@@ -299,7 +299,7 @@ public class Decoder {
                         feats.add(featDict[d].get(featVector[d]));
 
                 double[] probEstimates = new double[2];
-                int prediction= aiClassifier_adam.argmax(feats,probEstimates);
+                int prediction= aiClassifier_adam.argmax(feats,probEstimates, true);
 
                 score0 = Math.log(probEstimates[0]);
                 score1 = Math.log(probEstimates[1]);
@@ -378,7 +378,7 @@ public class Decoder {
                         feats.add(featDict[d].get(featVector[d]));
 
                 double[] probEstimates = new double[2];
-                int prediction = aiClassifier_adam.argmax(feats, probEstimates);
+                int prediction = aiClassifier_adam.argmax(feats, probEstimates, true);
                 if (probEstimates[1] > probEstimates[0])
                     aiCandids.add(wordIdx);
             }
@@ -440,7 +440,7 @@ public class Decoder {
                             //seen feature value
                             feats.add(featDict[d].get(featVector[d]));
                     double[] probEstimates = new double[numOfLabels];
-                    int prediction = acClassifier_adam.argmax(feats, probEstimates);
+                    int prediction = acClassifier_adam.argmax(feats, probEstimates, true);
                     for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
                         labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
                 }
@@ -523,7 +523,7 @@ public class Decoder {
                         feats.add(featDict[d].get(featVector[d]));
 
                 double[] probEstimates = new double[labelMap.length];
-                int prediction = acClassifier_adam.argmax(feats, probEstimates);
+                int prediction = acClassifier_adam.argmax(feats, probEstimates, true);
                 acCandids.add(prediction);
             }
         }
@@ -582,7 +582,7 @@ public class Decoder {
                         feats.add(featDict[d].get(featVector[d]));
 
                 double[] probEstimates = new double[numOfLabels];
-                int prediction = acClassifier_adam.argmax(feats, probEstimates);
+                int prediction = acClassifier_adam.argmax(feats, probEstimates, true);
                 for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
                     labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
             }
@@ -662,7 +662,7 @@ public class Decoder {
                         feats.add(featDict[d].get(featVector[d]));
 
                 double[] probEstimates = new double[numOfLabels];
-                int prediction = acClassifier_adam.argmax(feats, probEstimates);
+                int prediction = acClassifier_adam.argmax(feats, probEstimates,true);
                 for (int labelIdx = 0; labelIdx < numOfLabels; labelIdx++)
                     labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
             }

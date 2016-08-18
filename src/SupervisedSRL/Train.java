@@ -170,7 +170,7 @@ public class Train {
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
         int numOfTrainInstances = featLabelDicPair.second.second.second;
         HashSet<String> labelSet = new HashSet<String>(labelDict.keySet());
-        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, learningRate, 0.9, 0.9999, 1e-8);
+        Adam adam = new Adam(labelSet, numOfLiblinearFeatures, learningRate, 0.9, 0.9999, 1e-4);
 
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             System.out.println("<><><><><><><><><><><><><><><><><><><> iter: " + (iter + 1));
@@ -208,11 +208,12 @@ public class Train {
                 if (s % 1000 == 0)
                     System.out.print(s + "...");
             }
-            adam.learnInstance(batchFeatures, batchLabels);
-            dataSize += batchLabels.size();
-            batchFeatures = new ArrayList<ArrayList<Integer>>();
-            batchLabels = new ArrayList<String>();
-
+            if(batchLabels.size()>0) {
+                adam.learnInstance(batchFeatures, batchLabels);
+                dataSize += batchLabels.size();
+                batchFeatures = new ArrayList<ArrayList<Integer>>();
+                batchLabels = new ArrayList<String>();
+            }
             System.out.print(s + "\n");
             double ac = 100. * (double) adam.correct / dataSize;
             System.out.println("data size:" + dataSize + " neg_instances: " + negInstances + " accuracy: " + ac);
@@ -576,9 +577,17 @@ public class Train {
                 if (s % 1000 == 0)
                     System.out.print(s + "...");
             }
+
             System.out.print(s + "\n");
 
             double ac = 100. * (double) ap.correct / dataSize;
+
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++)
+                    System.out.print(ap.confusionMatrix[i][j] + "\t");
+                System.out.println("");
+            }
+            ap.confusionMatrix = new int[2][2];
 
             System.out.println("data size:" + dataSize + " neg_instances: " + negInstances + " accuracy: " + ac);
             endTime = System.currentTimeMillis();

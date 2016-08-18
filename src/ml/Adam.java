@@ -43,7 +43,8 @@ public class Adam implements Serializable {
      * @param beta1            good value 0.9
      * @param beta2            good value 0.9999
      */
-    public Adam(HashSet<String> possibleLabels, int maxNumOfFeatures, double learningRate, double beta1, double beta2, double regularizer) {
+    public Adam(HashSet<String> possibleLabels, int maxNumOfFeatures, double learningRate, double beta1, double beta2,
+                double regularizer) {
         this.t = 1;
         this.learningRate = learningRate;
         this.beta1 = beta1;
@@ -60,10 +61,17 @@ public class Adam implements Serializable {
         labelMap = new String[possibleLabels.size()];
         reverseLabelMap = new HashMap<String, Integer>();
         int i = 0;
-        for (String label : possibleLabels) {
-            labelMap[i] = label;
-            reverseLabelMap.put(label, i);
-            i++;
+        if(possibleLabels.size()==2 && possibleLabels.contains("0") && possibleLabels.contains("1")){
+            labelMap[0] = "0";
+            reverseLabelMap.put("0", 0);
+            labelMap[1] = "1";
+            reverseLabelMap.put("1", 1);
+        }else {
+            for (String label : possibleLabels) {
+                labelMap[i] = label;
+                reverseLabelMap.put(label, i);
+                i++;
+            }
         }
 
         System.out.print("initializing the model weights...");
@@ -89,7 +97,7 @@ public class Adam implements Serializable {
     public Adam(double[][] avgWeights, String[] labelMap,
                 HashMap<String, Integer> reverseLabelMap) {
         // put avg weights instead of the original one.
-        this.w = avgWeights;
+        this.aw = avgWeights;
         this.labelMap = labelMap;
         this.reverseLabelMap = reverseLabelMap;
     }
@@ -142,18 +150,22 @@ public class Adam implements Serializable {
         int batchSize = labels.size();
         double[][] g = new double[w.length][w[0].length];
         double curCorr = 0;
-
+        confusionMatrix = new int[2][2];
         for (int i = 0; i < batchSize; i++) {
             ArrayList<Integer> feats = features.get(i);
             int gold = reverseLabelMap.get(labels.get(i));
             double[] probs = new double[labelMap.length];
 
-            int argmax = argmax(feats, probs);
+            int argmax = argmax(feats, probs, false);
             if (gold == argmax) {
                 correct++;
                 curCorr++;
             }
-            //todo
+
+            if (w.length == 2) {
+                confusionMatrix[gold][argmax] += 1;
+            }
+
             cost -= Math.log(probs[gold]) / batchSize;
             if (Double.isNaN(cost))
                 System.out.println("cost NAN error!");
@@ -173,7 +185,13 @@ public class Adam implements Serializable {
                 }
             }
         }
-
+        if (w.length == 2) {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++)
+                    System.out.print(confusionMatrix[i][j] + "\t");
+                System.out.println("");
+            }
+        }
         System.out.println("batch acc: " + curCorr / batchSize);
         return g;
     }
@@ -200,8 +218,7 @@ public class Adam implements Serializable {
 
     private void regularize() throws Exception {
         for (int i = 0; i < w.length; i++) {
-            // ignoring bias regularization.
-            for (int j = 0; j < w[i].length-1; j++) {
+            for (int j = 0; j < w[i].length; j++) {
                 w[i][j] += 2 * regularizer * w[i][j];
                 cost += w[i][j] * w[i][j] * regularizer;
                 if (Double.isNaN(cost))
@@ -227,14 +244,14 @@ public class Adam implements Serializable {
         t++;
     }
 
-    public int argmax(ArrayList<Integer> features, double[] probs) throws Exception {
+    public int argmax(ArrayList<Integer> features, double[] probs, boolean decode) throws Exception {
         int argmax = 0;
         double argmaxValue = Double.NEGATIVE_INFINITY;
 
         for (int l = 0; l < probs.length; l++) {
-            probs[l] += w[l][w[l].length-1];
+            probs[l] += decode? aw[l][aw[l].length-1]:w[l][w[l].length-1];
             for (int f = 0; f < features.size(); f++)
-                probs[l] += w[l][features.get(f)];
+                probs[l] +=  decode? aw[l][features.get(f)]: w[l][features.get(f)];
             if (probs[l] > argmaxValue) {
                 argmaxValue = probs[l];
                 argmax = l;
