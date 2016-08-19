@@ -31,11 +31,11 @@ public class Pipeline {
     //predicate cluster features 3
     //argument cluster features 5
 
-    public static int numOfAIFeatures = 25 + 3+ 5+ 13; //154 +91 + 6;
-    public static int numOfACFeatures = 25 + 3+ 5+ 15; //154 + 91 + 6;
+    public static int numOfAIFeatures = 25 + 3+ 5+ 154; //154 +91 + 6;
+    public static int numOfACFeatures = 25 + 3+ 5+ 154; //154 + 91 + 6;
     public static int numOfPDFeatures = 9;
     public static int numOfPDTrainingIterations = 10;
-    public static String unseenSymbol = ";?;;";
+    public static String unseenSymbol = ";;?;;";
 
 
 
@@ -108,15 +108,13 @@ public class Pipeline {
                     IndexMap indexMap = modelInfo.getIndexMap();
                     Adam classifier = modelInfo.getClassifierAdam();
                     HashMap<Object, Integer>[] featDict = modelInfo.getFeatDict();
-                    HashMap<String, Integer> labelDict = modelInfo.getLabelDict();
-                    String[] labelMap = new String[labelDict.size()];
-                    for (String label : labelDict.keySet())
-                        labelMap[labelDict.get(label)] = label;
+                    String[] labelMap = classifier.getLabelMap();
+                    HashMap<String, Integer> reverseLabelMap = classifier.getReverseLabelMap();
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, labelMap,
                             acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam, greedy);
 
-                    Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
+                    Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
                     classifier.shutDownLiveThreads();
                 }
             } else {
@@ -180,17 +178,15 @@ public class Pipeline {
                     HashMap<Object, Integer>[] aiFeatDict = aiModelInfo.getFeatDict();
                     Adam acClassifier= acModelInfo.getClassifierAdam();
                     HashMap<Object, Integer>[] acFeatDict = acModelInfo.getFeatDict();
-                    HashMap<String, Integer> acLabelDict = acModelInfo.getLabelDict();
-                    String[] acLabelMap = new String[acLabelDict.size()];
-                    for (String label: acLabelDict.keySet())
-                        acLabelMap[acLabelDict.get(label)]= label;
+                    String[] acLabelMap = acClassifier.getLabelMap();
+                    HashMap<String, Integer> acReverseLabelMap = acClassifier.getReverseLabelMap();
 
                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
                             indexMap, devData, acLabelMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                             modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Adam, greedy);
 
-                    HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
+                    HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acReverseLabelMap);
                     reverseLabelMap.put("0", reverseLabelMap.size());
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
                     aiClassifier.shutDownLiveThreads();
@@ -229,15 +225,14 @@ public class Pipeline {
                     IndexMap indexMap = modelInfo.getIndexMap();
                     Adam classifier = modelInfo.getClassifierAdam();
                     HashMap<Object, Integer>[] featDict = modelInfo.getFeatDict();
-                    HashMap<String, Integer> labelDict = modelInfo.getLabelDict();
-                    String[] labelMap = new String[labelDict.size()];
-                    for (String label : labelDict.keySet())
-                        labelMap[labelDict.get(label)] = label;
+                    String[] labelMap= classifier.getLabelMap();
+                    HashMap<String, Integer> reverseLabelMap = classifier.getReverseLabelMap();
+
                     Decoder.decode(new Decoder(classifier, "joint"),
                             indexMap, devData, labelMap,
                             acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, featDict, ClassifierType.Adam, greedy);
 
-                    Evaluation.evaluate(outputFile, devData, indexMap, labelDict);
+                    Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
                     classifier.shutDownLiveThreads();
                 }
 
@@ -286,17 +281,14 @@ public class Pipeline {
                     HashMap<Object, Integer>[] aiFeatDict = aiModelInfo.getFeatDict();
                     Adam acClassifier= acModelInfo.getClassifierAdam();
                     HashMap<Object, Integer>[] acFeatDict = acModelInfo.getFeatDict();
-                    HashMap<String, Integer> acLabelDict = acModelInfo.getLabelDict();
-                    String[] acLabelMap = new String[acLabelDict.size()];
-                    for (String label: acLabelDict.keySet())
-                        acLabelMap[acLabelDict.get(label)]= label;
-
+                    String[] acLabelMap = acClassifier.getLabelMap();
+                    HashMap<String, Integer> acReverseLabelMap = acClassifier.getReverseLabelMap();
                     Decoder.decode(new Decoder(aiClassifier, acClassifier),
                             indexMap, devData, acLabelMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                             modelDir, outputFile, aiFeatDict, acFeatDict, ClassifierType.Adam, greedy);
 
-                    HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acLabelDict);
+                    HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acReverseLabelMap);
                     reverseLabelMap.put("0", reverseLabelMap.size());
                     Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
                     aiClassifier.shutDownLiveThreads();

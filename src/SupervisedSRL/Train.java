@@ -247,7 +247,7 @@ public class Train {
                 }else if (taskType.equals("AC")){
                     String aiModelPath = modelDir+"/AI_adam.model";
                     String aiMappingDicPath = modelDir+"/mappingDicts_adam_AI";
-                    String outputFile = modelDir +"_"+taskType+"_dev_output_adam_" + iter;
+                    String outputFile = modelDir +"/"+taskType+"_dev_output_adam_" + iter;
 
                     ModelInfo aiModelInfo = new ModelInfo(aiModelPath, aiMappingDicPath, ClassifierType.Adam);
                     Adam aiClassifier = aiModelInfo.getClassifierAdam();
@@ -260,8 +260,10 @@ public class Train {
                     reverseLabelMap.put("0", reverseLabelMap.size());
 
                     f1 = Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+                    if (iter==9)
+                        System.out.print("Hi");
                 }else if (taskType.equalsIgnoreCase("JOINT")){
-                    String outputFile = modelDir +"_"+taskType+"_dev_output_adam_" + iter;
+                    String outputFile = modelDir +"/"+taskType+"_dev_output_adam_" + iter;
 
                     Decoder.decode(new Decoder(adam,"JOINT"),
                             indexMap, devData, adam.getLabelMap(),

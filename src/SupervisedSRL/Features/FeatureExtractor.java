@@ -97,11 +97,12 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        //Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
         //Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
         //Object[] trigramFeats = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
 
-        Object[] AIFeatures = bigramFeatures4AIFromNuguesSystem;
+        Object[] AIFeatures = predArgFeats;
         return (Object[]) AIFeatures[0];
     }
 
@@ -112,11 +113,12 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] bigramFeatures4ACFromNuguesSystem= addBigramFeatures4ACFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        //Object[] bigramFeatures4ACFromNuguesSystem= addBigramFeatures4ACFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
         //Object[] predArgFeats = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
         //Object[] trigramFeats = addTrigramFeatures(baseFeatureFields, (Object[]) predArgFeats[0], (Integer) predArgFeats[1]);
 
-        Object[] ACFeatures = bigramFeatures4ACFromNuguesSystem;
+        Object[] ACFeatures = predArgFeats;
         return (Object[]) ACFeatures[0];
     }
 

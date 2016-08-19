@@ -66,12 +66,12 @@ public class Adam implements Serializable {
         labelMap = new String[possibleLabels.size()];
         reverseLabelMap = new HashMap<String, Integer>();
         int i = 0;
-        if(possibleLabels.size()==2 && possibleLabels.contains("0") && possibleLabels.contains("1")){
+        if (possibleLabels.size() == 2 && possibleLabels.contains("0") && possibleLabels.contains("1")) {
             labelMap[0] = "0";
             reverseLabelMap.put("0", 0);
             labelMap[1] = "1";
             reverseLabelMap.put("1", 1);
-        }else {
+        } else {
             for (String label : possibleLabels) {
                 labelMap[i] = label;
                 reverseLabelMap.put(label, i);
@@ -90,13 +90,13 @@ public class Adam implements Serializable {
         //todo how is w initialized?
         for (i = 0; i < w.length; i++) {
             for (int j = 0; j < w[i].length - 1; j++)
-                w[i][j] = random.nextDouble()*2*initRange - initRange;
+                w[i][j] = random.nextDouble() * 2 * initRange - initRange;
             w[i][w[i].length - 1] = 0;
         }
         System.out.println("done!");
 
         confusionMatrix = new int[2][2];
-this.numOfThreads = numOfThreads;
+        this.numOfThreads = numOfThreads;
         executor = Executors.newFixedThreadPool(numOfThreads);
         pool = new ExecutorCompletionService<Pair<Pair<Double, Double>, double[][]>>(executor);
     }
@@ -351,6 +351,8 @@ this.numOfThreads = numOfThreads;
     }
 
     public void shutDownLiveThreads() {
+        if (executor == null)
+            return;
         boolean isTerminated = executor.isTerminated();
         while (!isTerminated) {
             executor.shutdownNow();
