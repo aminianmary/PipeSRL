@@ -260,8 +260,7 @@ public class Train {
                     reverseLabelMap.put("0", reverseLabelMap.size());
 
                     f1 = Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
-                    if (iter==9)
-                        System.out.print("Hi");
+
                 }else if (taskType.equalsIgnoreCase("JOINT")){
                     String outputFile = modelDir +"/"+taskType+"_dev_output_adam_" + iter;
 
