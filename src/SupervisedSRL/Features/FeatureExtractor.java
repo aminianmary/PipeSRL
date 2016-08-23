@@ -92,38 +92,38 @@ public class FeatureExtractor {
     }
 
     public static Object[] extractAIFeatures(int pIdx, int aIdx, Sentence sentence, int length,
-                                             IndexMap indexMap) throws Exception {
+                                             IndexMap indexMap, boolean extractGlobalFeatures, int label) throws Exception {
         Object[] features = new Object[length];
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
-        Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
-        Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0 , extractGlobalFeatures, label);
+        Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1], extractGlobalFeatures, label);
+        Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
 
         Object[] AIFeatures = bigramFeatures4AIFromNuguesSystem;
         return (Object[]) AIFeatures[0];
     }
 
     public static Object[] extractACFeatures(int pIdx, int aIdx, Sentence sentence, int length,
-                                             IndexMap indexMap) throws Exception {
+                                             IndexMap indexMap, boolean extractGlobalFeatures, int label) throws Exception {
 
         Object[] features = new Object[length];
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
-        Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
-        Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] bigramFeatures4ACFromNuguesSystem= addBigramFeatures4ACFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0, extractGlobalFeatures, label);
+        Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1], extractGlobalFeatures, label);
+        Object[] bigramFeatures4ACFromNuguesSystem= addBigramFeatures4ACFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
 
         Object[] ACFeatures = bigramFeatures4ACFromNuguesSystem;
         return (Object[]) ACFeatures[0];
     }
 
     public static Object[] extractJointFeatures(int pIdx, int aIdx, Sentence sentence, int length,
-                                                IndexMap indexMap) throws Exception {
+                                                IndexMap indexMap, boolean extractGlobalFeatures, int label) throws Exception {
 
         Object[] features = new Object[length];
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
-        Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0);
-        Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1]);
-        Object[] jointFeatures = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1]);
+        Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0, extractGlobalFeatures, label);
+        Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1], extractGlobalFeatures, label);
+        Object[] jointFeatures = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
         return (Object[]) jointFeatures[0];
     }
 
@@ -205,201 +205,204 @@ public class FeatureExtractor {
         return IndexMap.nullIdx;
     }
 
-    private static Object[] addAllPredicateFeatures(BaseFeatureFields baseFeatureFields, Object[] currentFeatures, int length) {
+    private static Object[] addAllPredicateFeatures(BaseFeatureFields baseFeatureFields, Object[] currentFeatures,
+                                                    int length, boolean extractGlobalFeatures, int label) {
         int index = length;
-        currentFeatures[index++] = baseFeatureFields.pw;
-        currentFeatures[index++] = baseFeatureFields.ppos;
-        currentFeatures[index++] = baseFeatureFields.plem;
-        currentFeatures[index++] = baseFeatureFields.pdeprel;
-        currentFeatures[index++] = baseFeatureFields.pSense;
-        currentFeatures[index++] = baseFeatureFields.pprw;
-        currentFeatures[index++] = baseFeatureFields.pprpos;
-        currentFeatures[index++] = baseFeatureFields.pdepsubcat;
-        currentFeatures[index++] = baseFeatureFields.pchilddepset;
-        currentFeatures[index++] = baseFeatureFields.pchildposset;
-        currentFeatures[index++] = baseFeatureFields.pchildwset;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.pw) << 6 | label: baseFeatureFields.pw;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.ppos) << 6 | label: baseFeatureFields.ppos;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.plem) << 6 | label: baseFeatureFields.plem;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.pdeprel) << 6 | label: baseFeatureFields.pdeprel;
+        currentFeatures[index++] = (extractGlobalFeatures)? label+ " " + baseFeatureFields.pSense : baseFeatureFields.pSense;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.pprw) << 6 | label: baseFeatureFields.pprw;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.pprpos) << 6 | label: baseFeatureFields.pprpos;
+        currentFeatures[index++] = (extractGlobalFeatures)? label+ " " + baseFeatureFields.pdepsubcat : baseFeatureFields.pdepsubcat;
+        currentFeatures[index++] = (extractGlobalFeatures)? label+ " " + baseFeatureFields.pchilddepset : baseFeatureFields.pchilddepset;
+        currentFeatures[index++] = (extractGlobalFeatures)? label+ " " + baseFeatureFields.pchildposset : baseFeatureFields.pchildposset;
+        currentFeatures[index++] = (extractGlobalFeatures)? label+ " " + baseFeatureFields.pchildwset : baseFeatureFields.pchildwset;
         //word cluster features
-        currentFeatures[index++] = baseFeatureFields.pw_cluster;
-        currentFeatures[index++] = baseFeatureFields.plem_cluster;
-        currentFeatures[index++] = baseFeatureFields.pprw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.pw_cluster) << 6 | label: baseFeatureFields.pw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.plem_cluster) << 6 | label: baseFeatureFields.plem_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures)? (baseFeatureFields.pprw_cluster) << 6 | label: baseFeatureFields.pprw_cluster;
 
         return new Object[]{currentFeatures, index};
     }
 
-    private static Object[] addAllArgumentFeatures(BaseFeatureFields baseFeatureFields, Object[] currentFeatures, int length) {
+    private static Object[] addAllArgumentFeatures(BaseFeatureFields baseFeatureFields, Object[] currentFeatures,
+                                                   int length, boolean extractGlobalFeatures, int label) {
         int index = length;
-        currentFeatures[index++] = baseFeatureFields.aw;
-        currentFeatures[index++] = baseFeatureFields.apos;
-        currentFeatures[index++] = baseFeatureFields.adeprel;
-        currentFeatures[index++] = baseFeatureFields.deprelpath;
-        currentFeatures[index++] = baseFeatureFields.pospath;
-        currentFeatures[index++] = baseFeatureFields.position;
-        currentFeatures[index++] = baseFeatureFields.leftw;
-        currentFeatures[index++] = baseFeatureFields.leftpos;
-        currentFeatures[index++] = baseFeatureFields.rightw;
-        currentFeatures[index++] = baseFeatureFields.rightpos;
-        currentFeatures[index++] = baseFeatureFields.leftsiblingw;
-        currentFeatures[index++] = baseFeatureFields.leftsiblingpos;
-        currentFeatures[index++] = baseFeatureFields.rightsiblingw;
-        currentFeatures[index++] = baseFeatureFields.rightsiblingpos;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.aw<<6) | label : baseFeatureFields.aw;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.apos<<6) | label :baseFeatureFields.apos;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.adeprel<<6) | label :baseFeatureFields.adeprel;
+        currentFeatures[index++] = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.deprelpath : baseFeatureFields.deprelpath;
+        currentFeatures[index++] = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.pospath : baseFeatureFields.pospath;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.position<<6) | label :baseFeatureFields.position;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftw<<6) | label : baseFeatureFields.leftw;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftpos<<6) | label : baseFeatureFields.leftpos;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightw<<6) | label : baseFeatureFields.rightw;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightpos<<6) | label : baseFeatureFields.rightpos;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftsiblingw<<6) | label : baseFeatureFields.leftsiblingw;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftsiblingpos<<6) | label : baseFeatureFields.leftsiblingpos;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightsiblingw<<6) | label : baseFeatureFields.rightsiblingw;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightsiblingpos<<6) | label : baseFeatureFields.rightsiblingpos;
         //word cluster features
-        currentFeatures[index++] = baseFeatureFields.aw_cluster;
-        currentFeatures[index++] = baseFeatureFields.leftw_cluster;
-        currentFeatures[index++] = baseFeatureFields.rightw_cluster;
-        currentFeatures[index++] = baseFeatureFields.leftsiblingw_cluster;
-        currentFeatures[index++] = baseFeatureFields.rightsiblingw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.aw_cluster<<6) | label : baseFeatureFields.aw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftw_cluster<<6) | label : baseFeatureFields.leftw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightw_cluster<<6) | label : baseFeatureFields.rightw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftsiblingw_cluster<<6) | label : baseFeatureFields.leftsiblingw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightsiblingw_cluster<<6) | label : baseFeatureFields.rightsiblingw_cluster;
 
         return new Object[]{currentFeatures, index};
     }
 
-    private static Object[] addPredicateArgumentBigramFeatures(BaseFeatureFields baseFeatureFields, Object[] features, int length) {
+    private static Object[] addPredicateArgumentBigramFeatures(BaseFeatureFields baseFeatureFields, Object[] features,
+                                                               int length, boolean extractGlobalFeatures, int label) {
         int index = length;
-        int pw = baseFeatureFields.getPw();
-        int ppos = baseFeatureFields.getPpos();
-        int plem = baseFeatureFields.getPlem();
-        String pSense = baseFeatureFields.getpSense();
-        int pdeprel = baseFeatureFields.getPdeprel();
-        int pprw = baseFeatureFields.getPprw();
-        int pprpos = baseFeatureFields.getPprpos();
-        String pdepsubcat = baseFeatureFields.getPdepsubcat();
-        String pchilddepset = baseFeatureFields.getPchilddepset();
-        String pchildposset = baseFeatureFields.getPchildposset();
-        String pchildwset = baseFeatureFields.getPchildwset();
-        int aw = baseFeatureFields.getAw();
-        int apos = baseFeatureFields.getApos();
-        int adeprel = baseFeatureFields.getAdeprel();
-        String deprelpath = baseFeatureFields.getDeprelpath();
-        String pospath = baseFeatureFields.getPospath();
-        int position = baseFeatureFields.getPosition();
-        int leftw = baseFeatureFields.getLeftw();
-        int leftpos = baseFeatureFields.getLeftpos();
-        int rightw = baseFeatureFields.getRightw();
-        int rightpos = baseFeatureFields.getRightpos();
-        int leftsiblingw = baseFeatureFields.getLeftsiblingw();
-        int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
-        int rightsiblingw = baseFeatureFields.getRightsiblingw();
-        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
+        int pw = (extractGlobalFeatures) ? (baseFeatureFields.getPw() <<6) | label :baseFeatureFields.getPw();
+        int ppos = (extractGlobalFeatures) ? (baseFeatureFields.getPpos() <<6) | label :baseFeatureFields.getPpos();
+        int plem = (extractGlobalFeatures) ? (baseFeatureFields.getPlem() <<6) | label : baseFeatureFields.getPlem();
+        String pSense = (extractGlobalFeatures) ? label+" "+baseFeatureFields.getpSense() : baseFeatureFields.getpSense();
+        int pdeprel = (extractGlobalFeatures) ? (baseFeatureFields.getPdeprel() <<6) | label : baseFeatureFields.getPdeprel();
+        int pprw = (extractGlobalFeatures) ? (baseFeatureFields.getPprw() <<6) | label : baseFeatureFields.getPprw();
+        int pprpos = (extractGlobalFeatures) ? (baseFeatureFields.getPprpos() <<6) | label : baseFeatureFields.getPprpos();
+        String pdepsubcat =  (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPdepsubcat() : baseFeatureFields.getPdepsubcat();
+        String pchilddepset = (extractGlobalFeatures) ? label+" "+ label+" "+ baseFeatureFields.getPchilddepset() : baseFeatureFields.getPchilddepset();
+        String pchildposset = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPchildposset() : baseFeatureFields.getPchildposset() ;
+        String pchildwset = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPchildwset() : baseFeatureFields.getPchildwset();
+        int aw = (extractGlobalFeatures) ? (baseFeatureFields.getAw() <<6) | label : baseFeatureFields.getAw();
+        int apos = (extractGlobalFeatures) ? (baseFeatureFields.getApos() <<6) | label : baseFeatureFields.getApos();
+        int adeprel =(extractGlobalFeatures) ? (baseFeatureFields.getAdeprel() <<6) | label : baseFeatureFields.getAdeprel();
+        String deprelpath =  (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getDeprelpath() : baseFeatureFields.getDeprelpath();
+        String pospath = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPospath() :baseFeatureFields.getPospath() ;
+        int position = (extractGlobalFeatures) ? (baseFeatureFields.getPosition() <<6) | label : baseFeatureFields.getPosition();
+        int leftw = (extractGlobalFeatures) ? (baseFeatureFields.getLeftw() <<6) | label : baseFeatureFields.getLeftw();
+        int leftpos = (extractGlobalFeatures) ? (baseFeatureFields.getLeftpos() <<6) | label : baseFeatureFields.getLeftpos();
+        int rightw = (extractGlobalFeatures) ? (baseFeatureFields.getRightw() <<6) | label : baseFeatureFields.getRightw();
+        int rightpos = (extractGlobalFeatures) ? (baseFeatureFields.getRightpos() <<6) | label : baseFeatureFields.getRightpos();
+        int leftsiblingw = (extractGlobalFeatures) ? (baseFeatureFields.getLeftsiblingw() <<6) | label : baseFeatureFields.getLeftsiblingw();
+        int leftsiblingpos = (extractGlobalFeatures) ? (baseFeatureFields.getLeftsiblingpos() <<6) | label : baseFeatureFields.getLeftsiblingpos();
+        int rightsiblingw = (extractGlobalFeatures) ? (baseFeatureFields.getRightsiblingw() <<6) | label : baseFeatureFields.getRightsiblingw();
+        int rightsiblingpos = (extractGlobalFeatures) ? (baseFeatureFields.getRightsiblingpos() <<6) | label : baseFeatureFields.getRightsiblingpos();
 
 
         // pw + argument features
         long pw_aw = (pw << 20) | aw;
         features[index++] = pw_aw;
-        int pw_apos = (pw << 10) | apos;
+        long pw_apos = (pw << 10) | apos;
         features[index++] = pw_apos;
-        int pw_adeprel = (pw << 10) | adeprel;
+        long pw_adeprel = (pw << 10) | adeprel;
         features[index++] = pw_adeprel;
         String pw_deprelpath = pw + " " + deprelpath;
         features[index++] = pw_deprelpath;
         String pw_pospath = pw + " " + pospath;
         features[index++] = pw_pospath;
-        int pw_position = (pw << 2) | position;
+        long pw_position = (pw << 2) | position;
         features[index++] = pw_position;
         long pw_leftw = (pw << 20) | leftw;
         features[index++] = pw_leftw;
-        int pw_leftpos = (pw << 10) | leftpos;
+        long pw_leftpos = (pw << 10) | leftpos;
         features[index++] = pw_leftpos;
         long pw_rightw = (pw << 20) | rightw;
         features[index++] = pw_rightw;
-        int pw_rightpos = (pw << 10) | rightpos;
+        long pw_rightpos = (pw << 10) | rightpos;
         features[index++] = pw_rightpos;
         long pw_leftsiblingw = (pw << 20) | leftsiblingw;
         features[index++] = pw_leftsiblingw;
-        int pw_leftsiblingpos = (pw << 10) | leftsiblingpos;
+        long pw_leftsiblingpos = (pw << 10) | leftsiblingpos;
         features[index++] = pw_leftsiblingpos;
         long pw_rightsiblingw = (pw << 20) | rightsiblingw;
         features[index++] = pw_rightsiblingw;
-        int pw_rightsiblingpos = (pw << 10) | rightsiblingpos;
+        long pw_rightsiblingpos = (pw << 10) | rightsiblingpos;
         features[index++] = pw_rightsiblingpos;
 
         //ppos + argument features
-        int aw_ppos = (aw << 10) | ppos;
+        long aw_ppos = (aw << 10) | ppos;
         features[index++] = aw_ppos;
-        int ppos_apos = (ppos << 10) | apos;
+        long ppos_apos = (ppos << 10) | apos;
         features[index++] = ppos_apos;
-        int ppos_adeprel = (ppos << 10) | adeprel;
+        long ppos_adeprel = (ppos << 10) | adeprel;
         features[index++] = ppos_adeprel;
         String ppos_deprelpath = ppos + " " + deprelpath;
         features[index++] = ppos_deprelpath;
         String ppos_pospath = ppos + " " + pospath;
         features[index++] = ppos_pospath;
-        int ppos_position = (ppos << 2) | position;
+        long ppos_position = (ppos << 2) | position;
         features[index++] = ppos_position;
-        int leftw_ppos = (leftw << 10) | ppos;
+        long leftw_ppos = (leftw << 10) | ppos;
         features[index++] = leftw_ppos;
-        int ppos_leftpos = (ppos << 10) | leftpos;
+        long ppos_leftpos = (ppos << 10) | leftpos;
         features[index++] = ppos_leftpos;
-        int rightw_ppos = (rightw << 10) | ppos;
+        long rightw_ppos = (rightw << 10) | ppos;
         features[index++] = rightw_ppos;
-        int ppos_rightpos = (ppos << 10) | rightpos;
+        long ppos_rightpos = (ppos << 10) | rightpos;
         features[index++] = ppos_rightpos;
-        int leftsiblingw_ppos = (leftsiblingw << 10) | ppos;
+        long leftsiblingw_ppos = (leftsiblingw << 10) | ppos;
         features[index++] = leftsiblingw_ppos;
-        int ppos_leftsiblingpos = (ppos << 10) | leftsiblingpos;
+        long ppos_leftsiblingpos = (ppos << 10) | leftsiblingpos;
         features[index++] = ppos_leftsiblingpos;
-        int rightsiblingw_ppos = (rightsiblingw << 10) | ppos;
+        long rightsiblingw_ppos = (rightsiblingw << 10) | ppos;
         features[index++] = rightsiblingw_ppos;
-        int ppos_rightsiblingpos = (ppos << 10) | rightsiblingpos;
+        long ppos_rightsiblingpos = (ppos << 10) | rightsiblingpos;
         features[index++] = ppos_rightsiblingpos;
 
         //pdeprel + argument features
-        int aw_pdeprel = (aw << 10) | pdeprel;
+        long aw_pdeprel = (aw << 10) | pdeprel;
         features[index++] = aw_pdeprel;
-        int pdeprel_apos = (pdeprel << 10) | apos;
+        long pdeprel_apos = (pdeprel << 10) | apos;
         features[index++] = pdeprel_apos;
-        int pdeprel_adeprel = (pdeprel << 10) | adeprel;
+        long pdeprel_adeprel = (pdeprel << 10) | adeprel;
         features[index++] = pdeprel_adeprel;
         String pdeprel_deprelpath = pdeprel + " " + deprelpath;
         features[index++] = pdeprel_deprelpath;
         String pdeprel_pospath = pdeprel + " " + pospath;
         features[index++] = pdeprel_pospath;
-        int pdeprel_position = (pdeprel << 2) | position;
+        long pdeprel_position = (pdeprel << 2) | position;
         features[index++] = pdeprel_position;
-        int leftw_pdeprel = (leftw << 10) | pdeprel;
+        long leftw_pdeprel = (leftw << 10) | pdeprel;
         features[index++] = leftw_pdeprel;
-        int pdeprel_leftpos = (pdeprel << 10) | leftpos;
+        long pdeprel_leftpos = (pdeprel << 10) | leftpos;
         features[index++] = pdeprel_leftpos;
-        int rightw_pdeprel = (rightw << 10) | pdeprel;
+        long rightw_pdeprel = (rightw << 10) | pdeprel;
         features[index++] = rightw_pdeprel;
-        int pdeprel_rightpos = (pdeprel << 10) | rightpos;
+        long pdeprel_rightpos = (pdeprel << 10) | rightpos;
         features[index++] = pdeprel_rightpos;
-        int leftsiblingw_pdeprel = (leftsiblingw << 10) | pdeprel;
+        long leftsiblingw_pdeprel = (leftsiblingw << 10) | pdeprel;
         features[index++] = leftsiblingw_pdeprel;
-        int pdeprel_leftsiblingpos = (pdeprel << 10) | leftsiblingpos;
+        long pdeprel_leftsiblingpos = (pdeprel << 10) | leftsiblingpos;
         features[index++] = pdeprel_leftsiblingpos;
-        int rightsiblingw_pdeprel = (rightsiblingw << 10) | pdeprel;
+        long rightsiblingw_pdeprel = (rightsiblingw << 10) | pdeprel;
         features[index++] = rightsiblingw_pdeprel;
-        int pdeprel_rightsiblingpos = (pdeprel << 10) | rightsiblingpos;
+        long pdeprel_rightsiblingpos = (pdeprel << 10) | rightsiblingpos;
         features[index++] = pdeprel_rightsiblingpos;
 
 
         //plem + argument features
         long aw_plem = (aw << 20) | plem;
         features[index++] = aw_plem;
-        int plem_apos = (plem << 10) | apos;
+        long plem_apos = (plem << 10) | apos;
         features[index++] = plem_apos;
-        int plem_adeprel = (plem << 10) | adeprel;
+        long plem_adeprel = (plem << 10) | adeprel;
         features[index++] = plem_adeprel;
         String plem_deprelpath = plem + " " + deprelpath;
         features[index++] = plem_deprelpath;
         String plem_pospath = plem + " " + pospath;
         features[index++] = plem_pospath;
-        int plem_position = (plem << 2) | position;
+        long plem_position = (plem << 2) | position;
         features[index++] = plem_position;
         long leftw_plem = (leftw << 20) | plem;
         features[index++] = leftw_plem;
-        int plem_leftpos = (plem << 10) | leftpos;
+        long plem_leftpos = (plem << 10) | leftpos;
         features[index++] = plem_leftpos;
         long rightw_plem = (rightw << 20) | plem;
         features[index++] = rightw_plem;
-        int plem_rightpos = (plem << 10) | rightpos;
+        long plem_rightpos = (plem << 10) | rightpos;
         features[index++] = plem_rightpos;
         long leftsiblingw_plem = (leftsiblingw << 20) | plem;
         features[index++] = leftsiblingw_plem;
-        int plem_leftsiblingpos = (plem << 10) | leftsiblingpos;
+        long plem_leftsiblingpos = (plem << 10) | leftsiblingpos;
         features[index++] = plem_leftsiblingpos;
         long rightsiblingw_plem = (rightsiblingw << 20) | plem;
         features[index++] = rightsiblingw_plem;
-        int plem_rightsiblingpos = (plem << 10) | rightsiblingpos;
+        long plem_rightsiblingpos = (plem << 10) | rightsiblingpos;
         features[index++] = plem_rightsiblingpos;
 
         String psense_aw = pSense + " " + aw;
@@ -434,61 +437,61 @@ public class FeatureExtractor {
         //pprw  + argument features
         long aw_pprw = (aw << 20) | pprw;
         features[index++] = aw_pprw;
-        int pprw_apos = (pprw << 10) | apos;
+        long pprw_apos = (pprw << 10) | apos;
         features[index++] = pprw_apos;
-        int pprw_adeprel = (pprw << 10) | adeprel;
+        long pprw_adeprel = (pprw << 10) | adeprel;
         features[index++] = pprw_adeprel;
         String pprw_deprelpath = pprw + " " + deprelpath;
         features[index++] = pprw_deprelpath;
         String pprw_pospath = pprw + " " + pospath;
         features[index++] = pprw_pospath;
-        int pprw_position = (pprw << 2) | position;
+        long pprw_position = (pprw << 2) | position;
         features[index++] = pprw_position;
         long leftw_pprw = (leftw << 20) | pprw;
         features[index++] = leftw_pprw;
-        int pprw_leftpos = (pprw << 10) | leftpos;
+        long pprw_leftpos = (pprw << 10) | leftpos;
         features[index++] = pprw_leftpos;
         long rightw_pprw = (rightw << 20) | pprw;
         features[index++] = rightw_pprw;
-        int pprw_rightpos = (pprw << 10) | rightpos;
+        long pprw_rightpos = (pprw << 10) | rightpos;
         features[index++] = pprw_rightpos;
         long leftsiblingw_pprw = (leftsiblingw << 20) | pprw;
         features[index++] = leftsiblingw_pprw;
-        int pprw_leftsiblingpos = (pprw << 10) | leftsiblingpos;
+        long pprw_leftsiblingpos = (pprw << 10) | leftsiblingpos;
         features[index++] = pprw_leftsiblingpos;
         long rightsiblingw_pprw = (rightsiblingw << 20) | pprw;
         features[index++] = rightsiblingw_pprw;
-        int pprw_rightsiblingpos = (pprw << 10) | rightsiblingpos;
+        long pprw_rightsiblingpos = (pprw << 10) | rightsiblingpos;
         features[index++] = pprw_rightsiblingpos;
 
         //pdeprel + argument features
-        int aw_pprpos = (aw << 10) | pprpos;
+        long aw_pprpos = (aw << 10) | pprpos;
         features[index++] = aw_pprpos;
-        int pprpos_apos = (pprpos << 10) | apos;
+        long pprpos_apos = (pprpos << 10) | apos;
         features[index++] = pprpos_apos;
-        int pprpos_adeprel = (pprpos << 10) | adeprel;
+        long pprpos_adeprel = (pprpos << 10) | adeprel;
         features[index++] = pprpos_adeprel;
         String pprpos_deprelpath = pprpos + " " + deprelpath;
         features[index++] = pprpos_deprelpath;
         String pprpos_pospath = pprpos + " " + pospath;
         features[index++] = pprpos_pospath;
-        int pprpos_position = (pprpos << 2) | position;
+        long pprpos_position = (pprpos << 2) | position;
         features[index++] = pprpos_position;
-        int leftw_pprpos = (leftw << 10) | pprpos;
+        long leftw_pprpos = (leftw << 10) | pprpos;
         features[index++] = leftw_pprpos;
-        int pprpos_leftpos = (pprpos << 10) | leftpos;
+        long pprpos_leftpos = (pprpos << 10) | leftpos;
         features[index++] = pprpos_leftpos;
-        int rightw_pprpos = (rightw << 10) | pprpos;
+        long rightw_pprpos = (rightw << 10) | pprpos;
         features[index++] = rightw_pprpos;
-        int pprpos_rightpos = (pprpos << 10) | rightpos;
+        long pprpos_rightpos = (pprpos << 10) | rightpos;
         features[index++] = pprpos_rightpos;
-        int leftsiblingw_pprpos = (leftsiblingw << 10) | pprpos;
+        long leftsiblingw_pprpos = (leftsiblingw << 10) | pprpos;
         features[index++] = leftsiblingw_pprpos;
-        int pprpos_leftsiblingpos = (pprpos << 10) | leftsiblingpos;
+        long pprpos_leftsiblingpos = (pprpos << 10) | leftsiblingpos;
         features[index++] = pprpos_leftsiblingpos;
-        int rightsiblingw_pprpos = (rightsiblingw << 10) | pprpos;
+        long rightsiblingw_pprpos = (rightsiblingw << 10) | pprpos;
         features[index++] = rightsiblingw_pprpos;
-        int pprpos_rightsiblingpos = (pprpos << 10) | rightsiblingpos;
+        long pprpos_rightsiblingpos = (pprpos << 10) | rightsiblingpos;
         features[index++] = pprpos_rightsiblingpos;
 
         String pchilddepset_aw = pchilddepset + " " + aw;
@@ -950,25 +953,26 @@ public class FeatureExtractor {
         return new Object[]{features, index};
     }
 
-    private static Object[] addBigramFeatures4AIFromNuguesSystem(BaseFeatureFields baseFeatureFields, Object[] features, int length) {
+    private static Object[] addBigramFeatures4AIFromNuguesSystem(BaseFeatureFields baseFeatureFields, Object[] features,
+                                                                 int length, boolean extractGlobalFeatures, int label) {
         int index = length;
-        int pw = baseFeatureFields.getPw();
-        String pSense = baseFeatureFields.getpSense();
-        int pdeprel = baseFeatureFields.getPdeprel();
-        int pprw = baseFeatureFields.getPprw();
-        String pchilddepset = baseFeatureFields.getPchilddepset();
-        String pchildwset = baseFeatureFields.getPchildwset();
-        int aw = baseFeatureFields.getAw();
-        int apos = baseFeatureFields.getApos();
-        int adeprel = baseFeatureFields.getAdeprel();
-        String deprelpath = baseFeatureFields.getDeprelpath();
-        String pospath = baseFeatureFields.getPospath();
-        int position = baseFeatureFields.getPosition();
-        int leftpos = baseFeatureFields.getLeftpos();
-        int rightpos = baseFeatureFields.getRightpos();
-        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
+        int pw = (extractGlobalFeatures) ? (baseFeatureFields.getPw()<<6) | label : baseFeatureFields.getPw();
+        String pSense = (extractGlobalFeatures) ?  label+ " " + baseFeatureFields.getpSense() : baseFeatureFields.getpSense();
+        int pdeprel = (extractGlobalFeatures) ? (baseFeatureFields.getPdeprel()<<6) | label : baseFeatureFields.getPdeprel();
+        int pprw = (extractGlobalFeatures) ? (baseFeatureFields.getPprw()<<6) | label : baseFeatureFields.getPprw();
+        String pchilddepset = (extractGlobalFeatures) ?  label+ " " + baseFeatureFields.getPchilddepset() :  baseFeatureFields.getPchilddepset();
+        String pchildwset = (extractGlobalFeatures) ?  label+ " " + baseFeatureFields.getPchildwset() :  baseFeatureFields.getPchildwset();
+        int aw = (extractGlobalFeatures) ? (baseFeatureFields.getAw()<<6) | label : baseFeatureFields.getAw();
+        int apos = (extractGlobalFeatures) ? (baseFeatureFields.getApos()<<6) | label : baseFeatureFields.getApos();
+        int adeprel = (extractGlobalFeatures) ? (baseFeatureFields.getAdeprel()<<6) | label : baseFeatureFields.getAdeprel();
+        String deprelpath = (extractGlobalFeatures) ?  label+ " " + baseFeatureFields.getDeprelpath() : baseFeatureFields.getDeprelpath();
+        String pospath = (extractGlobalFeatures) ?  label+ " " + baseFeatureFields.getPospath() :  baseFeatureFields.getPospath();
+        int position = (extractGlobalFeatures) ? (baseFeatureFields.getPosition()<<6) | label : baseFeatureFields.getPosition();
+        int leftpos = (extractGlobalFeatures) ? (baseFeatureFields.getLeftpos()<<6) | label : baseFeatureFields.getLeftpos();
+        int rightpos =(extractGlobalFeatures) ? (baseFeatureFields.getRightpos()<<6) | label :  baseFeatureFields.getRightpos();
+        int rightsiblingpos =(extractGlobalFeatures) ? (baseFeatureFields.getRightsiblingpos()<<6) | label :  baseFeatureFields.getRightsiblingpos();
 
-        int aw_position = (aw << 2) | position;
+        long aw_position = (aw << 2) | position;
         features[index++] = aw_position;
         String psense_position = pSense + " " + position;
         features[index++] = psense_position;
@@ -976,9 +980,9 @@ public class FeatureExtractor {
         features[index++] = psense_apos;
         String deprelpath_position = deprelpath + " " + position;
         features[index++] = deprelpath_position;
-        int pprw_adeprel = (pprw << 10) | adeprel;
+        long pprw_adeprel = (pprw << 10) | adeprel;
         features[index++] = pprw_adeprel;
-        int pw_leftpos = (pw << 10) | leftpos;
+        long pw_leftpos = (pw << 10) | leftpos;
         features[index++] = pw_leftpos;
         String psense_pchildwset = pSense + " " + pchildwset;
         features[index++] = psense_pchildwset;
@@ -988,29 +992,30 @@ public class FeatureExtractor {
         features[index++] = pospath_rightsiblingpos;
         String pchilddepset_adeprel = pchilddepset + " " + adeprel;
         features[index++] = pchilddepset_adeprel;
-        int apos_adeprel = (apos << 10) | adeprel;
+        long apos_adeprel = (apos << 10) | adeprel;
         features[index++] = apos_adeprel;
-        int leftpos_rightpos = (leftpos << 10) | rightpos;
+        long leftpos_rightpos = (leftpos << 10) | rightpos;
         features[index++] = leftpos_rightpos;
-        int pdeprel_adeprel = (pdeprel << 10) | adeprel;
+        long pdeprel_adeprel = (pdeprel << 10) | adeprel;
         features[index++] = pdeprel_adeprel;
         return new Object[]{features, index};
     }
 
-    private static Object[] addBigramFeatures4ACFromNuguesSystem(BaseFeatureFields baseFeatureFields, Object[] features, int length) {
+    private static Object[] addBigramFeatures4ACFromNuguesSystem(BaseFeatureFields baseFeatureFields, Object[] features,
+                                                                 int length, boolean extractGlobalFeatures, int label) {
         int index = length;
-        int plem = baseFeatureFields.getPlem();
-        String pSense = baseFeatureFields.getpSense();
-        String pchilddepset = baseFeatureFields.getPchilddepset();
-        int aw = baseFeatureFields.getAw();
-        int apos = baseFeatureFields.getApos();
-        int adeprel = baseFeatureFields.getAdeprel();
-        String pospath = baseFeatureFields.getPospath();
-        int position = baseFeatureFields.getPosition();
-        int leftpos = baseFeatureFields.getLeftpos();
-        int rightpos = baseFeatureFields.getRightpos();
-        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
-        int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
+        int plem = (extractGlobalFeatures) ? (baseFeatureFields.getPlem() <<6) | label : baseFeatureFields.getPlem();
+        String pSense = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getpSense() :baseFeatureFields.getpSense();
+        String pchilddepset = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPchilddepset(): baseFeatureFields.getPchilddepset();
+        int aw = (extractGlobalFeatures) ? (baseFeatureFields.getAw() <<6) | label : baseFeatureFields.getAw();
+        int apos = (extractGlobalFeatures) ? (baseFeatureFields.getApos() <<6) | label : baseFeatureFields.getApos();
+        int adeprel = (extractGlobalFeatures) ? (baseFeatureFields.getAdeprel() <<6) | label : baseFeatureFields.getAdeprel();
+        String pospath = (extractGlobalFeatures) ? label +" " + baseFeatureFields.getPospath() : baseFeatureFields.getPospath();
+        int position = (extractGlobalFeatures) ? (baseFeatureFields.getPosition() <<6) | label : baseFeatureFields.getPosition();
+        int leftpos = (extractGlobalFeatures) ? (baseFeatureFields.getLeftpos() <<6) | label : baseFeatureFields.getLeftpos();
+        int rightpos = (extractGlobalFeatures) ? (baseFeatureFields.getRightpos() <<6) | label : baseFeatureFields.getRightpos();
+        int rightsiblingpos = (extractGlobalFeatures) ? (baseFeatureFields.getRightsiblingpos() <<6) | label : baseFeatureFields.getRightsiblingpos();
+        int leftsiblingpos = (extractGlobalFeatures) ? (baseFeatureFields.getLeftsiblingpos() <<6) | label : baseFeatureFields.getLeftsiblingpos();
 
         String aw_psense = aw+" "+ pSense;
         features[index++] = aw_psense;
@@ -1018,15 +1023,15 @@ public class FeatureExtractor {
         features[index++] = psense_apos;
         String posPath_pSense = pospath+" "+ pSense;
         features[index++] = posPath_pSense;
-        int aw_position = (aw << 2) | position;
+        long aw_position = (aw << 2) | position;
         features[index++] = aw_position;
         String psense_position = pSense + " " + position;
         features[index++] = psense_position;
         String pSense_rightSiblingPos = pSense+" "+ rightsiblingpos;
         features[index++] = pSense_rightSiblingPos;
-        int leftPos_rightSiblingPos = (leftpos<<10) | rightsiblingpos;
+        long leftPos_rightSiblingPos = (leftpos<<10) | rightsiblingpos;
         features[index++] = leftPos_rightSiblingPos;
-        int apos_position = (apos<<2) | position;
+        long apos_position = (apos<<2) | position;
         features[index++] = apos_position;
         String pSense_leftSiblingPos = pSense+" "+ leftsiblingpos;
         features[index++] = pSense_leftSiblingPos;
@@ -1034,13 +1039,13 @@ public class FeatureExtractor {
         features[index++] = pSense_aDepRel;
         String pchilddepset_position = pchilddepset+" "+ position;
         features[index++] = pchilddepset_position;
-        int adeprel_rightPos=  (adeprel <<10) | rightpos;
+        long adeprel_rightPos=  (adeprel <<10) | rightpos;
         features[index++] = adeprel_rightPos;
-        int aw_apos = (aw <<20) | apos;
+        long aw_apos = (aw <<20) | apos;
         features[index++] = aw_apos;
-        int plemm_apos = (plem<<10) | apos;
+        long plemm_apos = (plem<<10) | apos;
         features[index++] = plemm_apos;
-        int apos_adeprel = (apos <<10) | adeprel;
+        long apos_adeprel = (apos <<10) | adeprel;
         features[index++] = apos_adeprel;
 
         return new Object[]{features, index};
@@ -1270,6 +1275,7 @@ public class FeatureExtractor {
         features[index++] = pchildwset_aw_adeprel;
         return new Object[]{features, index};
     }
+
 
     private static class BaseFeatureFields {
         private int pIdx;

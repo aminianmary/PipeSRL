@@ -88,7 +88,7 @@ public class Decoder {
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
         boolean decode = true;
-        List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devDataPath);
+        ArrayList<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devDataPath);
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
 

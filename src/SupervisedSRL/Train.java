@@ -537,7 +537,7 @@ public class Train {
     }
 
 
-    private String trainAI(List<String> trainSentencesInCONLLFormat,
+    public String trainAI(List<String> trainSentencesInCONLLFormat,
                            List<String> devSentencesInCONLLFormat,
                            IndexMap indexMap,
                            int numberOfTrainingIterations,
@@ -639,7 +639,7 @@ public class Train {
     }
 
 
-    private String trainAC(List<String> trainSentencesInCONLLFormat,
+    public String trainAC(List<String> trainSentencesInCONLLFormat,
                            String devData,
                            HashSet<String> labelSet, IndexMap indexMap,
                            int numberOfTrainingIterations,
@@ -684,7 +684,7 @@ public class Train {
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
             String aiModelPath = modelDir + "/AI.model";
-            String outputFile = modelDir + "dev_output_" + iter;
+            String outputFile = modelDir + "/dev_output_" + iter;
 
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
             Decoder.decode(argumentDecoder, indexMap, devData, ap.getLabelMap(),
