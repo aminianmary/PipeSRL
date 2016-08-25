@@ -188,7 +188,6 @@ public class Decoder {
                                                 ClassifierType classifierType,
                                                 boolean greedy, boolean use4Reranker) throws Exception {
 
-
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
