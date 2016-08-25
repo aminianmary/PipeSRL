@@ -1,5 +1,7 @@
 package ml;
 
+import SupervisedSRL.Reranker.RerankerInstanceItem;
+import SupervisedSRL.Reranker.RerankerPool;
 import SupervisedSRL.Strcutures.CompactArray;
 
 import java.io.*;
@@ -123,12 +125,57 @@ public class AveragedPerceptron implements Serializable {
         iteration++;
     }
 
+    public void learnInstance(RerankerPool pool) {
+        int argmax = argmax(pool, false);
+
+        if(argmax!=pool.getGoldIndex()){
+            updateWeight(argmax, pool.getGoldIndex(), pool);
+        } else     correct++;
+
+        iteration++;
+    }
+
     private void updateWeight(int argmax, int gold, Object[] features) {
         for (int i = 0; i < features.length; i++) {
             updateWeight(argmax, i, features[i], -1);
             updateWeight(gold, i, features[i], 1);
         }
     }
+
+    private void updateWeight(int argmax, int gold, RerankerPool pool) {
+        HashMap<Object, Integer>[] argmaxFeats = pool.item(argmax).getFeatures();
+        HashMap<Object, Integer>[] goldFeats = pool.item(gold).getFeatures();
+        for (int i = 0; i < argmaxFeats.length; i++) {
+            // increase the weight for gold
+            for (Object goldFeat : goldFeats[i].keySet()) {
+                CompactArray array = weights[i].get(goldFeat);
+                CompactArray avgArray = avgWeights[i].get(goldFeat);
+                if (array == null) {
+                    array = new CompactArray(0, new double[1]);
+                    avgArray = new CompactArray(0, new double[1]);
+                }
+                array.expandArray(0, goldFeats[i].get(goldFeat));
+                avgArray.expandArray(0, iteration *goldFeats[i].get(goldFeat));
+                weights[i].put(goldFeat, array);
+                avgWeights[i].put(goldFeat, avgArray);
+            }
+
+            // decrease the weight for argmax
+            for (Object argmaxFeat : argmaxFeats[i].keySet()) {
+                CompactArray array = weights[i].get(argmaxFeat);
+                CompactArray avgArray = avgWeights[i].get(argmaxFeat);
+                if (array == null) {
+                    array = new CompactArray(0, new double[1]);
+                    avgArray = new CompactArray(0, new double[1]);
+                }
+                array.expandArray(0, -goldFeats[i].get(argmaxFeat));
+                avgArray.expandArray(0, -iteration *goldFeats[i].get(argmaxFeat));
+                weights[i].put(argmaxFeat, array);
+                avgWeights[i].put(argmaxFeat, avgArray);
+            }
+        }
+    }
+
 
     private void updateWeight(int label, int featIndex, Object feature, double change) {
         if (!weights[featIndex].containsKey(feature)) {
@@ -180,6 +227,21 @@ public class AveragedPerceptron implements Serializable {
         return argmax;
     }
 
+    public int argmax(RerankerPool pool, boolean decode) {
+        double max = Double.NEGATIVE_INFINITY;
+        int argmax = 0;
+
+        for(int i=0; i<pool.length();i++){
+            double score = score(pool.item(i),decode);
+            if(score>max){
+                argmax = i;
+                max = score;
+            }
+        }
+        return argmax;
+    }
+
+
     public double[] score(Object[] features) {
         double[] score = new double[labelMap.length];
 
@@ -193,6 +255,24 @@ public class AveragedPerceptron implements Serializable {
         }
         return score;
     }
+
+    private double score(RerankerInstanceItem item, boolean decode) {
+       double score=0;
+        HashMap<Object, CompactArray>[] map = decode ? avgWeights : weights;
+        HashMap<Object, Integer>[] features=   item.getFeatures();
+
+        for(int i=0;i<features.length;i++) {
+            for (Object feat : features[i].keySet()) {
+                if (map[i].containsKey(feat)) {
+                    double weight = map[i].get(feat).getArray()[0];
+                    score += weight * features[i].get(feat);
+                }
+            }
+        }
+
+        return score;
+    }
+
 
     public void saveModel(String filePath) throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
