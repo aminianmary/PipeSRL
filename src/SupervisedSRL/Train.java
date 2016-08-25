@@ -23,7 +23,7 @@ import java.util.zip.GZIPOutputStream;
 public class Train {
 
     //this function is used to train stacked ai-ac models
-    public String[] train(String trainData,
+    public static String[] train(String trainData,
                           String devData,
                           String clusterFile,
                           int numberOfTrainingIterations,
@@ -80,7 +80,7 @@ public class Train {
     }
 
 
-    private String[] trainLiblinear(List<String> trainSentencesInCONLLFormat,
+    public static String[] trainLiblinear(List<String> trainSentencesInCONLLFormat,
                                    List<String> devSentencesInCONLLFormat,
                                    String taskType,
                                    IndexMap indexMap,
@@ -142,7 +142,7 @@ public class Train {
 
 
 
-    private String[] trainAdam (List<String> trainSentencesInCONLLFormat,
+    public static String[] trainAdam (List<String> trainSentencesInCONLLFormat,
                               List<String> devSentencesInCONLLFormat, String devData, IndexMap indexMap, int numberOfTrainingIterations,
                               String modelDir, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, String taskType,
                                 int batchSize, int aiMaxBeamSize, int acMaxBeamSize, double learningRate, boolean greedy, int numOfThreads)throws Exception {
@@ -290,7 +290,7 @@ public class Train {
     }
 
 
-    private void writeLiblinearFeats (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numOfFeatures,
+    public static void writeLiblinearFeats (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numOfFeatures,
                                       HashMap<Object, Integer>[] featDict, HashMap<String, Integer> labelDict,
                                       String taskType, String filePath) throws Exception {
         System.out.println("Writing "+ filePath +"...");
@@ -341,7 +341,7 @@ public class Train {
     }
 
 
-    private Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>
+    public static Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>
     constructFeatureDict4LibLinear(List<String> trainSentencesInCONLLFormat,
                                    IndexMap indexMap, int numOfFeatures, String taskType) throws Exception {
         HashMap<Object, Integer>[] featureDic = new HashMap[numOfFeatures];
@@ -399,7 +399,7 @@ public class Train {
 
 
     //this function is used to train the joint ai-ac model
-    public String trainJoint(String trainData,
+    public static String trainJoint(String trainData,
                              String devData,
                              String clusterFile,
                              int numberOfTrainingIterations,
@@ -490,7 +490,7 @@ public class Train {
     }
 
 
-    public String[] trainJointLiblinear(String trainData,
+    public static String[] trainJointLiblinear(String trainData,
                           String devData, String clusterFile,
                           int numberOfTrainingIterations,
                           String modelDir,
@@ -512,7 +512,7 @@ public class Train {
     }
 
 
-    public String[] trainJointAdam(String trainData,
+    public static String[] trainJointAdam(String trainData,
                                         String devData,
                                         String clusterFile,
                                         int numberOfTrainingIterations,
@@ -537,7 +537,7 @@ public class Train {
     }
 
 
-    public String trainAI(List<String> trainSentencesInCONLLFormat,
+    public static String trainAI(List<String> trainSentencesInCONLLFormat,
                            List<String> devSentencesInCONLLFormat,
                            IndexMap indexMap,
                            int numberOfTrainingIterations,
@@ -639,7 +639,7 @@ public class Train {
     }
 
 
-    public String trainAC(List<String> trainSentencesInCONLLFormat,
+    public static String trainAC(List<String> trainSentencesInCONLLFormat,
                            String devData,
                            HashSet<String> labelSet, IndexMap indexMap,
                            int numberOfTrainingIterations,
@@ -713,7 +713,7 @@ public class Train {
     }
 
 
-    private Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
+    public static Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -727,7 +727,7 @@ public class Train {
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
                 Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx,
-                        sentence, numOfFeatures, indexMap);
+                        sentence, numOfFeatures, indexMap, false, 0);
 
                 String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
                 featVectors.add(featVector);
@@ -739,7 +739,7 @@ public class Train {
     }
 
 
-    private Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
+    public static Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -752,7 +752,7 @@ public class Train {
             //extract features for arguments (not all words)
             for (Argument arg : currentArgs) {
                 int argIdx = arg.getIndex();
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, argIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, argIdx, sentence, numOfFeatures, indexMap, false, 0);
 
                 String label = arg.getType();
                 featVectors.add(featVector);
@@ -765,7 +765,7 @@ public class Train {
 
 
     //function is used for joint ai-ac training/decoding
-    private Object[] obtainTrainInstance4JointModel(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
+    public static Object[] obtainTrainInstance4JointModel(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         boolean decode = false;
@@ -778,7 +778,7 @@ public class Train {
             ArrayList<Argument> currentArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                Object[] featVector = FeatureExtractor.extractJointFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractJointFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
 
                 String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : isArgument(wordIdx, currentArgs);
                 featVectors.add(featVector);
@@ -795,7 +795,7 @@ public class Train {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    private String isArgument(int wordIdx, ArrayList<Argument> currentArgs) {
+    public static String isArgument(int wordIdx, ArrayList<Argument> currentArgs) {
         for (Argument arg : currentArgs)
             if (arg.getIndex() == wordIdx)
                 return arg.getType();

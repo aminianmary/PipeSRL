@@ -99,8 +99,8 @@ public class Decoder {
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap);
 
-            predictions[d] = decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir,aiFeatDict,acFeatDict, classifierType, greedy);
+            predictions[d] = (TreeMap<Integer, Prediction>) decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
+                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir,aiFeatDict,acFeatDict, classifierType, greedy, false);
 
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
         }
@@ -180,18 +180,18 @@ public class Decoder {
 
 
 
-    public TreeMap<Integer, Prediction> predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
+    public Object predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                                                 int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
                                                 int numOfPDFeatures, String modelDir,
                                                 HashMap<Object, Integer>[] aiFeatDict,
                                                 HashMap<Object, Integer>[] acFeatDict,
                                                 ClassifierType classifierType,
-                                                boolean greedy) throws Exception {
+                                                boolean greedy, boolean use4Reranker) throws Exception {
 
 
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
-
+        TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
         for (int pIdx : predictedPredicates.keySet()) {
             // get best k argument assignment candidates
             String pLabel = predictedPredicates.get(pIdx);
@@ -202,24 +202,36 @@ public class Decoder {
             ArrayList<Integer> acCandidatesGreedy = new ArrayList<Integer>();
             HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
 
+
             if (!greedy)
             {
                 aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures, aiFeatDict, classifierType);
                 acCandidates = getBestACCandidates(sentence, pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, acFeatDict, classifierType);
-                highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
-            }else
-            {
+                if (use4Reranker)
+                     predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
+                else
+                    highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
+            }else {
                 aiCandidatesGreedy = getBestAICandidatesGreedy(sentence, pIdx, indexMap, numOfAIFeatures, aiFeatDict, classifierType);
                 acCandidatesGreedy = getBestACCandidatesGreedy(sentence, pIdx, indexMap, aiCandidatesGreedy, numOfACFeatures, acFeatDict, classifierType);
-                for (int idx=0; idx< acCandidatesGreedy.size(); idx++) {
-                    int wordIdx = aiCandidatesGreedy.get(idx);
-                    int label = acCandidatesGreedy.get(idx);
-                    highestScorePrediction.put(wordIdx, label);
+                if (use4Reranker)
+                    predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
+                else {
+                    for (int idx = 0; idx < acCandidatesGreedy.size(); idx++) {
+                        int wordIdx = aiCandidatesGreedy.get(idx);
+                        int label = acCandidatesGreedy.get(idx);
+                        highestScorePrediction.put(wordIdx, label);
+                    }
                 }
             }
-            predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
+            if (!use4Reranker)
+                predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
-        return predictedPAs;
+
+        if (use4Reranker)
+            return predictedAIACCandidates;
+        else
+            return predictedPAs;
     }
 
 
@@ -267,7 +279,7 @@ public class Decoder {
 
         // Gradual building of the beam
         for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
             double score0 = Double.POSITIVE_INFINITY;
             double score1 = Double.NEGATIVE_INFINITY;
 
@@ -349,12 +361,12 @@ public class Decoder {
         ArrayList<Integer> aiCandids = new ArrayList<Integer>();
         for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
             if (classifierType == ClassifierType.AveragedPerceptron) {
-                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
                 double score1 = aiClassifier.score(featVector)[1];
                 if (score1 >= 0)
                     aiCandids.add(wordIdx);
             } else if (classifierType == ClassifierType.Liblinear) {
-                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
                 ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
                 for (int d = 0; d < featVector.length; d++)
                     if (featDict[d].containsKey(featVector[d]))
@@ -370,7 +382,7 @@ public class Decoder {
                     aiCandids.add(wordIdx);
             } else if (classifierType == ClassifierType.Adam) {
 
-                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
                 ArrayList<Integer> feats = new ArrayList<Integer>();
                 for (int d = 0; d < featVector.length; d++)
                     if (featDict[d].containsKey(featVector[d]))
@@ -411,7 +423,7 @@ public class Decoder {
             // Gradual building of the beam for the words identified as an argument by AI classifier
             for (int wordIdx : aiCandidate.second) {
                 // retrieve candidates for the current word
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
                 double[] labelScores = new double[numOfLabels];
 
                 if (classifierType== ClassifierType.AveragedPerceptron) {
@@ -490,7 +502,7 @@ public class Decoder {
             int wordIdx = aiCandidates.get(aiCandidIdx);
             if (classifierType == ClassifierType.AveragedPerceptron)
             {
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
                 double[] labelScores = acClassifier.score(featVector);
                 int predictedLabel = argmax(labelScores);
                 acCandids.add(predictedLabel);
@@ -498,7 +510,7 @@ public class Decoder {
             {
                 // retrieve candidates for the current word
                 int[] labels = acClassifier_ll.getLabels();
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
                 ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
                 for (int d = 0; d < featVector.length; d++)
                     if (featDict[d].containsKey(featVector[d]))
@@ -515,7 +527,7 @@ public class Decoder {
             }else if (classifierType == ClassifierType.Adam) {
                 String[] labelMap = acClassifier_adam.getLabelMap();
                 // retrieve candidates for the current word
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
                 ArrayList<Integer> feats = new ArrayList<Integer>();
                 for (int d = 0; d < featVector.length; d++)
                     if (featDict[d].containsKey(featVector[d]))
@@ -552,7 +564,7 @@ public class Decoder {
         // Gradual building of the beam for all words in the sentence
         for (int wordIdx = 1; wordIdx < sentence.getWords().length; wordIdx++) {
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
             double[] labelScores= new double[numOfLabels];
 
             if (classifierType == ClassifierType.AveragedPerceptron)
@@ -632,7 +644,7 @@ public class Decoder {
 
         for (int wordIdx = 1; wordIdx < sentence.getWords().length; wordIdx++) {
             // retrieve candidates for the current word
-            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap);
+            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
             double[] labelScores = new double[numOfLabels];
 
             if (classifierType == ClassifierType.AveragedPerceptron)

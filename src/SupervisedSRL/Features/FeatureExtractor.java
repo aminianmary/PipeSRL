@@ -5,11 +5,16 @@ package SupervisedSRL.Features;
 
 import Sentence.Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Pair;
+import SupervisedSRL.Strcutures.Prediction4Reranker;
 import util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public class FeatureExtractor {
     static HashSet<String> punctuations = new HashSet<String>();
@@ -125,6 +130,31 @@ public class FeatureExtractor {
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1], extractGlobalFeatures, label);
         Object[] jointFeatures = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
         return (Object[]) jointFeatures[0];
+    }
+
+    public static Object[] extractGlobalFeatures(int pIdx, String pLabel, Pair<Double, ArrayList<Integer>> aiCandid,
+                                             Pair<Double, ArrayList<Integer>> acCandid, String[] labelMap){
+
+        String seqOfCoreArgumentLabels = "";
+        boolean predicateSeen = false;
+        for (int i=0; i< aiCandid.second.size(); i++) {
+            int wordIdx = aiCandid.second.get(i);
+            String label = labelMap[acCandid.second.get(i)];
+            if (!label.equalsIgnoreCase("A0")
+                    || label.equalsIgnoreCase("A1")
+                    || label.equalsIgnoreCase("A2")
+                    || label.equalsIgnoreCase("A3")
+                    || label.equalsIgnoreCase("A4"))
+                continue;
+
+            if (wordIdx < pIdx || predicateSeen)
+                seqOfCoreArgumentLabels += label+" ";
+            else if (wordIdx > pIdx){
+                seqOfCoreArgumentLabels += pLabel+" "+label+" ";
+                predicateSeen= true;
+            }
+        }
+        return new Object[]{seqOfCoreArgumentLabels.trim()};
     }
 
     private static String getDepSubCat(int pIdx, TreeSet<Integer>[] sentenceReverseDepHeads,
