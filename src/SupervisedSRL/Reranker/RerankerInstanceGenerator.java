@@ -83,7 +83,7 @@ public class RerankerInstanceGenerator {
     private ArrayList<ArrayList<String>> getPartitions(String trainFilePath) throws IOException {
         ArrayList<ArrayList<String>> partitions = new ArrayList<ArrayList<String>>();
         ArrayList<String> sentencesInCoNLLFormat = IO.readCoNLLFile(trainFilePath);
-        Collections.shuffle(sentencesInCoNLLFormat);
+        //Collections.shuffle(sentencesInCoNLLFormat);
         int partitionSize = (int) Math.ceil((double) sentencesInCoNLLFormat.size() / numOfPartitions);
         int startIndex = 0;
         int endIndex = 0;
@@ -103,7 +103,7 @@ public class RerankerInstanceGenerator {
 
 
     public void buildTrainInstances() throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(numOfPartitions);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
         CompletionService<Boolean> pool =  new ExecutorCompletionService<Boolean>(executor);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
@@ -299,6 +299,10 @@ public class RerankerInstanceGenerator {
             else
                 rerankerFeatureVector[offset+i].put(feats[i], rerankerFeatureVector[offset+i].get(feats[i])+1);
         }
+    }
+
+    public ArrayList<ArrayList<String>> getTrainPartitions() {
+        return trainPartitions;
     }
 
     private class InstanceGenerator implements Callable<Boolean> {

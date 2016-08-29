@@ -102,9 +102,10 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0 , extractGlobalFeatures, label);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1], extractGlobalFeatures, label);
-        Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
+        Object[] bigrams = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
+        //Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
 
-        Object[] AIFeatures = bigramFeatures4AIFromNuguesSystem;
+        Object[] AIFeatures = bigrams;
         return (Object[]) AIFeatures[0];
     }
 
@@ -140,11 +141,11 @@ public class FeatureExtractor {
         for (int i=0; i< aiCandid.second.size(); i++) {
             int wordIdx = aiCandid.second.get(i);
             String label = labelMap[acCandid.second.get(i)];
-            if (!label.equalsIgnoreCase("A0")
+            if (!(label.equalsIgnoreCase("A0")
                     || label.equalsIgnoreCase("A1")
                     || label.equalsIgnoreCase("A2")
                     || label.equalsIgnoreCase("A3")
-                    || label.equalsIgnoreCase("A4"))
+                    || label.equalsIgnoreCase("A4")))
                 continue;
 
             if (wordIdx < pIdx || predicateSeen)
@@ -154,6 +155,8 @@ public class FeatureExtractor {
                 predicateSeen= true;
             }
         }
+        if (predicateSeen==false)
+            seqOfCoreArgumentLabels += pLabel;
         return new Object[]{seqOfCoreArgumentLabels.trim()};
     }
 
@@ -298,20 +301,21 @@ public class FeatureExtractor {
         String pchilddepset = (extractGlobalFeatures) ? label+" "+ label+" "+ baseFeatureFields.getPchilddepset() : baseFeatureFields.getPchilddepset();
         String pchildposset = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPchildposset() : baseFeatureFields.getPchildposset() ;
         String pchildwset = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPchildwset() : baseFeatureFields.getPchildwset();
-        int aw = (extractGlobalFeatures) ? (baseFeatureFields.getAw() <<6) | label : baseFeatureFields.getAw();
-        int apos = (extractGlobalFeatures) ? (baseFeatureFields.getApos() <<6) | label : baseFeatureFields.getApos();
-        int adeprel =(extractGlobalFeatures) ? (baseFeatureFields.getAdeprel() <<6) | label : baseFeatureFields.getAdeprel();
-        String deprelpath =  (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getDeprelpath() : baseFeatureFields.getDeprelpath();
-        String pospath = (extractGlobalFeatures) ? label+" "+ baseFeatureFields.getPospath() :baseFeatureFields.getPospath() ;
-        int position = (extractGlobalFeatures) ? (baseFeatureFields.getPosition() <<6) | label : baseFeatureFields.getPosition();
-        int leftw = (extractGlobalFeatures) ? (baseFeatureFields.getLeftw() <<6) | label : baseFeatureFields.getLeftw();
-        int leftpos = (extractGlobalFeatures) ? (baseFeatureFields.getLeftpos() <<6) | label : baseFeatureFields.getLeftpos();
-        int rightw = (extractGlobalFeatures) ? (baseFeatureFields.getRightw() <<6) | label : baseFeatureFields.getRightw();
-        int rightpos = (extractGlobalFeatures) ? (baseFeatureFields.getRightpos() <<6) | label : baseFeatureFields.getRightpos();
-        int leftsiblingw = (extractGlobalFeatures) ? (baseFeatureFields.getLeftsiblingw() <<6) | label : baseFeatureFields.getLeftsiblingw();
-        int leftsiblingpos = (extractGlobalFeatures) ? (baseFeatureFields.getLeftsiblingpos() <<6) | label : baseFeatureFields.getLeftsiblingpos();
-        int rightsiblingw = (extractGlobalFeatures) ? (baseFeatureFields.getRightsiblingw() <<6) | label : baseFeatureFields.getRightsiblingw();
-        int rightsiblingpos = (extractGlobalFeatures) ? (baseFeatureFields.getRightsiblingpos() <<6) | label : baseFeatureFields.getRightsiblingpos();
+
+        int aw = baseFeatureFields.getAw();
+        int apos = baseFeatureFields.getApos();
+        int adeprel =baseFeatureFields.getAdeprel();
+        String deprelpath = baseFeatureFields.getDeprelpath();
+        String pospath =baseFeatureFields.getPospath() ;
+        int position =  baseFeatureFields.getPosition();
+        int leftw = baseFeatureFields.getLeftw();
+        int leftpos =  baseFeatureFields.getLeftpos();
+        int rightw =  baseFeatureFields.getRightw();
+        int rightpos = baseFeatureFields.getRightpos();
+        int leftsiblingw = baseFeatureFields.getLeftsiblingw();
+        int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
+        int rightsiblingw =  baseFeatureFields.getRightsiblingw();
+        int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
 
 
         // pw + argument features
@@ -494,7 +498,7 @@ public class FeatureExtractor {
         long pprw_rightsiblingpos = (pprw << 10) | rightsiblingpos;
         features[index++] = pprw_rightsiblingpos;
 
-        //pdeprel + argument features
+        //pprpos + argument features
         long aw_pprpos = (aw << 10) | pprpos;
         features[index++] = aw_pprpos;
         long pprpos_apos = (pprpos << 10) | apos;
