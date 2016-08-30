@@ -110,8 +110,7 @@ public class RerankerInstanceGenerator {
 
 
     public void buildTrainInstances() throws Exception {
-        /*
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ExecutorService executor = Executors.newFixedThreadPool(numOfPartitions);
         CompletionService<Boolean> pool =  new ExecutorCompletionService<Boolean>(executor);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
@@ -123,10 +122,7 @@ public class RerankerInstanceGenerator {
             System.out.println((devPartIdx+1)+" jobs done!");
         }
         System.out.println("All jobs done!");
-        */
-        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            writeTrainSentences(devPartIdx);
-        }
+
     }
 
 
