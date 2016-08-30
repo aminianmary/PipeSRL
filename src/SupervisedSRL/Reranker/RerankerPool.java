@@ -40,4 +40,5 @@ public class RerankerPool implements Serializable{
     public RerankerInstanceItem item(int i){
         return items.get(i);
     }
+
 }

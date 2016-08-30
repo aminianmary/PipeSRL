@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.util.HashMap;
 
 /**
  * Created by monadiab on 8/26/16.
@@ -76,7 +77,8 @@ public class RerankerInstanceGeneratorTest {
         writeConllText();
         writeClusterFile();
         int numOfPartitions = 2;
-        RerankerInstanceGenerator r= new RerankerInstanceGenerator(tmpFilePath,numOfPartitions,clusterFilePath,"","",0,0,0,0,0,0,0,0,false);
+        HashMap<String, Integer> globalReverseLabelMap = new HashMap<String, Integer>();
+        RerankerInstanceGenerator r= new RerankerInstanceGenerator(tmpFilePath,numOfPartitions,clusterFilePath,"","",0,0,0,0,0,0,0,0,false,globalReverseLabelMap);
         assert r.getTrainPartitions().get(0).get(0).equals("1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
                 "2\teconomy\teconomy\teconomy\tNN\tNN\t_\t_\t4\t4\tNMOD\tNMOD\t_\t_\tA1\t_\t_\t_\n" +
                 "3\t's\t's\t's\tPOS\tPOS\t_\t_\t2\t2\tSUFFIX\tSUFFIX\t_\t_\t_\t_\t_\t_\n" +

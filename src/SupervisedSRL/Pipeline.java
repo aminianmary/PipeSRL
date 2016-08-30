@@ -55,7 +55,7 @@ public class Pipeline {
         boolean decodeJoint = Boolean.parseBoolean(args[11]);
         boolean decodeOnly = Boolean.parseBoolean(args[12]);
         boolean greedy = Boolean.parseBoolean(args[13]);
-        int numOfThreads = Integer.parseInt(args[15]);
+        int numOfThreads = Integer.parseInt(args[14]);
         ClassifierType classifierType = ClassifierType.AveragedPerceptron;
         switch (learnerType)
         {

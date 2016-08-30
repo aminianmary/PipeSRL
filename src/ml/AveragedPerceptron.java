@@ -147,31 +147,36 @@ public class AveragedPerceptron implements Serializable {
         HashMap<Object, Integer>[] goldFeats = pool.item(gold).getFeatures();
         for (int i = 0; i < argmaxFeats.length; i++) {
             // increase the weight for gold
-            for (Object goldFeat : goldFeats[i].keySet()) {
-                CompactArray array = weights[i].get(goldFeat);
-                CompactArray avgArray = avgWeights[i].get(goldFeat);
-                if (array == null) {
-                    array = new CompactArray(0, new double[1]);
-                    avgArray = new CompactArray(0, new double[1]);
+            if (goldFeats[i]!= null) {
+                for (Object goldFeat : goldFeats[i].keySet()) {
+                    CompactArray array = weights[i].get(goldFeat);
+                    CompactArray avgArray = avgWeights[i].get(goldFeat);
+                    if (array == null) {
+                        array = new CompactArray(0, new double[1]);
+                        avgArray = new CompactArray(0, new double[1]);
+                    }
+                    array.expandArray(0, goldFeats[i].get(goldFeat));
+                    avgArray.expandArray(0, iteration * goldFeats[i].get(goldFeat));
+                    weights[i].put(goldFeat, array);
+                    avgWeights[i].put(goldFeat, avgArray);
                 }
-                array.expandArray(0, goldFeats[i].get(goldFeat));
-                avgArray.expandArray(0, iteration *goldFeats[i].get(goldFeat));
-                weights[i].put(goldFeat, array);
-                avgWeights[i].put(goldFeat, avgArray);
             }
 
             // decrease the weight for argmax
-            for (Object argmaxFeat : argmaxFeats[i].keySet()) {
-                CompactArray array = weights[i].get(argmaxFeat);
-                CompactArray avgArray = avgWeights[i].get(argmaxFeat);
-                if (array == null) {
-                    array = new CompactArray(0, new double[1]);
-                    avgArray = new CompactArray(0, new double[1]);
+            //todo check if it is correct
+            if (argmaxFeats[i] != null) {
+                for (Object argmaxFeat : argmaxFeats[i].keySet()) {
+                    CompactArray array = weights[i].get(argmaxFeat);
+                    CompactArray avgArray = avgWeights[i].get(argmaxFeat);
+                    if (array == null) {
+                        array = new CompactArray(0, new double[1]);
+                        avgArray = new CompactArray(0, new double[1]);
+                    }
+                    array.expandArray(0, -argmaxFeats[i].get(argmaxFeat));
+                    avgArray.expandArray(0, -iteration * argmaxFeats[i].get(argmaxFeat));
+                    weights[i].put(argmaxFeat, array);
+                    avgWeights[i].put(argmaxFeat, avgArray);
                 }
-                array.expandArray(0, -goldFeats[i].get(argmaxFeat));
-                avgArray.expandArray(0, -iteration *goldFeats[i].get(argmaxFeat));
-                weights[i].put(argmaxFeat, array);
-                avgWeights[i].put(argmaxFeat, avgArray);
             }
         }
     }
@@ -262,14 +267,16 @@ public class AveragedPerceptron implements Serializable {
         HashMap<Object, Integer>[] features=   item.getFeatures();
 
         for(int i=0;i<features.length;i++) {
-            for (Object feat : features[i].keySet()) {
-                if (map[i].containsKey(feat)) {
-                    double weight = map[i].get(feat).getArray()[0];
-                    score += weight * features[i].get(feat);
+            //todo check if it is correct
+            if (features[i] != null) {
+                for (Object feat : features[i].keySet()) {
+                    if (map[i].containsKey(feat)) {
+                        double weight = map[i].get(feat).getArray()[0];
+                        score += weight * features[i].get(feat);
+                    }
                 }
             }
         }
-
         return score;
     }
 

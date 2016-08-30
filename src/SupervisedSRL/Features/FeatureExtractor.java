@@ -102,10 +102,9 @@ public class FeatureExtractor {
         BaseFeatureFields baseFeatureFields = new BaseFeatureFields(pIdx, aIdx, sentence, indexMap).invoke();
         Object[] predFeats = addAllPredicateFeatures(baseFeatureFields, features, 0 , extractGlobalFeatures, label);
         Object[] argFeats = addAllArgumentFeatures(baseFeatureFields, (Object[]) predFeats[0], (Integer) predFeats[1], extractGlobalFeatures, label);
-        Object[] bigrams = addPredicateArgumentBigramFeatures(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
-        //Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
+        Object[] bigramFeatures4AIFromNuguesSystem= addBigramFeatures4AIFromNuguesSystem(baseFeatureFields, (Object[]) argFeats[0], (Integer) argFeats[1], extractGlobalFeatures, label);
 
-        Object[] AIFeatures = bigrams;
+        Object[] AIFeatures = bigramFeatures4AIFromNuguesSystem;
         return (Object[]) AIFeatures[0];
     }
 

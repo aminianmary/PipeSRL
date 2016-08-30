@@ -16,22 +16,9 @@ import java.util.zip.GZIPInputStream;
  * Created by Maryam Aminian on 8/25/16.
  */
 public class Train {
-    int numOfParts;
-    String rerankerInstanceFilePrefix;
-    int numOfTrainingIterations;
-    int numOfRerankerFeatures;
-    String modelDir;
 
-    public Train(int numOfParts, String rerankerInstanceFilePrefix, int numOfTrainingIterations,
-                 int numOfRerankerFeatures, String modelDir) {
-        this.numOfParts = numOfParts;
-        this.rerankerInstanceFilePrefix = rerankerInstanceFilePrefix;
-        this.numOfTrainingIterations = numOfTrainingIterations;
-        this.numOfRerankerFeatures= numOfRerankerFeatures;
-        this.modelDir= modelDir;
-    }
-
-    public String trainReranker() throws Exception{
+    public static String trainReranker(int numOfParts, String rerankerInstanceFilePrefix, int numOfTrainingIterations,
+                                int numOfRerankerFeatures, String modelDir) throws Exception{
         HashSet<String> labels= new HashSet<String>();
         labels.add("1");
         AveragedPerceptron ap = new AveragedPerceptron(labels, numOfRerankerFeatures);
