@@ -4,7 +4,6 @@ import SupervisedSRL.Strcutures.Prediction;
 
 import java.io.*;
 import java.util.*;
-
 /**
  * Created by monadiab on 4/12/16.
  */
@@ -202,4 +201,11 @@ public class IO {
         return labels;
     }
 
+    public static boolean makeDirectory(String path) {
+        File dir = new File(path);
+        if (dir.exists())
+            dir.delete();
+        dir.mkdir();
+        return true;
+    }
 }

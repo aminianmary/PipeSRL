@@ -111,26 +111,25 @@ public class RerankerInstanceGenerator {
 
     public void buildTrainInstances() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(numOfPartitions);
-        CompletionService<Boolean> pool =  new ExecutorCompletionService<Boolean>(executor);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            pool.submit(new InstanceGenerator(devPartIdx));
+            executor.execute(new InstanceGenerator(devPartIdx));
         }
         System.out.println("Reranker training instance generation are submitted");
-        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            assert pool.take().get();
-            System.out.println((devPartIdx+1)+" jobs done!");
+        executor.shutdown();
+        while (!executor.isTerminated()) {
         }
         System.out.println("All jobs done!");
-
     }
 
 
     private void writeTrainSentences(int devPartIdx) throws Exception {
-
         System.out.println("generating reranker train instances for part "+ devPartIdx);
         ArrayList<String> trainSentences = new ArrayList<String>();
         ArrayList<String> devSentences = new ArrayList<String>();
+
+        String partitionModelDir = modelDir+"/part_"+devPartIdx+"/";
+        IO.makeDirectory(partitionModelDir);
 
         for (int partIdx = 0; partIdx < numOfPartitions; partIdx++) {
             if (partIdx == devPartIdx)
@@ -139,7 +138,7 @@ public class RerankerInstanceGenerator {
                 trainSentences.addAll(trainPartitions.get(partIdx));
         }
         //write dev sentences into a file (to be compatible with previous functions)
-        String devDataPath = modelDir + "/reranker_dev_" + devPartIdx;
+        String devDataPath = partitionModelDir + "reranker_dev_" + devPartIdx;
         BufferedWriter devWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(devDataPath)));
         for (String sentence : devSentences)
             devWriter.write(sentence + "\n\n");
@@ -149,11 +148,11 @@ public class RerankerInstanceGenerator {
         //train a PD-AI-AC modules on the train parts
         HashSet<String> argLabels = new HashSet<String>(globalReverseLabelMap.keySet());
         final IndexMap indexMap = new IndexMap(trainSentences, clusterFile);
-        PD.train(trainSentences, indexMap, numOfPDTrainingIterations, modelDir, numOfPDFeatures);
+        PD.train(trainSentences, indexMap, numOfPDTrainingIterations, partitionModelDir, numOfPDFeatures);
         String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap,
-                numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize, greedy);
+                numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize, greedy);
         String acModelPath = Train.trainAC(trainSentences, devDataPath, argLabels, indexMap,
-                numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
+                numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                 aiMaxBeamSize, acMaxBeamSize, greedy);
 
         //decode on dev part
@@ -321,7 +320,7 @@ public class RerankerInstanceGenerator {
         return trainPartitions;
     }
 
-    private class InstanceGenerator implements Callable<Boolean> {
+    private class InstanceGenerator implements Runnable {
         int devPartIdx;
 
         public InstanceGenerator(int devPartIdx) {
@@ -329,9 +328,14 @@ public class RerankerInstanceGenerator {
         }
 
         @Override
-        public Boolean call() throws Exception {
-            writeTrainSentences(devPartIdx);
-            return true;
+        public void run() {
+            try {
+                writeTrainSentences(devPartIdx);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(e.getMessage());
+                System.exit(1);
+            }
         }
     }
 

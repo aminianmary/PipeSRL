@@ -58,6 +58,7 @@ public class AveragedPerceptron implements Serializable {
     public static AveragedPerceptron loadModel(String filePath) throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
+
         ///System.out.println("loading model...");
         FileInputStream fis = new FileInputStream(filePath);
         GZIPInputStream gz = new GZIPInputStream(fis);

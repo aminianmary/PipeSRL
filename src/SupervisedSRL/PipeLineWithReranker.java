@@ -26,8 +26,8 @@ public class PipeLineWithReranker {
     //predicate cluster features 3
     //argument cluster features 5
 
-    public static int numOfAIFeatures = 25 + 3+ 5+ 154 +91 + 6;
-    public static int numOfACFeatures = 25 + 3+ 5+ 154 + 91 + 6;
+    public static int numOfAIFeatures = 25 + 3+ 5+ 13;
+    public static int numOfACFeatures = 25 + 3+ 5+ 15;
     public static int numOfPDFeatures = 9;
     public static int numOfPDTrainingIterations = 10;
     public static String unseenSymbol = ";;?;;";
