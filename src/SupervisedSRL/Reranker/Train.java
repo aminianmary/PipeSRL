@@ -3,6 +3,7 @@ package SupervisedSRL.Reranker;
 import SupervisedSRL.Strcutures.CompactArray;
 import ml.AveragedPerceptron;
 
+import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
@@ -24,14 +25,24 @@ public class Train {
         AveragedPerceptron ap = new AveragedPerceptron(labels, numOfRerankerFeatures);
 
         for (int iter =0; iter< numOfTrainingIterations; iter++){
+            System.out.println("Iteration "+ iter+"\n>>>>>>>>>>>\n");
             for (int devPart =0; devPart< numOfParts; devPart++){
+                System.out.println("Loading/learning train instances for dev part "+ devPart+"\n");
                 FileInputStream fis = new FileInputStream(rerankerInstanceFilePrefix+devPart);
                 GZIPInputStream gz = new GZIPInputStream(fis);
                 ObjectInput reader = new ObjectInputStream(gz);
-                ArrayList<RerankerPool> rerankerPools = (ArrayList<RerankerPool>) reader.readObject();
 
-                for (RerankerPool pool: rerankerPools)
-                    ap.learnInstance(pool);
+                while(true){
+                    try{
+                        RerankerPool pool= (RerankerPool) reader.readObject();
+                        ap.learnInstance(pool);
+                    }catch (EOFException e)
+                    {
+                        reader.close();
+                        break;
+                    }
+                }
+                System.out.println("Part "+ devPart+" done!");
             }
         }
         String rerankerModelPath = modelDir+"/reranker.model";

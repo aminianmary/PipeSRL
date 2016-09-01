@@ -160,9 +160,11 @@ public class RerankerInstanceGenerator {
         AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
         Decoder decoder = new Decoder(aiClassifier, acClassifier);
-        ArrayList<RerankerPool> rerankerPoolsInThisDevPart = new ArrayList<RerankerPool>();
-
         System.out.println("Decoding started on " + devDataPath + "...\n");
+        String rerankerPoolsFilePath = rerankerInstanceFilePrefix + devPartIdx;
+        FileOutputStream fos = new FileOutputStream(rerankerPoolsFilePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
 
         for (int d = 0; d < devSentences.size(); d++) {
             if (d % 1000 == 0)
@@ -174,7 +176,7 @@ public class RerankerInstanceGenerator {
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir,
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, partitionModelDir,
                             null, null, ClassifierType.AveragedPerceptron, greedy, true);
 
             //creating the pool
@@ -200,26 +202,12 @@ public class RerankerInstanceGenerator {
                 //add gold assignment to the pool
                 rerankerPool.addInstance(new RerankerInstanceItem(extractRerankerFeatures4GoldAssignment(pIdx, sentence, goldMap4ThisPredicate,
                         numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, acClassifier.getLabelMap()), "1"), true);
-                rerankerPoolsInThisDevPart.add(rerankerPool);
+                writer.writeObject(rerankerPool);
             }
         }
         //write dev pools
-        System.out.println("Writing rerankerPools for dev part "+ devPartIdx+"\n Size: "+ rerankerPoolsInThisDevPart.size()+"\n");
-        String rerankerPoolsFilePath = rerankerInstanceFilePrefix + devPartIdx;
-        writeRerankerPools(rerankerPoolsInThisDevPart, rerankerPoolsFilePath);
-        System.out.println("Done!");
-    }
-
-
-    private void writeRerankerPools (ArrayList<RerankerPool> rerankerPools,String filePath) throws IOException{
-        DecimalFormat format = new DecimalFormat("##.00");
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        long startTime = System.currentTimeMillis();
-        writer.writeObject(rerankerPools);
-        long endTime = System.currentTimeMillis();
-        System.out.println("Total time to save pools: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
+        System.out.println("Writing rerankerPools for dev part "+ devPartIdx+" done!");
+        writer.flush();
         writer.close();
     }
 
