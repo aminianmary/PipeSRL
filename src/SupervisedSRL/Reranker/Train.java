@@ -29,15 +29,13 @@ public class Train {
             for (int devPart =0; devPart< numOfParts; devPart++){
                 System.out.println("Loading/learning train instances for dev part "+ devPart+"\n");
                 FileInputStream fis = new FileInputStream(rerankerInstanceFilePrefix+devPart);
-                GZIPInputStream gz = new GZIPInputStream(fis);
-                ObjectInput reader = new ObjectInputStream(gz);
+                ObjectInputStream reader = new ObjectInputStream(fis);
 
-                while(true){
-                    try{
-                        RerankerPool pool= (RerankerPool) reader.readObject();
+                while(true) {
+                    try {
+                        RerankerPool pool = (RerankerPool) reader.readObject();
                         ap.learnInstance(pool);
-                    }catch (EOFException e)
-                    {
+                    } catch (EOFException e) {
                         reader.close();
                         break;
                     }

@@ -119,7 +119,6 @@ public class Pipeline {
             } else {
                 //stacked decoding
                 if (classifierType == ClassifierType.AveragedPerceptron) {
-
                     modelPaths = Train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
                             ClassifierType.AveragedPerceptron, greedy, numOfThreads);

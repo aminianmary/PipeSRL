@@ -110,7 +110,7 @@ public class RerankerInstanceGenerator {
 
 
     public void buildTrainInstances() throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(numOfPartitions);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             executor.execute(new InstanceGenerator(devPartIdx));
@@ -156,15 +156,15 @@ public class RerankerInstanceGenerator {
                 aiMaxBeamSize, acMaxBeamSize, greedy);
 
         //decode on dev part
+        System.out.println("Decoding started on " + devDataPath + "...\n");
+
         ModelInfo aiModelInfo = new ModelInfo(aiModelPath);
         AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
         Decoder decoder = new Decoder(aiClassifier, acClassifier);
-        System.out.println("Decoding started on " + devDataPath + "...\n");
         String rerankerPoolsFilePath = rerankerInstanceFilePrefix + devPartIdx;
         FileOutputStream fos = new FileOutputStream(rerankerPoolsFilePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
+        ObjectOutputStream writer = new ObjectOutputStream(fos);
 
         for (int d = 0; d < devSentences.size(); d++) {
             if (d % 1000 == 0)
@@ -204,6 +204,7 @@ public class RerankerInstanceGenerator {
                         numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, acClassifier.getLabelMap()), "1"), true);
                 writer.writeObject(rerankerPool);
             }
+            writer.flush();
         }
         //write dev pools
         System.out.println("Writing rerankerPools for dev part "+ devPartIdx+" done!");
