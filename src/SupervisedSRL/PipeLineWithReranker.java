@@ -66,6 +66,10 @@ public class PipeLineWithReranker {
             modelPaths = SupervisedSRL.Train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize, adamBatchSize, adamLearningRate,
                     ClassifierType.AveragedPerceptron, greedy, numOfThreads);
+
+            ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
+            IndexMap indexMap = aiModelInfo.getIndexMap();
+            AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
             AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[2]);
             HashMap<String, Integer> globalReverseLabelMap = acClassifier.getReverseLabelMap();
 
@@ -77,10 +81,10 @@ public class PipeLineWithReranker {
             String instanceFilePrefix= modelDir+"/reranker_train_instances_";
             int numOfGlobalFeatures= 1;
 
-            RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(trainData, numOfPartitions,
+            RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
                     clusterFile, modelDir, instanceFilePrefix, numOfPDFeatures, numOfPDTrainingIterations, numOfTrainingIterations, numOfAIFeatures,
                     numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,greedy, globalReverseLabelMap);
-            rerankerInstanceGenerator.buildTrainInstances();
+            rerankerInstanceGenerator.buildTrainInstances(trainData);
 
             //2- train reranker
             System.out.print("\nSTEP 2.1 Train Reranker Model\n");
@@ -88,10 +92,6 @@ public class PipeLineWithReranker {
             AveragedPerceptron reranker = AveragedPerceptron.loadModel(rerankerModelPath);
 
             //decode using reranker
-            ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
-            IndexMap indexMap = aiModelInfo.getIndexMap();
-            AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
-
             System.out.print("\n\nSTEP 3 Running Decoder on Dev data (using reranker model)\n\n");
             Decoder decoder= new Decoder(aiClassifier, acClassifier,reranker, indexMap,modelDir);
             decoder.decode(devData, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, modelDir, greedy, outputFile);

@@ -19,7 +19,6 @@ import util.IO;
  * Created by Maryam Aminian on 8/19/16.
  */
 public class RerankerInstanceGenerator {
-    ArrayList<ArrayList<String>> trainPartitions;
     int numOfPartitions;
     String clusterFile;
     String modelDir;
@@ -57,13 +56,13 @@ public class RerankerInstanceGenerator {
 
         HashMap<String, Integer> globalReverseLabelMap = new HashMap<String, Integer>();
 
-        RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(trainFilePath, numOfPartitions,
+        RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
                 clusterFilePath, modelDir, instanceFilePrefix, numOfPDFeatures, numOfPDIterations, numOfTrainingIterations, numOfAIFeatures,
                 numOfACFeatures, numOfGlobalFeatures, aiBeamSize, acBeamSize,greedy,globalReverseLabelMap);
-        rerankerInstanceGenerator.buildTrainInstances();
+        rerankerInstanceGenerator.buildTrainInstances(trainFilePath);
     }
 
-    public RerankerInstanceGenerator(String trainFilePath, int numOfParts, String clusterFile, String modelDir, String instanceFilePrefix,
+    public RerankerInstanceGenerator(int numOfParts, String clusterFile, String modelDir, String instanceFilePrefix,
                                      int numOfPDFeatures, int numOfPDTrainingIterations, int numberOfTrainingIterations,
                                      int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, int aiMaxBeamSize,
                                      int acMaxBeamSize, boolean greedy, HashMap<String, Integer> globalReverseLabelMap) throws IOException {
@@ -82,13 +81,11 @@ public class RerankerInstanceGenerator {
         this.acMaxBeamSize= acMaxBeamSize;
         this.greedy= greedy;
         this.globalReverseLabelMap= globalReverseLabelMap;
-        ArrayList<ArrayList<String>> partitions = getPartitions(trainFilePath);
-        this.trainPartitions = partitions;
     }
 
 
-    private ArrayList<ArrayList<String>> getPartitions(String trainFilePath) throws IOException {
-        ArrayList<ArrayList<String>> partitions = new ArrayList<ArrayList<String>>();
+    public ArrayList<String>[] getPartitions(String trainFilePath) throws IOException {
+        ArrayList<String>[] partitions = new ArrayList[numOfPartitions];
         ArrayList<String> sentencesInCoNLLFormat = IO.readCoNLLFile(trainFilePath);
         //Collections.shuffle(sentencesInCoNLLFormat);
         int partitionSize = (int) Math.ceil((double) sentencesInCoNLLFormat.size() / numOfPartitions);
@@ -102,14 +99,15 @@ public class RerankerInstanceGenerator {
             else
                 partitionSentences = new ArrayList<String>(sentencesInCoNLLFormat.subList(startIndex, sentencesInCoNLLFormat.size()));
 
-            partitions.add(partitionSentences);
+            partitions[i]= partitionSentences;
             startIndex = endIndex;
         }
         return partitions;
     }
 
 
-    public void buildTrainInstances() throws Exception {
+    public void buildTrainInstances(String trainFilePath) throws Exception {
+        /*
         ExecutorService executor = Executors.newFixedThreadPool(1);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
@@ -120,11 +118,18 @@ public class RerankerInstanceGenerator {
         while (!executor.isTerminated()) {
         }
         System.out.println("All jobs done!");
+        */
+        ArrayList<String>[] trainParts = new ArrayList[numOfPartitions];
+        trainParts = getPartitions(trainFilePath);
+        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
+            writeTrainSentences(trainParts, devPartIdx);
+        }
     }
 
 
-    private void writeTrainSentences(int devPartIdx) throws Exception {
+    private void writeTrainSentences(ArrayList<String>[] trainPartitions, int devPartIdx) throws Exception {
         System.out.println("generating reranker train instances for part "+ devPartIdx);
+
         ArrayList<String> trainSentences = new ArrayList<String>();
         ArrayList<String> devSentences = new ArrayList<String>();
 
@@ -133,9 +138,9 @@ public class RerankerInstanceGenerator {
 
         for (int partIdx = 0; partIdx < numOfPartitions; partIdx++) {
             if (partIdx == devPartIdx)
-                devSentences = trainPartitions.get(partIdx);
+                devSentences = trainPartitions[partIdx];
             else
-                trainSentences.addAll(trainPartitions.get(partIdx));
+                trainSentences.addAll(trainPartitions[partIdx]);
         }
         //write dev sentences into a file (to be compatible with previous functions)
         String devDataPath = partitionModelDir + "reranker_dev_" + devPartIdx;
@@ -305,21 +310,19 @@ public class RerankerInstanceGenerator {
         }
     }
 
-    public ArrayList<ArrayList<String>> getTrainPartitions() {
-        return trainPartitions;
-    }
-
     private class InstanceGenerator implements Runnable {
         int devPartIdx;
+        ArrayList<String>[] trainParts;
 
-        public InstanceGenerator(int devPartIdx) {
+        public InstanceGenerator(ArrayList<String>[] trainParts, int devPartIdx) {
             this.devPartIdx = devPartIdx;
+            this.trainParts = trainParts;
         }
 
         @Override
         public void run() {
             try {
-                writeTrainSentences(devPartIdx);
+                writeTrainSentences(trainParts, devPartIdx);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(e.getMessage());

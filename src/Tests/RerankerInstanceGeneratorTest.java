@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -78,8 +79,9 @@ public class RerankerInstanceGeneratorTest {
         writeClusterFile();
         int numOfPartitions = 2;
         HashMap<String, Integer> globalReverseLabelMap = new HashMap<String, Integer>();
-        RerankerInstanceGenerator r= new RerankerInstanceGenerator(tmpFilePath,numOfPartitions,clusterFilePath,"","",0,0,0,0,0,0,0,0,false,globalReverseLabelMap);
-        assert r.getTrainPartitions().get(0).get(0).equals("1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
+        RerankerInstanceGenerator r= new RerankerInstanceGenerator(numOfPartitions,clusterFilePath,"","",0,0,0,0,0,0,0,0,false,globalReverseLabelMap);
+        ArrayList<String>[] trainParts = r.getPartitions(tmpFilePath);
+        assert trainParts[0].get(0).equals("1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
                 "2\teconomy\teconomy\teconomy\tNN\tNN\t_\t_\t4\t4\tNMOD\tNMOD\t_\t_\tA1\t_\t_\t_\n" +
                 "3\t's\t's\t's\tPOS\tPOS\t_\t_\t2\t2\tSUFFIX\tSUFFIX\t_\t_\t_\t_\t_\t_\n" +
                 "4\ttemperature\ttemperature\ttemperature\tNN\tNN\t_\t_\t5\t5\tSBJ\tSBJ\tY\ttemperature.01\tA2\tA1\t_\t_\n" +
@@ -104,7 +106,7 @@ public class RerankerInstanceGeneratorTest {
                 "23\tand\tand\tand\tCC\tCC\t_\t_\t22\t22\tCOORD\tCOORD\t_\t_\t_\t_\t_\t_\n" +
                 "24\tinflation\tinflation\tinflation\tNN\tNN\t_\t_\t23\t23\tCONJ\tCONJ\t_\t_\t_\t_\t_\t_\n" +
                 "25\t.\t.\t.\t.\t.\t_\t_\t5\t5\tP\tP\t_\t_\t_\t_\t_\t_");
-        assert r.getTrainPartitions().get(1).get(0).equals("1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
+        assert trainParts[1].get(0).equals("1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
                         "2\teconomy\teconomy\teconomy\tNN\tNN\t_\t_\t4\t4\tNMOD\tNMOD\t_\t_\tA1\t_\t_\t_\n" +
                         "3\t's\t's\t's\tPOS\tPOS\t_\t_\t2\t2\tSUFFIX\tSUFFIX\t_\t_\t_\t_\t_\t_\n" +
                         "4\ttemperature\ttemperature\ttemperature\tNN\tNN\t_\t_\t5\t5\tSBJ\tSBJ\tY\ttemperature.01\tA2\tA1\t_\t_\n" +
