@@ -4,6 +4,7 @@ import Sentence.Argument;
 import Sentence.PA;
 import Sentence.Sentence;
 import SupervisedSRL.PD.PD;
+import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Prediction;
 import util.IO;
@@ -18,7 +19,7 @@ import java.util.*;
 public class Evaluation {
 
 
-    public static double evaluate(String systemOutput, String goldOutput, IndexMap indexMap,
+    public static double evaluate(String systemOutput, String goldOutput, IndexMap indexMap, ClusterMap clusterMap,
                                   HashMap<String, Integer> reverseLabelMap) throws IOException {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -49,8 +50,8 @@ public class Evaluation {
         boolean decode = true;
         for (int senIdx = 0; senIdx < systemOutputInCONLLFormat.size(); senIdx++) {
             //System.out.println("sen: "+senIdx);
-            Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap);
-            Sentence goldSen = new Sentence(goldOutputInCONLLFormat.get(senIdx), indexMap);
+            Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap, clusterMap);
+            Sentence goldSen = new Sentence(goldOutputInCONLLFormat.get(senIdx), indexMap, clusterMap);
 
             ArrayList<PA> sysOutPAs = sysOutSen.getPredicateArguments().getPredicateArgumentsAsArray();
             ArrayList<PA> goldPAs = goldSen.getPredicateArguments().getPredicateArgumentsAsArray();

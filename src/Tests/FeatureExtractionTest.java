@@ -5,6 +5,7 @@ import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.PD.PredicateLexiconEntry;
 import SupervisedSRL.Pipeline;
+import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import org.junit.Test;
@@ -66,14 +67,14 @@ public class FeatureExtractionTest {
     public void testPDFeatures() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
-
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
         int numOfPDFeatures = Pipeline.numOfPDFeatures;
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
 
         HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> lexicon =
-                PD.buildPredicateLexicon(textList, map, numOfPDFeatures);
+                PD.buildPredicateLexicon(textList, map, clusterMap, numOfPDFeatures);
 
         assert lexicon.containsKey(map.str2int("temperature"));
         assert !lexicon.containsKey(map.str2int("economy"));
@@ -125,10 +126,12 @@ public class FeatureExtractionTest {
         writeConllText();
         writeClusterFile();
         int aiFeatLength = Pipeline.numOfAIFeatures;
-        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
-        Sentence sentence = new Sentence(conllText, map);
+        Sentence sentence = new Sentence(conllText, map, clusterMap);
         Object[] feats = FeatureExtractor.extractAIFeatures(4, 20, sentence, aiFeatLength, map, false, 0);
         assert feats[3].equals(map.str2int("SBJ"));
         assert feats[17].equals("");
@@ -184,8 +187,6 @@ public class FeatureExtractionTest {
     public void testGlobalFeatures() throws Exception {
         writeConllText();
         writeClusterFile();
-        int aiFeatLength = Pipeline.numOfAIFeatures;
-        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
         ArrayList<Integer> aiCandidIndices = new ArrayList<Integer>();
@@ -252,10 +253,12 @@ public class FeatureExtractionTest {
         writeConllText();
         writeClusterFile();
         int aiFeatLength = Pipeline.numOfAIFeatures;
-        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
-        Sentence sentence = new Sentence(conllText, map);
+        Sentence sentence = new Sentence(conllText, map, clusterMap);
         Object[] feats = FeatureExtractor.extractAIFeatures(4, 20, sentence, aiFeatLength, map, true, 12);
         assert feats[3].equals(map.str2int("SBJ") << 6 | 12);
         assert feats[17].equals(12+" "+"");

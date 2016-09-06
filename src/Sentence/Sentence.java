@@ -1,5 +1,6 @@
 package Sentence;
 
+import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class Sentence {
     PAs predicateArguments;
 
 
-    public Sentence(String sentence, IndexMap indexMap) {
+    public Sentence(String sentence, IndexMap indexMap, ClusterMap clusterMap) {
         String[] tokens = sentence.trim().split("\n");
 
         int numTokens = tokens.length + 1; //add one more token for ROOT
@@ -45,9 +46,9 @@ public class Sentence {
         lemmas_str = new String[numTokens];
         lemmas_str[0] = "ROOT";
         wordClusterIds = new int[numTokens];
-        wordClusterIds[0] = indexMap.ROOTClusterIdx;
+        wordClusterIds[0] = ClusterMap.ROOTClusterIdx;
         lemmaClusterIds = new int[numTokens];
-        lemmaClusterIds[0] = indexMap.ROOTClusterIdx;
+        lemmaClusterIds[0] = ClusterMap.ROOTClusterIdx;
 
         reverseDepHeads = new TreeSet[numTokens];
         predicateArguments = new PAs();
@@ -61,12 +62,12 @@ public class Sentence {
             depHeads[index] = depHead;
 
             words[index] = indexMap.str2int(fields[1]);
-            wordClusterIds[index] = indexMap.getClusterId(fields[1]);
+            wordClusterIds[index] = clusterMap.getClusterId(fields[1]);
             depLabels[index] = indexMap.str2int(fields[11]);
             posTags[index] = indexMap.str2int(fields[5]);
             cPosTags[index] = indexMap.str2int(util.StringUtils.getCoarsePOS(fields[5]));
             lemmas[index] = indexMap.str2int(fields[3]);
-            lemmaClusterIds[index]= indexMap.getClusterId(fields[3]);
+            lemmaClusterIds[index]= clusterMap.getClusterId(fields[3]);
 
             if (reverseDepHeads[depHead] == null) {
                 TreeSet<Integer> children = new TreeSet<Integer>();

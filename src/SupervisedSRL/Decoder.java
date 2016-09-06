@@ -75,7 +75,7 @@ public class Decoder {
     ////////////////////////////////// DECODE ////////////////////////////////////////////////////////
 
     //stacked decoding
-    public static void decode(Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
+    public static void decode(Decoder decoder, IndexMap indexMap, ClusterMap clusterMap, String devDataPath, String[] labelMap,
                               int aiMaxBeamSize, int acMaxBeamSize,
                               int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
                               String modelDir, String outputFile,
@@ -97,7 +97,7 @@ public class Decoder {
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
             String devSentence = devSentencesInCONLLFormat.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap);
+            Sentence sentence = new Sentence(devSentence, indexMap, clusterMap);
 
             predictions[d] = (TreeMap<Integer, Prediction>) decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir,aiFeatDict,acFeatDict, classifierType, greedy, false);
@@ -110,12 +110,9 @@ public class Decoder {
     }
 
     //joint decoding
-    public static void decode(Decoder decoder, IndexMap indexMap, String devData,
-                              String[] labelMap,
-                              int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
-                              String modelDir,
-                              String outputFile,
-                              HashMap<Object, Integer>[] featDict,
+    public static void decode(Decoder decoder, IndexMap indexMap,ClusterMap clusterMap, String devData,
+                              String[] labelMap, int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
+                              String modelDir, String outputFile, HashMap<Object, Integer>[] featDict,
                               ClassifierType classifierType, boolean greedy) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
@@ -131,7 +128,7 @@ public class Decoder {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
             String devSentence = devSentencesInCONLLFormat.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap);
+            Sentence sentence = new Sentence(devSentence, indexMap,clusterMap );
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
             predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOfPDFeatures, modelDir,featDict, classifierType, greedy);

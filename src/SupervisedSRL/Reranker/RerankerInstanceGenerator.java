@@ -37,52 +37,25 @@ public class RerankerInstanceGenerator {
     //from different classifiers and this map makes sure it won't happen
     HashMap<String, Integer> globalReverseLabelMap;
 
-    public static void main(String[] args) throws Exception {
-        String trainFilePath = args[0];
-        String clusterFilePath = args[1];
-        String modelDir = args[2];
-        String instanceFilePrefix = args[3];
-        int numOfTrainingIterations = Integer.parseInt(args[4]);
-        int aiBeamSize = Integer.parseInt(args[5]);
-        int acBeamSize = Integer.parseInt(args[6]);
-        boolean greedy= Boolean.parseBoolean(args[7]);
-        int numOfPartitions = Integer.parseInt(args[8]);
-
-        int numOfPDIterations =10;
-        int numOfPDFeatures = 9;
-        int numOfAIFeatures = 25 + 3+ 5+ 13;
-        int numOfACFeatures = 25 + 3+ 5+ 15;
-        int numOfGlobalFeatures= 1;
-
-        HashMap<String, Integer> globalReverseLabelMap = new HashMap<String, Integer>();
-
-        RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
-                clusterFilePath, modelDir, instanceFilePrefix, numOfPDFeatures, numOfPDIterations, numOfTrainingIterations, numOfAIFeatures,
-                numOfACFeatures, numOfGlobalFeatures, aiBeamSize, acBeamSize,greedy,globalReverseLabelMap);
-        rerankerInstanceGenerator.buildTrainInstances(trainFilePath);
-    }
-
-    public RerankerInstanceGenerator(int numOfParts, String clusterFile, String modelDir, String instanceFilePrefix,
+    public RerankerInstanceGenerator(int numOfParts, String modelDir, String instanceFilePrefix,
                                      int numOfPDFeatures, int numOfPDTrainingIterations, int numberOfTrainingIterations,
                                      int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, int aiMaxBeamSize,
-                                     int acMaxBeamSize, boolean greedy, HashMap<String, Integer> globalReverseLabelMap) throws IOException {
-
-        this.numOfPartitions =  numOfParts;
-        this.clusterFile = clusterFile;
-        this.modelDir= modelDir;
-        this.rerankerInstanceFilePrefix= instanceFilePrefix;
+                                     int acMaxBeamSize, boolean greedy, HashMap<String, Integer> globalReverseLabelMap)
+            throws IOException {
+        this.numOfPartitions = numOfParts;
+        this.modelDir = modelDir;
+        this.rerankerInstanceFilePrefix = instanceFilePrefix;
         this.numOfPDFeatures = numOfPDFeatures;
-        this. numOfPDTrainingIterations = numOfPDTrainingIterations;
-        this.numberOfTrainingIterations= numberOfTrainingIterations;
-        this.numOfAIFeatures= numOfAIFeatures;
-        this.numOfACFeatures= numOfACFeatures;
-        this.numOfGlobalFeatures= numOfGlobalFeatures;
-        this.aiMaxBeamSize= aiMaxBeamSize;
-        this.acMaxBeamSize= acMaxBeamSize;
-        this.greedy= greedy;
-        this.globalReverseLabelMap= globalReverseLabelMap;
+        this.numOfPDTrainingIterations = numOfPDTrainingIterations;
+        this.numberOfTrainingIterations = numberOfTrainingIterations;
+        this.numOfAIFeatures = numOfAIFeatures;
+        this.numOfACFeatures = numOfACFeatures;
+        this.numOfGlobalFeatures = numOfGlobalFeatures;
+        this.aiMaxBeamSize = aiMaxBeamSize;
+        this.acMaxBeamSize = acMaxBeamSize;
+        this.greedy = greedy;
+        this.globalReverseLabelMap = globalReverseLabelMap;
     }
-
 
     public ArrayList<String>[] getPartitions(String trainFilePath) throws IOException {
         ArrayList<String>[] partitions = new ArrayList[numOfPartitions];
@@ -106,57 +79,40 @@ public class RerankerInstanceGenerator {
     }
 
 
-    public void buildTrainInstances(String trainFilePath) throws Exception {
-        /*
-        ExecutorService executor = Executors.newFixedThreadPool(1);
+    public void buildTrainInstances(String trainFilePath, ClusterMap clusterMap) throws Exception {
+
+        ArrayList<String>[] trainParts = new ArrayList[numOfPartitions];
+        trainParts = getPartitions(trainFilePath);
+        ExecutorService executor = Executors.newFixedThreadPool(3);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            executor.execute(new InstanceGenerator(devPartIdx));
+            executor.execute(new InstanceGenerator(trainParts, clusterMap, devPartIdx));
         }
         System.out.println("Reranker training instance generation are submitted");
         executor.shutdown();
         while (!executor.isTerminated()) {
         }
         System.out.println("All jobs done!");
-        */
-        ArrayList<String>[] trainParts = new ArrayList[numOfPartitions];
-        trainParts = getPartitions(trainFilePath);
-        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            writeTrainSentences(trainParts, devPartIdx);
-        }
     }
 
 
-    private void writeTrainSentences(ArrayList<String>[] trainPartitions, int devPartIdx) throws Exception {
+    private void writeTrainSentences(ArrayList<String>[] trainPartitions, ClusterMap clusterMap, int devPartIdx) throws Exception {
         System.out.println("generating reranker train instances for part "+ devPartIdx);
-
-        ArrayList<String> trainSentences = new ArrayList<String>();
-        ArrayList<String> devSentences = new ArrayList<String>();
-
         String partitionModelDir = modelDir+"/part_"+devPartIdx+"/";
+        String devDataPath = partitionModelDir + "reranker_dev_" + devPartIdx;
         IO.makeDirectory(partitionModelDir);
 
-        for (int partIdx = 0; partIdx < numOfPartitions; partIdx++) {
-            if (partIdx == devPartIdx)
-                devSentences = trainPartitions[partIdx];
-            else
-                trainSentences.addAll(trainPartitions[partIdx]);
-        }
-        //write dev sentences into a file (to be compatible with previous functions)
-        String devDataPath = partitionModelDir + "reranker_dev_" + devPartIdx;
-        BufferedWriter devWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(devDataPath)));
-        for (String sentence : devSentences)
-            devWriter.write(sentence + "\n\n");
-        devWriter.flush();
-        devWriter.close();
+        Object[] objs =obtainTrainDevSentences(trainPartitions, devPartIdx, devDataPath);
+        ArrayList<String> trainSentences = (ArrayList<String>) objs[0];
+        ArrayList<String> devSentences = (ArrayList<String>) objs[1];
 
         //train a PD-AI-AC modules on the train parts
         HashSet<String> argLabels = new HashSet<String>(globalReverseLabelMap.keySet());
-        final IndexMap indexMap = new IndexMap(trainSentences, clusterFile);
-        PD.train(trainSentences, indexMap, numOfPDTrainingIterations, partitionModelDir, numOfPDFeatures);
-        String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap,
+        final IndexMap indexMap = new IndexMap(trainSentences);
+        PD.train(trainSentences, indexMap, clusterMap, numOfPDTrainingIterations, partitionModelDir, numOfPDFeatures);
+        String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap, clusterMap,
                 numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize, greedy);
-        String acModelPath = Train.trainAC(trainSentences, devDataPath, argLabels, indexMap,
+        String acModelPath = Train.trainAC(trainSentences, devDataPath, argLabels, indexMap, clusterMap,
                 numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                 aiMaxBeamSize, acMaxBeamSize, greedy);
 
@@ -171,31 +127,38 @@ public class RerankerInstanceGenerator {
         FileOutputStream fos = new FileOutputStream(rerankerPoolsFilePath);
         ObjectOutputStream writer = new ObjectOutputStream(fos);
 
+        //define objects used on the loops
+        HashMap<Integer, HashMap<Integer, Integer>> goldMap;
+        String devSentence;
+        Sentence sentence;
+        TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen;
+        String pLabel;
+        HashMap<Integer, Integer> goldMap4ThisPredicate;
+
         for (int d = 0; d < devSentences.size(); d++) {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentences.size());
 
-            String devSentence = devSentences.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap);
-            HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(sentence);
+            devSentence = devSentences.get(d);
+            sentence = new Sentence(devSentence, indexMap, clusterMap);
+            goldMap = getGoldArgLabelMap(sentence);
 
-            TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
+            predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, partitionModelDir,
                             null, null, ClassifierType.AveragedPerceptron, greedy, true);
 
             //creating the pool
             for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
-                RerankerPool rerankerPool = new RerankerPool();
-                String pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();
+                 pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();
                 //to keep scores/feats of different assignments
-                HashMap<Integer, Integer> goldMap4ThisPredicate = goldMap.get(pIdx);
+                goldMap4ThisPredicate= goldMap.get(pIdx);
 
                 ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAiCandidates();
-                ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAcCandidates();
-
+                ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>>  acCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAcCandidates();
+                RerankerPool rerankerPool = new RerankerPool();
                 for (int i = 0; i < aiCandidates.size(); i++) {
-                    Pair<Double, ArrayList<Integer>> aiCandid = aiCandidates.get(i);
+                    Pair<Double, ArrayList<Integer>>    aiCandid = aiCandidates.get(i);
                     ArrayList<Pair<Double, ArrayList<Integer>>> acCandids4thisAiCandid = acCandidates.get(i);
 
                     for (int j = 0; j < acCandids4thisAiCandid.size(); j++) {
@@ -210,11 +173,33 @@ public class RerankerInstanceGenerator {
                 writer.writeObject(rerankerPool);
             }
             writer.flush();
+            System.gc();
         }
         //write dev pools
         System.out.println("Writing rerankerPools for dev part "+ devPartIdx+" done!");
         writer.flush();
         writer.close();
+    }
+
+    private Object[] obtainTrainDevSentences (ArrayList<String>[] trainPartitions, int devPartIdx, String devDataPath)
+    throws IOException{
+        ArrayList<String> trainSentences = new ArrayList<String>();
+        ArrayList<String> devSentences = new ArrayList<String>();
+
+        for (int partIdx = 0; partIdx < numOfPartitions; partIdx++) {
+            if (partIdx == devPartIdx)
+                devSentences = trainPartitions[partIdx];
+            else
+                trainSentences.addAll(trainPartitions[partIdx]);
+        }
+        //write dev sentences into a file (to be compatible with previous functions)
+        BufferedWriter devWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(devDataPath)));
+        for (String sentence : devSentences)
+            devWriter.write(sentence + "\n\n");
+        devWriter.flush();
+        devWriter.close();
+
+        return new Object[]{trainSentences, devSentences};
     }
 
 
@@ -252,20 +237,23 @@ public class RerankerInstanceGenerator {
         HashMap<Integer, Integer> argMap = getArgLabelMap(aiCandid, acCandid, labelMap, globalReverseLabelMap);
         int numOfGlobalFeatures=1;
         HashMap<Object, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats+ numOfACFeats + numOfGlobalFeatures];
+        Object[] aiFeats;
+        Object[] acFeats;
+        Object[] globalFeats;
+
         for (int wordIdx =0 ; wordIdx< sentence.getWords().length; wordIdx++){
             //for each word in the sentence
             int aiLabel = (argMap.containsKey(wordIdx))? 1:0;
             int acLabel = (argMap.containsKey(wordIdx))? argMap.get(wordIdx):-1;
-            Object[] aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence,numOfAIFeats,indexMap, true,aiLabel);
-            Object[] acFeats = acLabel==-1?null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence,numOfACFeats,indexMap, true,acLabel);
+            aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence,numOfAIFeats,indexMap, true,aiLabel);
+            acFeats = (acLabel== -1) ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence,numOfACFeats,indexMap, true,acLabel);
             addToRerankerFeats(rerankerFeatureVector, aiFeats, 0);
             addToRerankerFeats(rerankerFeatureVector, acFeats, aiFeats.length);
         }
-        Object[] globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel,aiCandid, acCandid, labelMap);
+        globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel,aiCandid, acCandid, labelMap);
         addToRerankerFeats(rerankerFeatureVector, globalFeats, numOfAIFeats+ numOfACFeats);
         return rerankerFeatureVector;
     }
-
 
     private HashMap<Object, Integer>[] extractRerankerFeatures4GoldAssignment (int pIdx,
                                                                               Sentence sentence, HashMap<Integer, Integer> goldMap,
@@ -295,7 +283,6 @@ public class RerankerInstanceGenerator {
         return rerankerFeatureVector;
     }
 
-
     public static void addToRerankerFeats (HashMap<Object, Integer>[] rerankerFeatureVector, Object[] feats, int offset)
     {
         if(feats==null) return;
@@ -313,16 +300,18 @@ public class RerankerInstanceGenerator {
     private class InstanceGenerator implements Runnable {
         int devPartIdx;
         ArrayList<String>[] trainParts;
+        ClusterMap clusterMap;
 
-        public InstanceGenerator(ArrayList<String>[] trainParts, int devPartIdx) {
+        public InstanceGenerator(ArrayList<String>[] trainParts, ClusterMap clusterMap, int devPartIdx) {
             this.devPartIdx = devPartIdx;
             this.trainParts = trainParts;
+            this.clusterMap= clusterMap;
         }
 
         @Override
         public void run() {
             try {
-                writeTrainSentences(trainParts, devPartIdx);
+                writeTrainSentences(trainParts, clusterMap, devPartIdx);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(e.getMessage());

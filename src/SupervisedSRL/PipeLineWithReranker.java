@@ -4,6 +4,7 @@ import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 import SupervisedSRL.Reranker.Train;
 import SupervisedSRL.Reranker.Decoder;
 import SupervisedSRL.Strcutures.ClassifierType;
+import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;
@@ -69,6 +70,7 @@ public class PipeLineWithReranker {
 
             ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
             IndexMap indexMap = aiModelInfo.getIndexMap();
+            ClusterMap globalClusterMap = aiModelInfo.getClusterMap();
             AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
             AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[2]);
             HashMap<String, Integer> globalReverseLabelMap = acClassifier.getReverseLabelMap();
@@ -82,9 +84,9 @@ public class PipeLineWithReranker {
             int numOfGlobalFeatures= 1;
 
             RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
-                    clusterFile, modelDir, instanceFilePrefix, numOfPDFeatures, numOfPDTrainingIterations, numOfTrainingIterations, numOfAIFeatures,
+                    modelDir, instanceFilePrefix, numOfPDFeatures, numOfPDTrainingIterations, numOfTrainingIterations, numOfAIFeatures,
                     numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,greedy, globalReverseLabelMap);
-            rerankerInstanceGenerator.buildTrainInstances(trainData);
+            rerankerInstanceGenerator.buildTrainInstances(trainData, globalClusterMap);
 
             //2- train reranker
             System.out.print("\nSTEP 2.1 Train Reranker Model\n");
@@ -93,13 +95,13 @@ public class PipeLineWithReranker {
 
             //decode using reranker
             System.out.print("\n\nSTEP 3 Running Decoder on Dev data (using reranker model)\n\n");
-            Decoder decoder= new Decoder(aiClassifier, acClassifier,reranker, indexMap,modelDir);
+            Decoder decoder= new Decoder(aiClassifier, acClassifier,reranker, indexMap, globalClusterMap,modelDir);
             decoder.decode(devData, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, modelDir, greedy, outputFile);
 
             System.out.print("\n\nSTEP 4 Evaluation\n\n");
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());
-            Evaluation.evaluate(outputFile, devData, indexMap, reverseLabelMap);
+            Evaluation.evaluate(outputFile, devData, indexMap, globalClusterMap,reverseLabelMap);
         }
     }
 

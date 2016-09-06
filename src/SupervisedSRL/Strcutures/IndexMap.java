@@ -12,15 +12,10 @@ public class IndexMap implements Serializable {
 
     public final static int nullIdx = 0;
     public final static int unknownIdx = 1;
-    public final static int unknownClusterIdx = -100;
-    public final static int nullClusterIdx = -200;
-    public final static int ROOTClusterIdx = -300;
     private HashMap<String, Integer> string2intMap;
     private String[] int2stringMap;
-    private HashMap<String, Integer> wordClusterMap;
-    private HashMap<String, Integer> clusterIDMap;
 
-    public IndexMap(String trainFilePath, String clusterFilePath) throws IOException {
+    public IndexMap(String trainFilePath) throws IOException {
         string2intMap = new HashMap<String, Integer>();
         string2intMap.put("NULL", nullIdx);
         string2intMap.put("UNK", unknownIdx);
@@ -54,13 +49,9 @@ public class IndexMap implements Serializable {
         for (String str : string2intMap.keySet())
             int2stringMap[string2intMap.get(str)] = str;
 
-        Object[] clusterMaps = buildWordClusterMap(clusterFilePath);
-        wordClusterMap = (HashMap<String, Integer>) clusterMaps[0];
-        clusterIDMap = (HashMap<String, Integer>) clusterMaps[1];
-        System.out.print("Size of index Map: " + string2intMap.size() + "\nSize of wordClusterMap: "+ wordClusterMap.size()+"\n");
     }
 
-    public IndexMap(ArrayList<String> trainSentences, String clusterFilePath) throws IOException {
+    public IndexMap(ArrayList<String> trainSentences) throws IOException {
         string2intMap = new HashMap<String, Integer>();
         string2intMap.put("NULL", nullIdx);
         string2intMap.put("UNK", unknownIdx);
@@ -93,11 +84,6 @@ public class IndexMap implements Serializable {
         int2stringMap = new String[string2intMap.size()];
         for (String str : string2intMap.keySet())
             int2stringMap[string2intMap.get(str)] = str;
-
-        Object[] clusterMaps = buildWordClusterMap(clusterFilePath);
-        wordClusterMap = (HashMap<String, Integer>) clusterMaps[0];
-        clusterIDMap = (HashMap<String, Integer>) clusterMaps[1];
-        System.out.print("Size of index Map: " + string2intMap.size() + "\nSize of wordClusterMap: "+ wordClusterMap.size()+"\n");
     }
 
     private Object[] buildIndividualSets(String trainFilePath) throws IOException {
@@ -206,27 +192,6 @@ public class IndexMap implements Serializable {
         return new Object[]{posTags, depRels, words};
     }
 
-
-    private Object[] buildWordClusterMap (String clusterFilePath) throws IOException{
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(clusterFilePath)));
-        String line2read = "";
-        HashMap<String, Integer> wordClusterMap = new HashMap<String, Integer>();
-        HashMap<String, Integer> clusterIDMap = new HashMap<String, Integer>();
-
-        while ((line2read = reader.readLine()) != null) {
-            if (line2read.equals(""))
-                continue;
-            String[] splitLine = line2read.split("\t");
-            String clusterBitString = splitLine[0];
-            if (!clusterIDMap.containsKey(clusterBitString))
-                clusterIDMap.put(clusterBitString,clusterIDMap.size());
-            int clusterID = clusterIDMap.get(clusterBitString);
-            String word = splitLine[1];
-            wordClusterMap.put(word, clusterID);
-        }
-        return new Object[]{wordClusterMap, clusterIDMap};
-    }
-
     public int str2int(String str) {
         if (string2intMap.containsKey(str))
             return string2intMap.get(str);
@@ -239,11 +204,4 @@ public class IndexMap implements Serializable {
         return int2stringMap[i];
     }
 
-    public int getClusterId (String str){
-        String word = str;
-        int cluster = unknownClusterIdx;
-        if (wordClusterMap.containsKey(word))
-            cluster = wordClusterMap.get(word);
-        return cluster;
-    }
 }

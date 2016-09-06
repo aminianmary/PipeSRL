@@ -20,15 +20,17 @@ public class Decoder {
     AveragedPerceptron acClasssifier;
     AveragedPerceptron reranker;
     IndexMap indexMap;
+    ClusterMap clusterMap;
     String pdModelDir;
 
     public Decoder(AveragedPerceptron aiClasssifier, AveragedPerceptron acClasssifier, AveragedPerceptron reranker,
-                   IndexMap indexMap, String pdModelDir) {
+                   IndexMap indexMap, ClusterMap clusterMap, String pdModelDir) {
         this.aiClasssifier = aiClasssifier;
         this.acClasssifier = acClasssifier;
         this.reranker = reranker;
         this.indexMap= indexMap;
         this.pdModelDir = pdModelDir;
+        this.clusterMap= clusterMap;
     }
 
     private int predict(RerankerPool pool){
@@ -43,7 +45,7 @@ public class Decoder {
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[testSentences.size()];
 
         for (int senIdx=0; senIdx < testSentences.size(); senIdx++) {
-            Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
+            Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap, clusterMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(testSentences.get(senIdx)));
             TreeMap<Integer, Prediction> predictions4ThisSentence= new TreeMap<Integer, Prediction>();

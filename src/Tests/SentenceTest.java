@@ -1,8 +1,10 @@
 package Tests;
 
 import Sentence.*;
+import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
+import sun.util.resources.cldr.ar.CalendarData_ar_LY;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -61,8 +63,9 @@ public class SentenceTest {
     public void testConstructor() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
-        Sentence sentence = new Sentence(conllText, map);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+        Sentence sentence = new Sentence(conllText, map, clusterMap);
 
         int[] depHeads = sentence.getDepHeads();
         assert depHeads[0] == 0;
@@ -117,8 +120,9 @@ public class SentenceTest {
     public void testGetDepPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
-        Sentence sentence = new Sentence(conllText, map);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+        Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getDepPath(5, 12);
 
         assert depPath.get(0) == (map.str2int("VC") << 1 | 0);
@@ -129,8 +133,9 @@ public class SentenceTest {
     public void testGetPOSPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
-        Sentence sentence = new Sentence(conllText, map);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+        Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getPOSPath(5, 12);
 
         assert depPath.get(0) == (map.str2int("VB") << 1 | 0);
