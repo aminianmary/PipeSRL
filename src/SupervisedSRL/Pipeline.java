@@ -60,7 +60,6 @@ public class Pipeline {
                 Decoder.decode(new Decoder(classifier, "joint"),
                         indexMap, clusterMap, devData, classifier.getLabelMap(),
                         acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, null, greedy);
-
                 Evaluation.evaluate(outputFile, devData, indexMap, clusterMap, modelInfo.getClassifier().getReverseLabelMap());
             } else {
                 //stacked decoding
@@ -78,7 +77,6 @@ public class Pipeline {
                         devData, acClassifier.getLabelMap(),
                         aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                         modelDir, outputFile, null, null, greedy);
-
                 HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
                 reverseLabelMap.put("0", reverseLabelMap.size());
                 Evaluation.evaluate(outputFile, devData, indexMap, clusterMap, reverseLabelMap);
@@ -93,7 +91,6 @@ public class Pipeline {
                 Decoder.decode(new Decoder(classifier, "joint"),
                         indexMap, clusterMap, devData, classifier.getLabelMap(),
                         acMaxBeamSize, numOfACFeatures, numOfPDFeatures, modelDir, outputFile, null, greedy);
-
                 Evaluation.evaluate(outputFile, devData, indexMap, clusterMap, classifier.getReverseLabelMap());
             } else {
                 //stacked decoding
@@ -107,7 +104,6 @@ public class Pipeline {
                         devData, acClassifier.getLabelMap(),
                         aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                         modelDir, outputFile, null, null, greedy);
-
                 HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(acClassifier.getReverseLabelMap());
                 reverseLabelMap.put("0", reverseLabelMap.size());
                 Evaluation.evaluate(outputFile, devData, indexMap, clusterMap, reverseLabelMap);

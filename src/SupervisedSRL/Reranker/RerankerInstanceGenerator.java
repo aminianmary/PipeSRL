@@ -1,8 +1,8 @@
 package SupervisedSRL.Reranker;
 
-import Sentence.Argument;
-import Sentence.PA;
-import Sentence.Sentence;
+import SentStructs.Argument;
+import SentStructs.PA;
+import SentStructs.Sentence;
 import SupervisedSRL.Decoder;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
@@ -160,7 +160,7 @@ public class RerankerInstanceGenerator {
 
         //train a PD-AI-AC modules on the train parts
         HashSet<String> argLabels = new HashSet<String>(globalReverseLabelMap.keySet());
-        final IndexMap indexMap = new IndexMap(trainSentences);
+        final IndexMap indexMap = new IndexMap(trainSentences, clusterMap, numOfAIFeatures, false);
         PD.train(trainSentences, indexMap, clusterMap, numOfPDTrainingIterations, partitionModelDir, numOfPDFeatures);
         String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap, clusterMap,
                 numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize, greedy);

@@ -1,9 +1,11 @@
 package Tests;
 
-import Sentence.*;
+import SentStructs.*;
+import SupervisedSRL.Pipeline;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
+import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -62,7 +64,7 @@ public class SentenceTest {
     public void testConstructor() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath);
+        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
         ClusterMap clusterMap = new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
 
@@ -119,7 +121,7 @@ public class SentenceTest {
     public void testGetDepPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath);
+        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
         ClusterMap clusterMap = new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getDepPath(5, 12);
@@ -132,7 +134,7 @@ public class SentenceTest {
     public void testGetPOSPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath);
+        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
         ClusterMap clusterMap = new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getPOSPath(5, 12);

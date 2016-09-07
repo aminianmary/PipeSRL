@@ -1,8 +1,8 @@
 package SupervisedSRL.Reranker;
 
-import Sentence.Argument;
-import Sentence.PA;
-import Sentence.Sentence;
+import SentStructs.Argument;
+import SentStructs.PA;
+import SentStructs.Sentence;
 import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
 import util.IO;

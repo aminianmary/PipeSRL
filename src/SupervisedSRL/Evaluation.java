@@ -1,8 +1,8 @@
 package SupervisedSRL;
 
-import Sentence.Argument;
-import Sentence.PA;
-import Sentence.Sentence;
+import SentStructs.Argument;
+import SentStructs.PA;
+import SentStructs.Sentence;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;

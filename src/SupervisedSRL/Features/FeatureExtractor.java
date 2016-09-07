@@ -3,7 +3,7 @@ package SupervisedSRL.Features;
  * Created by Maryam Aminian on 5/17/16.
  */
 
-import Sentence.Sentence;
+import SentStructs.Sentence;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;

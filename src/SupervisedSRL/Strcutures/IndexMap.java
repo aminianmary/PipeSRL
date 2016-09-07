@@ -1,61 +1,40 @@
 package SupervisedSRL.Strcutures;
 
+import SentStructs.Argument;
+import SentStructs.PA;
+import SentStructs.Sentence;
+import SupervisedSRL.Features.FeatureExtractor;
+import SupervisedSRL.Pipeline;
+import SupervisedSRL.Reranker.Train;
+
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Created by Maryam Aminian on 6/21/16.
  */
 public class IndexMap implements Serializable {
-
     public final static int nullIdx = 0;
     public final static int unknownIdx = 1;
     private HashMap<String, Integer> string2intMap;
     private String[] int2stringMap;
+    private ClusterMap clusterMap;
+    int numOfFeatures;
+    HashMap<Object, Integer>[] featureMap;
+    int numOfPossibleFeatures;
+    HashMap<String, Integer> labelMap;
 
-    public IndexMap(String trainFilePath) throws IOException {
+    public IndexMap(ArrayList<String> trainSentences, ClusterMap clusterMap, int numOfFeatures, boolean joint) throws Exception {
         string2intMap = new HashMap<String, Integer>();
         string2intMap.put("NULL", nullIdx);
         string2intMap.put("UNK", unknownIdx);
         int index = 2;
-
-        Object[] sets = buildIndividualSets(trainFilePath);
-        HashSet<String> posTags = (HashSet<String>) sets[0];
-        HashSet<String> depRels = (HashSet<String>) sets[1];
-        HashSet<String> words = (HashSet<String>) sets[2];
-
-        for (String posTag : posTags) {
-            if (!string2intMap.containsKey(posTag)) {
-                string2intMap.put(posTag, index);
-                index++;
-            }
-        }
-        for (String depRel : depRels) {
-            if (!string2intMap.containsKey(depRel)) {
-                string2intMap.put(depRel, index);
-                index++;
-            }
-        }
-        for (String word : words) {
-            if (!string2intMap.containsKey(word)) {
-                string2intMap.put(word, index);
-                index++;
-            }
-        }
-        //building int2stringMap
-        int2stringMap = new String[string2intMap.size()];
-        for (String str : string2intMap.keySet())
-            int2stringMap[string2intMap.get(str)] = str;
-
-    }
-
-    public IndexMap(ArrayList<String> trainSentences) throws IOException {
-        string2intMap = new HashMap<String, Integer>();
-        string2intMap.put("NULL", nullIdx);
-        string2intMap.put("UNK", unknownIdx);
-        int index = 2;
+        this.clusterMap = clusterMap;
+        this.numOfFeatures = numOfFeatures;
 
         Object[] sets = buildIndividualSets(trainSentences);
         HashSet<String> posTags = (HashSet<String>) sets[0];
@@ -84,6 +63,11 @@ public class IndexMap implements Serializable {
         int2stringMap = new String[string2intMap.size()];
         for (String str : string2intMap.keySet())
             int2stringMap[string2intMap.get(str)] = str;
+
+        Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Integer>> f =  SupervisedSRL.Train.constructFeatureMaps(trainSentences, this, clusterMap, numOfFeatures, joint);
+        this.featureMap = f.first;
+        this.labelMap = f.second.first;
+        this.numOfPossibleFeatures = f.second.second;
     }
 
     private Object[] buildIndividualSets(String trainFilePath) throws IOException {
@@ -138,7 +122,6 @@ public class IndexMap implements Serializable {
         }
         return new Object[]{posTags, depRels, words};
     }
-
 
     private Object[] buildIndividualSets(ArrayList<String> trainSentences) {
         //data structures to store pos, depRel, words, etc.
@@ -203,5 +186,4 @@ public class IndexMap implements Serializable {
             throw new Exception("Index out of bound");
         return int2stringMap[i];
     }
-
 }

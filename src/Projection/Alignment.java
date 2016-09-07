@@ -66,7 +66,7 @@ public class Alignment {
                     else {
                         //removes the noisy alignment
                         alignmentDic.get(sentenceID).remove(sourceIndex);
-                        System.out.println("Sentence: " + sentenceID + " source index: " + sourceIndex + " is aligned to multiple target words");
+                        System.out.println("SentStructs: " + sentenceID + " source index: " + sourceIndex + " is aligned to multiple target words");
                     }
 
                     if (!alignmentDicReverse.get(sentenceID).containsKey(targetIndex))
@@ -75,7 +75,7 @@ public class Alignment {
 
             } else {
                 if (alignLine2Read.equals("")) {
-                    System.out.println("Sentence " + sentenceID + ": alignment is empty");
+                    System.out.println("SentStructs " + sentenceID + ": alignment is empty");
                 }
             }
         }

@@ -1,6 +1,6 @@
 package SupervisedSRL;
 
-import Sentence.Sentence;
+import SentStructs.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;

@@ -1,8 +1,8 @@
 package SupervisedSRL;
 
-import Sentence.Argument;
-import Sentence.PA;
-import Sentence.Sentence;
+import SentStructs.Argument;
+import SentStructs.PA;
+import SentStructs.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;
@@ -16,7 +16,6 @@ import java.util.*;
  * Created by Maryam Aminian on 5/23/16.
  */
 public class Train {
-
     //this function is used to train stacked ai-ac models
     public static String[] train(String trainData,
                                  String devData,
@@ -31,8 +30,8 @@ public class Train {
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
 
-        final IndexMap indexMap = new IndexMap(trainData);
         final ClusterMap clusterMap = new ClusterMap(clusterFile);
+        final IndexMap indexMap = new IndexMap(IO.readCoNLLFile(trainData), clusterMap, Pipeline.numOfAIFeatures, false);
         String aiModelPath = "";
         String acModelPath = "";
         String aiMappingDictsPath = "";
@@ -51,65 +50,6 @@ public class Train {
         return new String[]{aiModelPath, aiMappingDictsPath, acModelPath, acMappingDictsPath};
     }
 
-
-    public static Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>> constructFeatureMaps
-            (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, ClusterMap clusterMap, int numOfFeatures, boolean joint) throws Exception {
-        HashMap<Object, Integer>[] featureDic = new HashMap[numOfFeatures];
-        HashSet<Object>[] featuresSeen = new HashSet[numOfFeatures];
-
-        for (int i = 0; i < numOfFeatures; i++) {
-            featureDic[i] = new HashMap<Object, Integer>();
-            featuresSeen[i] = new HashSet<Object>();
-        }
-        HashMap<String, Integer> labelDic = new HashMap<String, Integer>();
-
-        System.out.print("Extracting mapping dictionary...");
-        DecimalFormat format = new DecimalFormat("##.00");
-        long startTime = System.currentTimeMillis();
-        int numOfTrainInstances = 0;
-        for (String sentence : trainSentencesInCONLLFormat) {
-            Object[][] instances = new Object[joint ? 1 : 2][];
-            if (!joint) {
-                instances[0] = obtainTrainInstance4AI(sentence, indexMap, clusterMap, numOfFeatures);
-                instances[1] = obtainTrainInstance4AC(sentence, indexMap, clusterMap, numOfFeatures);
-            } else
-                instances[0] = obtainTrainInstance4JointModel(sentence, indexMap, clusterMap, numOfFeatures);
-
-            for (int i = 0; i < instances.length; i++) {
-                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[i][0]; //in the format averaged perceptron supports
-                ArrayList<String> labels = (ArrayList<String>) instances[i][1];
-
-                numOfTrainInstances += labels.size();
-                //getting set of all possible values for each slot
-                for (int instance = 0; instance < labels.size(); instance++) {
-                    for (int dim = 0; dim < numOfFeatures; dim++) {
-                        featuresSeen[dim].add(featVectors.get(instance)[dim]);
-                    }
-                    if (!labelDic.containsKey(labels.get(instance)))
-                        labelDic.put(labels.get(instance), labelDic.size());
-                }
-            }
-        }
-        //constructing featureDic
-        int featureIndex = 1;
-        //for each feature slot
-        for (int i = 0; i < numOfFeatures; i++) {
-            //adding seen feature indices
-            for (Object feat : featuresSeen[i]) {
-                featureDic[i].put(feat, featureIndex++);
-            }
-            //unseen feature index
-            featureDic[i].put(Pipeline.unseenSymbol, featureIndex++);
-            assert !featuresSeen[i].contains(Pipeline.unseenSymbol);
-        }
-        long endTime = System.currentTimeMillis();
-        System.out.println("Total time for extraction" + format.format(((endTime - startTime) / 1000.0) / 60.0));
-        System.out.println("Done!");
-        return new Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>(featureDic,
-                new Pair<HashMap<String, Integer>, Pair<Integer, Integer>>(labelDic, new Pair<Integer, Integer>(featureIndex, numOfTrainInstances)));
-    }
-
-
     //this function is used to train the joint ai-ac model
     public static String trainJoint(String trainData,
                                     String devData,
@@ -124,8 +64,8 @@ public class Train {
         List<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         argLabels.add("0");
-        final IndexMap indexMap = new IndexMap(trainData);
         final ClusterMap clusterMap = new ClusterMap(clusterFile);
+        final IndexMap indexMap = new IndexMap(IO.readCoNLLFile(trainData), clusterMap, Pipeline.numOfACFeatures, true);
 
         //training PD module
         PD.train(trainSentencesInCONLLFormat, indexMap, clusterMap, Pipeline.numOfPDTrainingIterations, modelDir, numOFPDFeaturs);
@@ -452,6 +392,61 @@ public class Train {
         return new Object[]{featVectors, labels};
     }
 
+    public static Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Integer>> constructFeatureMaps
+            (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, ClusterMap clusterMap, int numOfFeatures, boolean joint) throws Exception {
+        HashMap<Object, Integer>[] featureDic = new HashMap[numOfFeatures];
+        HashSet<Object>[] featuresSeen = new HashSet[numOfFeatures];
+
+        for (int i = 0; i < numOfFeatures; i++) {
+            featureDic[i] = new HashMap<Object, Integer>();
+            featuresSeen[i] = new HashSet<Object>();
+        }
+        HashMap<String, Integer> labelDic = new HashMap<String, Integer>();
+
+        System.out.print("Extracting mapping dictionary...");
+        DecimalFormat format = new DecimalFormat("##.00");
+        long startTime = System.currentTimeMillis();
+        int numOfTrainInstances = 0;
+        for (String sentence : trainSentencesInCONLLFormat) {
+            Object[][] instances = new Object[joint ? 1 : 2][];
+            if (!joint) {
+                instances[0] = obtainTrainInstance4AI(sentence, indexMap, clusterMap, numOfFeatures);
+                instances[1] = obtainTrainInstance4AC(sentence, indexMap, clusterMap, numOfFeatures);
+            } else
+                instances[0] = obtainTrainInstance4JointModel(sentence, indexMap, clusterMap, numOfFeatures);
+
+            for (int i = 0; i < instances.length; i++) {
+                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[i][0]; //in the format averaged perceptron supports
+                ArrayList<String> labels = (ArrayList<String>) instances[i][1];
+
+                numOfTrainInstances += labels.size();
+                //getting set of all possible values for each slot
+                for (int instance = 0; instance < labels.size(); instance++) {
+                    for (int dim = 0; dim < numOfFeatures; dim++) {
+                        featuresSeen[dim].add(featVectors.get(instance)[dim]);
+                    }
+                    if (!labelDic.containsKey(labels.get(instance)))
+                        labelDic.put(labels.get(instance), labelDic.size());
+                }
+            }
+        }
+        //constructing featureDic
+        int featureIndex = 1;
+        //for each feature slot
+        for (int i = 0; i < numOfFeatures; i++) {
+            //adding seen feature indices
+            for (Object feat : featuresSeen[i]) {
+                featureDic[i].put(feat, featureIndex++);
+            }
+            //unseen feature index
+            featureDic[i].put(Pipeline.unseenSymbol, featureIndex++);
+            assert !featuresSeen[i].contains(Pipeline.unseenSymbol);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time for extraction" + format.format(((endTime - startTime) / 1000.0) / 60.0));
+        System.out.println("Done!");
+        return new Pair<>(featureDic, new Pair<>(labelDic, featureIndex));
+    }
 
     /////////////////////////////////////////////////////////////////////////////
     //////////////////////////////  SUPPORT FUNCTIONS  /////////////////////////
