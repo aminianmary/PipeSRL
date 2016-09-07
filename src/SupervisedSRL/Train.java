@@ -9,13 +9,11 @@ import SupervisedSRL.Strcutures.*;
 import de.bwaldvogel.liblinear.*;
 import ml.AveragedPerceptron;
 import ml.Adam;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import util.IO;
 
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by Maryam Aminian on 5/23/16.
@@ -89,7 +87,7 @@ public class Train {
             throws Exception {
 
         Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>> featLabelDicPair =
-                constructFeatureDict4LibLinear(trainSentencesInCONLLFormat, indexMap, clusterMap, numOfFeatures, taskType);
+                constructFeatureMaps(trainSentencesInCONLLFormat, indexMap, clusterMap, numOfFeatures, taskType.equals("JOINT")?true:false);
         HashMap<Object, Integer>[] featDict = featLabelDicPair.first;
         HashMap<String, Integer> labelDict = featLabelDicPair.second.first;
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
@@ -165,7 +163,7 @@ public class Train {
         ArrayList<ArrayList<Integer>> batchFeatures = new ArrayList<ArrayList<Integer>>();
         ArrayList<String> batchLabels = new ArrayList<String>();
         Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>> featLabelDicPair =
-                constructFeatureDict4LibLinear(trainSentencesInCONLLFormat,indexMap, clusterMap,numOfFeatures,taskType);
+                constructFeatureMaps(trainSentencesInCONLLFormat,indexMap, clusterMap,numOfFeatures,taskType.equals("JOINT")?true:false);
         HashMap<Object, Integer>[] featDict = featLabelDicPair.first;
         HashMap<String, Integer> labelDict = featLabelDicPair.second.first;
         int numOfLiblinearFeatures = featLabelDicPair.second.second.first;
@@ -342,9 +340,9 @@ public class Train {
     }
 
 
-    public static Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>
-    constructFeatureDict4LibLinear(List<String> trainSentencesInCONLLFormat,
-                                   IndexMap indexMap, ClusterMap clusterMap, int numOfFeatures, String taskType) throws Exception {
+    public static
+    Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>> constructFeatureMaps
+            (List<String> trainSentencesInCONLLFormat, IndexMap indexMap, ClusterMap clusterMap, int numOfFeatures, boolean joint) throws Exception {
         HashMap<Object, Integer>[] featureDic = new HashMap[numOfFeatures];
         HashSet<Object>[] featuresSeen = new HashSet[numOfFeatures];
 
@@ -359,24 +357,26 @@ public class Train {
         long startTime = System.currentTimeMillis();
         int numOfTrainInstances = 0;
         for (String sentence : trainSentencesInCONLLFormat) {
-            Object[] instances = null;
-            if (taskType.equals("AI")) instances = obtainTrainInstance4AI(sentence, indexMap, clusterMap, numOfFeatures);
-            else if (taskType.equals("AC")) instances = obtainTrainInstance4AC(sentence, indexMap, clusterMap, numOfFeatures);
-            else if (taskType.equalsIgnoreCase("JOINT"))
-                instances = obtainTrainInstance4JointModel(sentence, indexMap, clusterMap,numOfFeatures);
-            else if (taskType.equals("PD")) throw new Exception("task not supported");
+            Object[][] instances = new Object[joint ? 1 : 2][];
+            if (!joint) {
+                instances[0] = obtainTrainInstance4AI(sentence, indexMap, clusterMap, numOfFeatures);
+                instances[1] = obtainTrainInstance4AC(sentence, indexMap, clusterMap, numOfFeatures);
+            } else
+                instances[0] = obtainTrainInstance4JointModel(sentence, indexMap, clusterMap, numOfFeatures);
 
-            ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0]; //in the format averaged perceptron supports
-            ArrayList<String> labels = (ArrayList<String>) instances[1];
+            for (int i = 0; i < instances.length; i++) {
+                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[i][0]; //in the format averaged perceptron supports
+                ArrayList<String> labels = (ArrayList<String>) instances[i][1];
 
-            numOfTrainInstances += labels.size();
-            //getting set of all possible values for each slot
-            for (int instance = 0; instance < labels.size(); instance++) {
-                for (int dim = 0; dim < numOfFeatures; dim++) {
-                    featuresSeen[dim].add(featVectors.get(instance)[dim]);
+                numOfTrainInstances += labels.size();
+                //getting set of all possible values for each slot
+                for (int instance = 0; instance < labels.size(); instance++) {
+                    for (int dim = 0; dim < numOfFeatures; dim++) {
+                        featuresSeen[dim].add(featVectors.get(instance)[dim]);
+                    }
+                    if (!labelDic.containsKey(labels.get(instance)))
+                        labelDic.put(labels.get(instance), labelDic.size());
                 }
-                if (!labelDic.containsKey(labels.get(instance)))
-                    labelDic.put(labels.get(instance), labelDic.size());
             }
         }
         //constructing featureDic
