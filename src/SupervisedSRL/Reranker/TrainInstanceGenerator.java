@@ -135,11 +135,12 @@ public class TrainInstanceGenerator {
 
         //train a PD-AI-AC modules on the train parts
         HashSet<String> argLabels = IO.obtainLabels(trainSentences);
-        final IndexMap indexMap = new IndexMap(trainSentences, clusterFile);
-        PD.train(trainSentences, indexMap, numOfPDTrainingIterations, modelDir, numOfPDFeatures);
-        String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap,
+        final IndexMap indexMap = new IndexMap(trainSentences);
+        ClusterMap clusterMap = new ClusterMap(clusterFile);
+        PD.train(trainSentences, indexMap,clusterMap, numOfPDTrainingIterations, modelDir, numOfPDFeatures);
+        String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap, clusterMap,
                 numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize, greedy);
-        String acModelPath = Train.trainAC(trainSentences, devDataPath, argLabels, indexMap,
+        String acModelPath = Train.trainAC(trainSentences, devDataPath, argLabels, indexMap, clusterMap,
                 numberOfTrainingIterations, modelDir, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                 aiMaxBeamSize, acMaxBeamSize, greedy);
 
@@ -157,7 +158,7 @@ public class TrainInstanceGenerator {
                 System.out.println(d + "/" + devSentences.size());
 
             String devSentence = devSentences.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap);
+            Sentence sentence = new Sentence(devSentence, indexMap, clusterMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(sentence, acClassifier.getReverseLabelMap());
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =

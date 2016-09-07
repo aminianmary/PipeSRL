@@ -1,0 +1,15 @@
+
+.idea/compiler.xml
+
+out/production/SRL/SupervisedSRL/Decoder.class
+
+*.class
+
+sample_data/*
+
+
+.idea/*
+
+out/*
+
+*.iml
