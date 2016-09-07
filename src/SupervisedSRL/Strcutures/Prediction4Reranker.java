@@ -11,22 +11,16 @@ public class Prediction4Reranker {
     ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates;
 
     public Prediction4Reranker(String predicateLabel, ArrayList<Pair<Double, ArrayList<Integer>>> aiCandids,
-                               ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandids) {
+                               ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandids){
         this.predicateLabel = predicateLabel;
-        this.aiCandidates = aiCandids;
+        this.aiCandidates= aiCandids;
         this.acCandidates = acCandids;
     }
 
-    public String getPredicateLabel() {
-        return predicateLabel;
-    }
+    public String getPredicateLabel() {return predicateLabel;}
 
-    public ArrayList<Pair<Double, ArrayList<Integer>>> getAiCandidates() {
-        return aiCandidates;
-    }
+    public ArrayList<Pair<Double, ArrayList<Integer>>> getAiCandidates() {return aiCandidates;}
 
-    public ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getAcCandidates() {
-        return acCandidates;
-    }
+    public ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getAcCandidates() {return acCandidates;}
 
 }

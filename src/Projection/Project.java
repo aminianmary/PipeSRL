@@ -1,7 +1,6 @@
 package Projection;
 
-import SentStructs.*;
-import SupervisedSRL.Pipeline;
+import Sentence.*;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import util.IO;
@@ -59,10 +58,10 @@ public class Project {
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDic = alignment.getSourceTargetAlignmentDic();
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDicReverse = alignment.getTargetSourceAlignmentDic();
 
-        ArrayList<String> sourceSents = IO.readCoNLLFile(sourceFile);
-        final ClusterMap clusterMap = new ClusterMap(clusterFilePath);
-        final IndexMap indexMap = new IndexMap(sourceSents, clusterMap, Pipeline.numOfACFeatures, false);
+        final IndexMap indexMap = new IndexMap(sourceFile);
+        final ClusterMap clusterMap= new ClusterMap(clusterFilePath);
 
+        ArrayList<String> sourceSents = IO.readCoNLLFile(sourceFile);
         ArrayList<String> targetSents = IO.readCoNLLFile(targetFile);
         ArrayList<String> sourceSents_GD = IO.readCoNLLFile(sourceFile_GD);
         ArrayList<String> targetSents_GD = IO.readCoNLLFile(targetFile_GD);

@@ -1,11 +1,10 @@
 package Tests;
 
-import SentStructs.*;
-import SupervisedSRL.Pipeline;
+import Sentence.*;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
-import util.IO;
+import sun.util.resources.cldr.ar.CalendarData_ar_LY;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -64,8 +63,8 @@ public class SentenceTest {
     public void testConstructor() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
-        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
 
         int[] depHeads = sentence.getDepHeads();
@@ -121,8 +120,8 @@ public class SentenceTest {
     public void testGetDepPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
-        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getDepPath(5, 12);
 
@@ -134,8 +133,8 @@ public class SentenceTest {
     public void testGetPOSPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
-        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getPOSPath(5, 12);
 
@@ -148,7 +147,6 @@ public class SentenceTest {
         writer.write(conllText);
         writer.close();
     }
-
     private void writeClusterFile() throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(clusterFilePath));
         writer.write(clusters);

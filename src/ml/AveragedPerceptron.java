@@ -129,9 +129,9 @@ public class AveragedPerceptron implements Serializable {
     public void learnInstance(RerankerPool pool) {
         int argmax = argmax(pool, false);
 
-        if (argmax != pool.getGoldIndex()) {
+        if(argmax!=pool.getGoldIndex()){
             updateWeight(argmax, pool.getGoldIndex(), pool);
-        } else correct++;
+        } else     correct++;
 
         iteration++;
     }
@@ -148,7 +148,7 @@ public class AveragedPerceptron implements Serializable {
         HashMap<Object, Integer>[] goldFeats = pool.item(gold).getFeatures();
         for (int i = 0; i < argmaxFeats.length; i++) {
             // increase the weight for gold
-            if (goldFeats[i] != null) {
+            if (goldFeats[i]!= null) {
                 for (Object goldFeat : goldFeats[i].keySet()) {
                     CompactArray array = weights[i].get(goldFeat);
                     CompactArray avgArray = avgWeights[i].get(goldFeat);
@@ -237,9 +237,9 @@ public class AveragedPerceptron implements Serializable {
         double max = Double.NEGATIVE_INFINITY;
         int argmax = 0;
 
-        for (int i = 0; i < pool.length(); i++) {
-            double score = score(pool.item(i), decode);
-            if (score > max) {
+        for(int i=0; i<pool.length();i++){
+            double score = score(pool.item(i),decode);
+            if(score>max){
                 argmax = i;
                 max = score;
             }
@@ -263,11 +263,11 @@ public class AveragedPerceptron implements Serializable {
     }
 
     private double score(RerankerInstanceItem item, boolean decode) {
-        double score = 0;
+       double score=0;
         HashMap<Object, CompactArray>[] map = decode ? avgWeights : weights;
-        HashMap<Object, Integer>[] features = item.getFeatures();
+        HashMap<Object, Integer>[] features=   item.getFeatures();
 
-        for (int i = 0; i < features.length; i++) {
+        for(int i=0;i<features.length;i++) {
             //todo check if it is correct
             if (features[i] != null) {
                 for (Object feat : features[i].keySet()) {

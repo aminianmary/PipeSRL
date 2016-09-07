@@ -67,7 +67,7 @@ public class Sentence {
             posTags[index] = indexMap.str2int(fields[5]);
             cPosTags[index] = indexMap.str2int(util.StringUtils.getCoarsePOS(fields[5]));
             lemmas[index] = indexMap.str2int(fields[3]);
-            lemmaClusterIds[index] = clusterMap.getClusterId(fields[3]);
+            lemmaClusterIds[index]= clusterMap.getClusterId(fields[3]);
 
             if (reverseDepHeads[depHead] == null) {
                 TreeSet<Integer> children = new TreeSet<Integer>();
@@ -217,13 +217,9 @@ public class Sentence {
         return lemmas;
     }
 
-    public int[] getWordClusterIds() {
-        return wordClusterIds;
-    }
+    public int[] getWordClusterIds() {return wordClusterIds;}
 
-    public int[] getLemmaClusterIds() {
-        return lemmaClusterIds;
-    }
+    public int[] getLemmaClusterIds() {return lemmaClusterIds;}
 
     public TreeSet<Integer>[] getReverseDepHeads() {
         return reverseDepHeads;

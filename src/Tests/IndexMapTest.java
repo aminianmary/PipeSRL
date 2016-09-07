@@ -1,10 +1,8 @@
 package Tests;
 
-import SupervisedSRL.Pipeline;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
-import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -60,7 +58,7 @@ public class IndexMapTest {
     public void testMaps() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
+        IndexMap map = new IndexMap(tmpFilePath);
         assert map.str2int("\t") == IndexMap.unknownIdx;
         assert map.str2int(".") < 13;
         assert map.str2int("NMOD") > 12;

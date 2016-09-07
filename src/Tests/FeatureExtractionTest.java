@@ -1,6 +1,6 @@
 package Tests;
 
-import SentStructs.Sentence;
+import Sentence.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.PD.PredicateLexiconEntry;
@@ -9,11 +9,11 @@ import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import org.junit.Test;
-import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by monadiab on 8/4/16.
@@ -67,8 +67,8 @@ public class FeatureExtractionTest {
     public void testPDFeatures() throws Exception {
         writeConllText();
         writeClusterFile();
-        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterMap, Pipeline.numOfAIFeatures, false);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
         int numOfPDFeatures = Pipeline.numOfPDFeatures;
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
@@ -126,8 +126,8 @@ public class FeatureExtractionTest {
         writeConllText();
         writeClusterFile();
         int aiFeatLength = Pipeline.numOfAIFeatures;
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
-        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
 
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
@@ -175,7 +175,7 @@ public class FeatureExtractionTest {
         String posPath = (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NNS") << 1 | 0) + "\t" +
                 (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NN") << 1 | 0) + "\t" + (0);
         assert feats2[37].equals(map.str2int("taken") + " " + posPath);
-        long expected_pw_position = map.str2int("taken") << 2 | 2;
+        long expected_pw_position= map.str2int("taken") << 2 | 2;
         assert feats2[38].equals(expected_pw_position);
         String expected_deprelpath = (map.str2int("ADV") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0) + "\t" +
                 (map.str2int("NMOD") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0) + "\t" + (map.str2int("COORD") << 1 | 0);
@@ -201,10 +201,10 @@ public class FeatureExtractionTest {
         acCandidLabels.add(9);
         acCandidLabels.add(4);
         acCandidLabels.add(2);
-        Pair<Double, ArrayList<Integer>> aiCandids = new Pair(1.0D, aiCandidIndices);
-        Pair<Double, ArrayList<Integer>> acCandids = new Pair(1.0D, acCandidLabels);
-        String[] labelMap = {"A0", "A1", "R-A", "A5", "A3", "A4", "A2", "AM", "A-TMP", "A10", "A-VET"};
-        Object[] feats = FeatureExtractor.extractGlobalFeatures(7, "take.01", aiCandids, acCandids, labelMap);
+        Pair<Double, ArrayList<Integer>> aiCandids= new Pair(1.0D, aiCandidIndices);
+        Pair<Double, ArrayList<Integer>> acCandids= new Pair(1.0D, acCandidLabels);
+        String[] labelMap = {"A0", "A1","R-A","A5","A3","A4","A2","AM","A-TMP","A10","A-VET"};
+        Object[] feats = FeatureExtractor.extractGlobalFeatures(7,"take.01",aiCandids, acCandids,labelMap);
         assert feats[0].equals("A1 take.01 A3");
 
         //predicate seen as the last one
@@ -214,9 +214,9 @@ public class FeatureExtractionTest {
         aiCandidIndices.add(3);
         acCandidLabels.add(1);
         acCandidLabels.add(3);
-        aiCandids = new Pair(1.0D, aiCandidIndices);
-        acCandids = new Pair(1.0D, acCandidLabels);
-        feats = FeatureExtractor.extractGlobalFeatures(7, "take.01", aiCandids, acCandids, labelMap);
+        aiCandids= new Pair(1.0D, aiCandidIndices);
+        acCandids= new Pair(1.0D, acCandidLabels);
+        feats = FeatureExtractor.extractGlobalFeatures(7,"take.01",aiCandids, acCandids,labelMap);
         assert feats[0].equals("A1 take.01");
 
         //predicate seen as the first one
@@ -228,9 +228,9 @@ public class FeatureExtractionTest {
         acCandidLabels.add(2);
         acCandidLabels.add(3);
         acCandidLabels.add(0);
-        aiCandids = new Pair(1.0D, aiCandidIndices);
-        acCandids = new Pair(1.0D, acCandidLabels);
-        feats = FeatureExtractor.extractGlobalFeatures(7, "take.01", aiCandids, acCandids, labelMap);
+        aiCandids= new Pair(1.0D, aiCandidIndices);
+        acCandids= new Pair(1.0D, acCandidLabels);
+        feats = FeatureExtractor.extractGlobalFeatures(7,"take.01",aiCandids, acCandids,labelMap);
         assert feats[0].equals("take.01 A0");
 
         //predicate is the only element
@@ -242,9 +242,9 @@ public class FeatureExtractionTest {
         acCandidLabels.add(2);
         acCandidLabels.add(7);
         acCandidLabels.add(8);
-        aiCandids = new Pair(1.0D, aiCandidIndices);
-        acCandids = new Pair(1.0D, acCandidLabels);
-        feats = FeatureExtractor.extractGlobalFeatures(7, "take.01", aiCandids, acCandids, labelMap);
+        aiCandids= new Pair(1.0D, aiCandidIndices);
+        acCandids= new Pair(1.0D, acCandidLabels);
+        feats = FeatureExtractor.extractGlobalFeatures(7,"take.01",aiCandids, acCandids,labelMap);
         assert feats[0].equals("take.01");
     }
 
@@ -253,21 +253,21 @@ public class FeatureExtractionTest {
         writeConllText();
         writeClusterFile();
         int aiFeatLength = Pipeline.numOfAIFeatures;
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), new ClusterMap(clusterFilePath), Pipeline.numOfACFeatures, false);
-        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath);
+        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
 
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
         Object[] feats = FeatureExtractor.extractAIFeatures(4, 20, sentence, aiFeatLength, map, true, 12);
         assert feats[3].equals(map.str2int("SBJ") << 6 | 12);
-        assert feats[17].equals(12 + " " + "");
+        assert feats[17].equals(12+" "+"");
 
 
         Object[] feats2 = FeatureExtractor.extractAIFeatures(7, 20, sentence, aiFeatLength, map, true, 24);
         // subcat: ADV, TMP, ADV
         String expectedSubCat = map.str2int("ADV") + "\t" + map.str2int("TMP") + "\t" + map.str2int("ADV");
-        assert feats2[7].equals(24 + " " + expectedSubCat);
+        assert feats2[7].equals(24+" "+expectedSubCat);
 
         TreeSet<Integer> childWordSet = new TreeSet<Integer>();
         childWordSet.add(map.str2int("from"));
@@ -277,37 +277,37 @@ public class FeatureExtractionTest {
         for (int ch : childWordSet)
             childWordSetStr += ch + "\t";
         childWordSetStr = childWordSetStr.trim();
-        assert feats2[10].equals(24 + " " + childWordSetStr);
-        assert feats2[14].equals(map.str2int("output") << 6 | 24);
-        assert feats2[15].equals(map.str2int("NN") << 6 | 24);
-        assert feats2[16].equals(map.str2int("COORD") << 6 | 24);
+        assert feats2[10].equals(24+" "+childWordSetStr);
+        assert feats2[14].equals(map.str2int("output")<<6 | 24);
+        assert feats2[15].equals(map.str2int("NN") <<6 | 24);
+        assert feats2[16].equals(map.str2int("COORD") <<6 | 24);
         String depPath = (map.str2int("ADV") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0)
                 + "\t" + (map.str2int("NMOD") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0)
                 + "\t" + (map.str2int("COORD") << 1 | 0);
-        assert feats2[17].equals(24 + " " + depPath);
+        assert feats2[17].equals(24+" "+ depPath);
 
         assert feats2[19].equals(2 << 6 | 24);
         assert feats2[20].equals(IndexMap.nullIdx << 6 | 24);
         assert feats2[21].equals(IndexMap.nullIdx << 6 | 24);
         assert feats2[22].equals(map.str2int("housing") << 6 | 24);
-        assert feats2[23].equals(map.str2int("NN") << 6 | 24);
-        assert feats2[24].equals(map.str2int(",") << 6 | 24);
-        assert feats2[25].equals(map.str2int(",") << 6 | 24);
-        assert feats2[26].equals(IndexMap.nullIdx << 6 | 24);
-        assert feats2[27].equals(IndexMap.nullIdx << 6 | 24);
-        long expected_pw_aw = (map.str2int("taken") << 6 | 24) << 20 | map.str2int("output");
+        assert feats2[23].equals(map.str2int("NN")<< 6 | 24);
+        assert feats2[24].equals(map.str2int(",")<< 6 | 24);
+        assert feats2[25].equals(map.str2int(",")<< 6 | 24);
+        assert feats2[26].equals(IndexMap.nullIdx<< 6 | 24);
+        assert feats2[27].equals(IndexMap.nullIdx<< 6 | 24);
+        long expected_pw_aw = (map.str2int("taken") <<6 | 24) << 20 | map.str2int("output");
         assert feats2[33].equals(expected_pw_aw);
-        long expected_pw_adeprel = (map.str2int("taken") << 6 | 24) << 10 | map.str2int("COORD");
+        long expected_pw_adeprel = (map.str2int("taken")<<6 | 24) << 10 | map.str2int("COORD");
         assert feats2[35].equals(expected_pw_adeprel);
         String posPath = (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NNS") << 1 | 0) + "\t" +
                 (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NN") << 1 | 0) + "\t" + (0);
-        assert feats2[37].equals((map.str2int("taken") << 6 | 24) + " " + posPath);
-        long expected_pw_position = (map.str2int("taken") << 6 | 24) << 2 | 2;
+        assert feats2[37].equals((map.str2int("taken")<<6 | 24) + " " + posPath);
+        long expected_pw_position= (map.str2int("taken")<<6 | 24) << 2 | 2;
         assert feats2[38].equals(expected_pw_position);
         String expected_deprelpath = (map.str2int("ADV") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0) + "\t" +
                 (map.str2int("NMOD") << 1 | 0) + "\t" + (map.str2int("PMOD") << 1 | 0) + "\t" + (map.str2int("COORD") << 1 | 0);
-        assert feats2[64].equals((map.str2int("VC") << 6 | 24) + " " + expected_deprelpath);
-        assert feats2[89].equals("24 take.01 " + map.str2int("output"));
+        assert feats2[64].equals((map.str2int("VC")<<6 | 24) + " " + expected_deprelpath);
+        assert feats2[89].equals("24 take.01 "+map.str2int("output"));
 
     }
 

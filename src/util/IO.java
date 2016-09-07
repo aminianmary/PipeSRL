@@ -4,7 +4,6 @@ import SupervisedSRL.Strcutures.Prediction;
 
 import java.io.*;
 import java.util.*;
-
 /**
  * Created by monadiab on 4/12/16.
  */

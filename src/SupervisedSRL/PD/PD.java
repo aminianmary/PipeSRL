@@ -1,9 +1,8 @@
 package SupervisedSRL.PD;
 
-import SentStructs.PA;
-import SentStructs.Sentence;
+import Sentence.PA;
+import Sentence.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.Pipeline;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import ml.AveragedPerceptron;
@@ -32,9 +31,11 @@ public class PD {
 
         int numOfPDFeatures = 9;
 
+        final IndexMap indexMap = new IndexMap(inputFile);
+        final ClusterMap clusterMap= new ClusterMap(clusterFile);
+
+        //read trainJoint and test sentences
         ArrayList<String> sentencesInCONLLFormat = IO.readCoNLLFile(inputFile);
-        final ClusterMap clusterMap = new ClusterMap(clusterFile);
-        final IndexMap indexMap = new IndexMap(sentencesInCONLLFormat, clusterMap, Pipeline.numOfACFeatures, false);
 
         int totalNumOfSentences = sentencesInCONLLFormat.size();
         int trainSize = (int) Math.floor(0.8 * totalNumOfSentences);

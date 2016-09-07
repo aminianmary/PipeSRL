@@ -24,7 +24,7 @@ public class extract_argument_combination_classes {
         String clusterFilePath = args[3];
 
         final IndexMap indexMap = new IndexMap(propBankFile);
-        final ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        final ClusterMap clusterMap= new ClusterMap(clusterFilePath);
 
         //output files
         String predArgLabelFile = output_dir_path + "predArgLabel.out";

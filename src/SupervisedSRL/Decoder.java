@@ -1,10 +1,12 @@
 package SupervisedSRL;
 
-import SentStructs.Sentence;
+import Sentence.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;
+import de.bwaldvogel.liblinear.*;
 import ml.AveragedPerceptron;
+import ml.Adam;
 import util.IO;
 
 import java.text.DecimalFormat;
@@ -17,6 +19,10 @@ public class Decoder {
 
     AveragedPerceptron aiClassifier; //argument identification (binary classifier)
     AveragedPerceptron acClassifier; //argument classification (multi-class classifier)
+    Model aiClassifier_ll;
+    Model acClassifier_ll;
+    Adam aiClassifier_adam;
+    Adam acClassifier_adam;
 
     public Decoder(AveragedPerceptron classifier, String state) {
 
@@ -35,6 +41,37 @@ public class Decoder {
     }
 
 
+    public Decoder(Model aiClassifier, Model acClassifier) {
+        this.aiClassifier_ll = aiClassifier;
+        this.acClassifier_ll = acClassifier;
+    }
+
+
+    public Decoder(Adam aiClassifier, Adam acClassifier) {
+        this.aiClassifier_adam = aiClassifier;
+        this.acClassifier_adam = acClassifier;
+    }
+
+
+    public Decoder(Model classifier, String state) {
+
+        if (state.equals("AI")) {
+            this.aiClassifier_ll = classifier;
+        } else if (state.equals("AC") || state.equalsIgnoreCase("joint")) {
+            this.acClassifier_ll = classifier;
+        }
+    }
+
+
+    public Decoder(Adam classifier, String state) {
+
+        if (state.equals("AI")) {
+            this.aiClassifier_adam = classifier;
+        } else if (state.equals("AC") || state.equalsIgnoreCase("joint")) {
+            this.acClassifier_adam = classifier;
+        }
+    }
+
     ////////////////////////////////// DECODE ////////////////////////////////////////////////////////
 
     //stacked decoding
@@ -44,7 +81,7 @@ public class Decoder {
                               String modelDir, String outputFile,
                               HashMap<Object, Integer>[] aiFeatDict,
                               HashMap<Object, Integer>[] acFeatDict,
-                              boolean greedy) throws Exception {
+                              ClassifierType classifierType, boolean greedy) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -63,7 +100,7 @@ public class Decoder {
             Sentence sentence = new Sentence(devSentence, indexMap, clusterMap);
 
             predictions[d] = (TreeMap<Integer, Prediction>) decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, aiFeatDict, acFeatDict, greedy, false);
+                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir,aiFeatDict,acFeatDict, classifierType, greedy, false);
 
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
         }
@@ -73,10 +110,10 @@ public class Decoder {
     }
 
     //joint decoding
-    public static void decode(Decoder decoder, IndexMap indexMap, ClusterMap clusterMap, String devData,
+    public static void decode(Decoder decoder, IndexMap indexMap,ClusterMap clusterMap, String devData,
                               String[] labelMap, int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
                               String modelDir, String outputFile, HashMap<Object, Integer>[] featDict,
-                              boolean greedy) throws Exception {
+                              ClassifierType classifierType, boolean greedy) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -91,10 +128,10 @@ public class Decoder {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
             String devSentence = devSentencesInCONLLFormat.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap, clusterMap);
+            Sentence sentence = new Sentence(devSentence, indexMap,clusterMap );
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
 
-            predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOfPDFeatures, modelDir, featDict, greedy);
+            predictions[d] = decoder.predictJoint(sentence, indexMap, maxBeamSize, numOfFeatures, numOfPDFeatures, modelDir,featDict, classifierType, greedy);
         }
 
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap, outputFile);
@@ -108,7 +145,7 @@ public class Decoder {
     public HashMap<Integer, Prediction> predictAI(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                                                   int numOfFeatures, String modelDir, int numOfPDFeatures,
                                                   HashMap<Object, Integer>[] featDict,
-                                                  boolean greedy)
+                                                  ClassifierType classifierType, boolean greedy)
             throws Exception {
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
@@ -117,16 +154,17 @@ public class Decoder {
             // get best k argument assignment candidates
             String pLabel = predictedPredicates.get(pIdx);
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = new ArrayList();
-            ArrayList<Integer> aiCandidatesGreedy = new ArrayList<Integer>();
-            HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+            ArrayList<Integer> aiCandidatesGreedy= new ArrayList<Integer>();
+            HashMap<Integer, Integer> highestScorePrediction= new HashMap<Integer, Integer>();
 
-            if (!greedy) {
-                aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfFeatures, featDict);
-                highestScorePrediction = getHighestScorePredication(aiCandidates);
+            if (!greedy)
+            {
+                aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfFeatures, featDict, classifierType);
+                highestScorePrediction= getHighestScorePredication(aiCandidates);
 
-            } else {
-                aiCandidatesGreedy = getBestAICandidatesGreedy(sentence, pIdx, indexMap, numOfFeatures, featDict);
-                for (int idx = 0; idx < aiCandidatesGreedy.size(); idx++) {
+            }else {
+                aiCandidatesGreedy = getBestAICandidatesGreedy(sentence, pIdx, indexMap, numOfFeatures, featDict, classifierType);
+                for (int idx=0; idx< aiCandidatesGreedy.size(); idx++) {
                     int wordIdx = aiCandidatesGreedy.get(idx);
                     highestScorePrediction.put(wordIdx, 1);
                 }
@@ -137,12 +175,15 @@ public class Decoder {
         return predictedPAs;
     }
 
+
+
     public Object predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                          int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
-                          int numOfPDFeatures, String modelDir,
-                          HashMap<Object, Integer>[] aiFeatDict,
-                          HashMap<Object, Integer>[] acFeatDict,
-                          boolean greedy, boolean use4Reranker) throws Exception {
+                                                int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
+                                                int numOfPDFeatures, String modelDir,
+                                                HashMap<Object, Integer>[] aiFeatDict,
+                                                HashMap<Object, Integer>[] acFeatDict,
+                                                ClassifierType classifierType,
+                                                boolean greedy, boolean use4Reranker) throws Exception {
 
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
@@ -150,24 +191,25 @@ public class Decoder {
         for (int pIdx : predictedPredicates.keySet()) {
             // get best k argument assignment candidates
             String pLabel = predictedPredicates.get(pIdx);
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = new ArrayList();
-            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = new ArrayList();
+            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates= new ArrayList();
+            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates= new ArrayList();
 
             ArrayList<Integer> aiCandidatesGreedy = new ArrayList<Integer>();
             ArrayList<Integer> acCandidatesGreedy = new ArrayList<Integer>();
             HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
 
 
-            if (!greedy) {
-                aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures, aiFeatDict);
-                acCandidates = getBestACCandidates(sentence, pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, acFeatDict);
+            if (!greedy)
+            {
+                aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures, aiFeatDict, classifierType);
+                acCandidates = getBestACCandidates(sentence, pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, acFeatDict, classifierType);
                 if (use4Reranker)
-                    predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
+                     predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
                 else
                     highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
-            } else {
-                aiCandidatesGreedy = getBestAICandidatesGreedy(sentence, pIdx, indexMap, numOfAIFeatures, aiFeatDict);
-                acCandidatesGreedy = getBestACCandidatesGreedy(sentence, pIdx, indexMap, aiCandidatesGreedy, numOfACFeatures, acFeatDict);
+            }else {
+                aiCandidatesGreedy = getBestAICandidatesGreedy(sentence, pIdx, indexMap, numOfAIFeatures, aiFeatDict, classifierType);
+                acCandidatesGreedy = getBestACCandidatesGreedy(sentence, pIdx, indexMap, aiCandidatesGreedy, numOfACFeatures, acFeatDict, classifierType);
                 if (use4Reranker)
                     predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
                 else {
@@ -193,23 +235,25 @@ public class Decoder {
     public TreeMap<Integer, Prediction> predictJoint(Sentence sentence, IndexMap indexMap,
                                                      int maxBeamSize, int numOfFeatures, int numOfPDFeatures,
                                                      String modelDir, HashMap<Object, Integer>[] featDict,
-                                                     boolean greedy) throws Exception {
+                                                     ClassifierType classifierType,boolean greedy) throws Exception {
 
         HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
 
         for (int pIdx : predictedPredicates.keySet()) {
             String pLabel = predictedPredicates.get(pIdx);
-            ArrayList<Pair<Double, ArrayList<Integer>>> candidates = new ArrayList();
+            ArrayList<Pair<Double, ArrayList<Integer>>> candidates= new ArrayList();
             int[] candidatesGreedy = new int[sentence.getWords().length];
-            HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+            HashMap<Integer, Integer> highestScorePrediction= new HashMap<Integer, Integer>();
 
             if (!greedy) {
-                candidates = getBestJointCandidates(sentence, pIdx, indexMap, maxBeamSize, numOfFeatures, featDict);
+                candidates = getBestJointCandidates(sentence, pIdx, indexMap, maxBeamSize, numOfFeatures, featDict, classifierType);
                 highestScorePrediction = getHighestScorePredicationJoint(candidates, pIdx);
-            } else {
-                candidatesGreedy = getBestJointCandidatesGreedy(sentence, pIdx, indexMap, numOfFeatures, featDict);
-                for (int idx = 0; idx < candidatesGreedy.length; idx++) {
+            }
+            else {
+                candidatesGreedy = getBestJointCandidatesGreedy(sentence, pIdx, indexMap, numOfFeatures, featDict, classifierType);
+                for (int idx=0; idx< candidatesGreedy.length; idx++)
+                {
                     highestScorePrediction.put(idx, candidatesGreedy[idx]);
                 }
             }
@@ -223,7 +267,7 @@ public class Decoder {
 
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
             (Sentence sentence, int pIdx, IndexMap indexMap, int maxBeamSize, int numOfFeatures,
-             HashMap<Object, Integer>[] featDict) throws Exception {
+             HashMap<Object, Integer>[] featDict, ClassifierType classifierType) throws Exception {
         ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
         currentBeam.add(new Pair<Double, ArrayList<Integer>>(0., new ArrayList<Integer>()));
 
@@ -235,9 +279,39 @@ public class Decoder {
             double score0 = Double.POSITIVE_INFINITY;
             double score1 = Double.NEGATIVE_INFINITY;
 
-            double[] scores = aiClassifier.score(featVector);
-            score0 = scores[0];
-            score1 = scores[1];
+            if (classifierType == ClassifierType.AveragedPerceptron) {
+                double[] scores = aiClassifier.score(featVector);
+                score0 = scores[0];
+                score1 = scores[1];
+            }else if (classifierType == ClassifierType.Liblinear) {
+                ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(new FeatureNode(featDict[d].get(featVector[d]), 1));
+                    else
+                        //unseen feature value
+                        feats.add(new FeatureNode(featDict[d].get(Pipeline.unseenSymbol), 1));
+                FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+
+                double[] probEstimates = new double[2];
+                int prediction = (int) Linear.predictProbability(aiClassifier_ll, featureNodes, probEstimates);
+                score0 = Math.log(probEstimates[0]);
+                score1 = Math.log(probEstimates[1]);
+
+            }else if (classifierType == ClassifierType.Adam){
+                ArrayList<Integer> feats = new ArrayList<Integer>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(featDict[d].get(featVector[d]));
+
+                double[] probEstimates = new double[2];
+                int prediction= aiClassifier_adam.argmax(feats,probEstimates, true);
+
+                score0 = Math.log(probEstimates[0]);
+                score1 = Math.log(probEstimates[1]);
+            }
 
             // build an intermediate beam
             TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();
@@ -269,20 +343,53 @@ public class Decoder {
             // replace the old beam with the intermediate beam
             currentBeam = newBeam;
         }
+
         return currentBeam;
     }
 
 
+
     //getting highest score AI candidate (AP/LL/Adam) without Beam Search
     private ArrayList<Integer> getBestAICandidatesGreedy
-    (Sentence sentence, int pIdx, IndexMap indexMap, int numOfFeatures, HashMap<Object, Integer>[] featDict) throws Exception {
+            (Sentence sentence, int pIdx, IndexMap indexMap, int numOfFeatures, HashMap<Object, Integer>[] featDict,
+             ClassifierType classifierType) throws Exception {
         int[] sentenceWords = sentence.getWords();
         ArrayList<Integer> aiCandids = new ArrayList<Integer>();
         for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-            Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
-            double score1 = aiClassifier.score(featVector)[1];
-            if (score1 >= 0)
-                aiCandids.add(wordIdx);
+            if (classifierType == ClassifierType.AveragedPerceptron) {
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
+                double score1 = aiClassifier.score(featVector)[1];
+                if (score1 >= 0)
+                    aiCandids.add(wordIdx);
+            } else if (classifierType == ClassifierType.Liblinear) {
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
+                ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(new FeatureNode(featDict[d].get(featVector[d]), 1));
+                    else
+                        //unseen feature value
+                        feats.add(new FeatureNode(featDict[d].get(Pipeline.unseenSymbol), 1));
+                FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+                double[] probEstimates = new double[2];
+                int prediction = (int) Linear.predictProbability(aiClassifier_ll, featureNodes, probEstimates);
+                if (probEstimates[1] > probEstimates[0])
+                    aiCandids.add(wordIdx);
+            } else if (classifierType == ClassifierType.Adam) {
+
+                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
+                ArrayList<Integer> feats = new ArrayList<Integer>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(featDict[d].get(featVector[d]));
+
+                double[] probEstimates = new double[2];
+                int prediction = aiClassifier_adam.argmax(feats, probEstimates, true);
+                if (probEstimates[1] > probEstimates[0])
+                    aiCandids.add(wordIdx);
+            }
         }
         return aiCandids;
     }
@@ -291,9 +398,15 @@ public class Decoder {
     private ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> getBestACCandidates
             (Sentence sentence, int pIdx, IndexMap indexMap,
              ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates, int maxBeamSize, int numOfFeatures,
-             HashMap<Object, Integer>[] featDict) throws Exception {
+             HashMap<Object, Integer>[] featDict, ClassifierType classifierType) throws Exception {
 
-        int numOfLabels = acClassifier.getLabelMap().length;
+        int numOfLabels = 0;
+        if (classifierType== ClassifierType.AveragedPerceptron)
+            numOfLabels = acClassifier.getLabelMap().length;
+        else if (classifierType == ClassifierType.Liblinear)
+            numOfLabels = acClassifier_ll.getLabels().length;
+        else if (classifierType == ClassifierType.Adam)
+            numOfLabels = acClassifier_adam.getLabelMap().length;
 
         ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> finalACCandidates = new ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>>();
 
@@ -307,7 +420,38 @@ public class Decoder {
             for (int wordIdx : aiCandidate.second) {
                 // retrieve candidates for the current word
                 Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
-                double[] labelScores = acClassifier.score(featVector);
+                double[] labelScores = new double[numOfLabels];
+
+                if (classifierType== ClassifierType.AveragedPerceptron) {
+                    labelScores = acClassifier.score(featVector);
+                }
+                else if (classifierType == ClassifierType.Liblinear){
+                    ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                    for (int d = 0; d < featVector.length; d++)
+                        if (featDict[d].containsKey(featVector[d]))
+                            //seen feature value
+                            feats.add(new FeatureNode(featDict[d].get(featVector[d]), 1));
+                        else
+                            //unseen feature value
+                            feats.add(new FeatureNode(featDict[d].get(Pipeline.unseenSymbol), 1));
+                    FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+
+                    double[] probEstimates = new double[numOfLabels];
+                    int prediction = (int) Linear.predictProbability(acClassifier_ll, featureNodes, probEstimates);
+                    for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
+                        labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
+
+                }else if (classifierType == ClassifierType.Adam){
+                    ArrayList<Integer> feats = new ArrayList<Integer>();
+                    for (int d = 0; d < featVector.length; d++)
+                        if (featDict[d].containsKey(featVector[d]))
+                            //seen feature value
+                            feats.add(featDict[d].get(featVector[d]));
+                    double[] probEstimates = new double[numOfLabels];
+                    int prediction = acClassifier_adam.argmax(feats, probEstimates, true);
+                    for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
+                        labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
+                }
 
                 // build an intermediate beam
                 TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();
@@ -326,7 +470,7 @@ public class Decoder {
 
                 for (BeamElement beamElement : newBeamHeap) {
                     ArrayList<Integer> newArrayList = new ArrayList<Integer>();
-                    for (int b : currentBeam.get(beamElement.index).second)
+                    for(int b:currentBeam.get(beamElement.index).second)
                         newArrayList.add(b);
                     newArrayList.add(beamElement.label);
                     newBeam.add(new Pair<Double, ArrayList<Integer>>(beamElement.score, newArrayList));
@@ -346,16 +490,50 @@ public class Decoder {
 
     //getting highest score AC candidate (AP/LL/Adam) without Beam Search
     private ArrayList<Integer> getBestACCandidatesGreedy
-    (Sentence sentence, int pIdx, IndexMap indexMap, ArrayList<Integer> aiCandidates, int numOfFeatures,
-     HashMap<Object, Integer>[] featDict) throws Exception {
+            (Sentence sentence, int pIdx, IndexMap indexMap, ArrayList<Integer> aiCandidates, int numOfFeatures,
+             HashMap<Object, Integer>[] featDict, ClassifierType classifierType) throws Exception {
 
         ArrayList<Integer> acCandids = new ArrayList<Integer>();
         for (int aiCandidIdx = 0; aiCandidIdx < aiCandidates.size(); aiCandidIdx++) {
             int wordIdx = aiCandidates.get(aiCandidIdx);
-            Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
-            double[] labelScores = acClassifier.score(featVector);
-            int predictedLabel = argmax(labelScores);
-            acCandids.add(predictedLabel);
+            if (classifierType == ClassifierType.AveragedPerceptron)
+            {
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
+                double[] labelScores = acClassifier.score(featVector);
+                int predictedLabel = argmax(labelScores);
+                acCandids.add(predictedLabel);
+            }else if (classifierType == ClassifierType.Liblinear)
+            {
+                // retrieve candidates for the current word
+                int[] labels = acClassifier_ll.getLabels();
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
+                ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(new FeatureNode(featDict[d].get(featVector[d]), 1));
+                    else
+                        //unseen feature value
+                        feats.add(new FeatureNode(featDict[d].get(Pipeline.unseenSymbol), 1));
+                FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+
+                double[] probEstimates = new double[labels.length];
+                int prediction = (int) Linear.predictProbability(acClassifier_ll, featureNodes, probEstimates);
+                acCandids.add(prediction);
+            }else if (classifierType == ClassifierType.Adam) {
+                String[] labelMap = acClassifier_adam.getLabelMap();
+                // retrieve candidates for the current word
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
+                ArrayList<Integer> feats = new ArrayList<Integer>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(featDict[d].get(featVector[d]));
+
+                double[] probEstimates = new double[labelMap.length];
+                int prediction = acClassifier_adam.argmax(feats, probEstimates, true);
+                acCandids.add(prediction);
+            }
         }
         assert aiCandidates.size() == acCandids.size();
         return acCandids;
@@ -365,10 +543,15 @@ public class Decoder {
     //this function is used for joint ai-ac decoding (AP/LL/Adam)
     private ArrayList<Pair<Double, ArrayList<Integer>>> getBestJointCandidates
     (Sentence sentence, int pIdx, IndexMap indexMap,
-     int maxBeamSize, int numOfFeatures, HashMap<Object, Integer>[] featDict) throws Exception {
+     int maxBeamSize, int numOfFeatures, HashMap<Object, Integer>[] featDict, ClassifierType classifierType) throws Exception {
 
         int numOfLabels = 0;
-        numOfLabels = acClassifier.getLabelMap().length;
+        if (classifierType == ClassifierType.AveragedPerceptron)
+            numOfLabels = acClassifier.getLabelMap().length;
+        else if (classifierType == ClassifierType.Liblinear)
+            numOfLabels = acClassifier_ll.getLabels().length;
+        else if (classifierType == ClassifierType.Adam)
+            numOfLabels = acClassifier_adam.getLabelMap().length;
 
         ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
         currentBeam.add(new Pair<Double, ArrayList<Integer>>(0., new ArrayList<Integer>()));
@@ -378,7 +561,39 @@ public class Decoder {
         for (int wordIdx = 1; wordIdx < sentence.getWords().length; wordIdx++) {
             // retrieve candidates for the current word
             Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
-            double[] labelScores = acClassifier.score(featVector);
+            double[] labelScores= new double[numOfLabels];
+
+            if (classifierType == ClassifierType.AveragedPerceptron)
+                labelScores = acClassifier.score(featVector);
+
+            else if (classifierType == ClassifierType.Liblinear){
+                ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(new FeatureNode(featDict[d].get(featVector[d]), 1));
+                    else
+                        //unseen feature value
+                        feats.add(new FeatureNode(featDict[d].get(Pipeline.unseenSymbol), 1));
+                FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+
+                double[] probEstimates = new double[numOfLabels];
+                int prediction = (int) Linear.predictProbability(acClassifier_ll, featureNodes, probEstimates);
+                for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
+                    labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
+
+            }else if (classifierType == ClassifierType.Adam){
+                ArrayList<Integer> feats = new ArrayList<Integer>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(featDict[d].get(featVector[d]));
+
+                double[] probEstimates = new double[numOfLabels];
+                int prediction = acClassifier_adam.argmax(feats, probEstimates, true);
+                for (int labelIdx=0; labelIdx< numOfLabels; labelIdx++)
+                    labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
+            }
 
             // build an intermediate beam
             TreeSet<BeamElement> newBeamHeap = new TreeSet<BeamElement>();
@@ -410,17 +625,56 @@ public class Decoder {
 
     private int[] getBestJointCandidatesGreedy
             (Sentence sentence, int pIdx, IndexMap indexMap,
-             int numOfFeatures, HashMap<Object, Integer>[] featDict) throws Exception {
+             int numOfFeatures, HashMap<Object, Integer>[] featDict, ClassifierType classifierType) throws Exception {
 
-        int numOfLabels = acClassifier.getLabelMap().length;
+        int numOfLabels = 0;
         int[] predictedLabels = new int[sentence.getWords().length]; //for each word in the sentence, we have a label (either zero or non-zero)
         predictedLabels[0] = -1; //label for root element
 
+        if (classifierType == ClassifierType.AveragedPerceptron)
+            numOfLabels = acClassifier.getLabelMap().length;
+        else if (classifierType == ClassifierType.Liblinear)
+            numOfLabels = acClassifier_ll.getLabels().length;
+        else if (classifierType == ClassifierType.Adam)
+            numOfLabels = acClassifier_adam.getLabelMap().length;
 
         for (int wordIdx = 1; wordIdx < sentence.getWords().length; wordIdx++) {
             // retrieve candidates for the current word
             Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfFeatures, indexMap, false, 0);
-            double[] labelScores = acClassifier.score(featVector);
+            double[] labelScores = new double[numOfLabels];
+
+            if (classifierType == ClassifierType.AveragedPerceptron)
+                labelScores = acClassifier.score(featVector);
+
+            else if (classifierType == ClassifierType.Liblinear) {
+                ArrayList<FeatureNode> feats = new ArrayList<FeatureNode>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(new FeatureNode(featDict[d].get(featVector[d]), 1));
+                    else
+                        //unseen feature value
+                        feats.add(new FeatureNode(featDict[d].get(Pipeline.unseenSymbol), 1));
+                FeatureNode[] featureNodes = feats.toArray(new FeatureNode[0]);
+
+                double[] probEstimates = new double[numOfLabels];
+                int prediction = (int) Linear.predictProbability(acClassifier_ll, featureNodes, probEstimates);
+                for (int labelIdx = 0; labelIdx < numOfLabels; labelIdx++)
+                    labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
+
+            } else if (classifierType == ClassifierType.Adam) {
+                ArrayList<Integer> feats = new ArrayList<Integer>();
+                for (int d = 0; d < featVector.length; d++)
+                    if (featDict[d].containsKey(featVector[d]))
+                        //seen feature value
+                        feats.add(featDict[d].get(featVector[d]));
+
+                double[] probEstimates = new double[numOfLabels];
+                int prediction = acClassifier_adam.argmax(feats, probEstimates,true);
+                for (int labelIdx = 0; labelIdx < numOfLabels; labelIdx++)
+                    labelScores[labelIdx] = Math.log(probEstimates[labelIdx]);
+            }
+
             int prediction = argmax(labelScores);
             predictedLabels[wordIdx] = prediction;
         }

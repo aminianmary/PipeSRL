@@ -6,23 +6,23 @@ import java.util.ArrayList;
 /**
  * Created by Maryam Aminian on 8/24/16.
  */
-public class RerankerPool implements Serializable {
+public class RerankerPool implements Serializable{
     private ArrayList<RerankerInstanceItem> items;
     private int goldIndex;
 
     public RerankerPool(ArrayList<RerankerInstanceItem> items, int goldIndex) {
-        assert goldIndex < items.size() && goldIndex >= 0;
+        assert goldIndex<items.size() && goldIndex>=0;
         this.items = items;
         this.goldIndex = goldIndex;
     }
 
-    public RerankerPool() {
-        items = new ArrayList<RerankerInstanceItem>();
+    public RerankerPool(){
+      items = new ArrayList<RerankerInstanceItem>();
     }
 
-    public void addInstance(RerankerInstanceItem item, boolean isGold) {
+    public void addInstance(RerankerInstanceItem item, boolean isGold){
         items.add(item);
-        if (isGold) goldIndex = items.size() - 1;
+        if(isGold) goldIndex = items.size()-1;
     }
 
     public ArrayList<RerankerInstanceItem> getItems() {
@@ -33,11 +33,11 @@ public class RerankerPool implements Serializable {
         return goldIndex;
     }
 
-    public int length() {
+    public int length(){
         return items.size();
     }
 
-    public RerankerInstanceItem item(int i) {
+    public RerankerInstanceItem item(int i){
         return items.get(i);
     }
 
