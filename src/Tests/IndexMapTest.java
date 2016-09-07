@@ -1,6 +1,5 @@
 package Tests;
 
-import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
 

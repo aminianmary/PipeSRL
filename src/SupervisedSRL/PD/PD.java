@@ -32,7 +32,7 @@ public class PD {
         int numOfPDFeatures = 9;
 
         final IndexMap indexMap = new IndexMap(inputFile);
-        final ClusterMap clusterMap= new ClusterMap(clusterFile);
+        final ClusterMap clusterMap = new ClusterMap(clusterFile);
 
         //read trainJoint and test sentences
         ArrayList<String> sentencesInCONLLFormat = IO.readCoNLLFile(inputFile);
