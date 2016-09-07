@@ -1,10 +1,9 @@
 package Tests;
 
-import Sentence.*;
+import SentenceStruct.*;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
-import sun.util.resources.cldr.ar.CalendarData_ar_LY;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -64,7 +63,7 @@ public class SentenceTest {
         writeConllText();
         writeClusterFile();
         IndexMap map = new IndexMap(tmpFilePath);
-        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
 
         int[] depHeads = sentence.getDepHeads();
@@ -121,7 +120,7 @@ public class SentenceTest {
         writeConllText();
         writeClusterFile();
         IndexMap map = new IndexMap(tmpFilePath);
-        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getDepPath(5, 12);
 
@@ -134,7 +133,7 @@ public class SentenceTest {
         writeConllText();
         writeClusterFile();
         IndexMap map = new IndexMap(tmpFilePath);
-        ClusterMap clusterMap= new ClusterMap(clusterFilePath);
+        ClusterMap clusterMap = new ClusterMap(clusterFilePath);
         Sentence sentence = new Sentence(conllText, map, clusterMap);
         ArrayList<Integer> depPath = sentence.getPOSPath(5, 12);
 
@@ -147,6 +146,7 @@ public class SentenceTest {
         writer.write(conllText);
         writer.close();
     }
+
     private void writeClusterFile() throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(clusterFilePath));
         writer.write(clusters);

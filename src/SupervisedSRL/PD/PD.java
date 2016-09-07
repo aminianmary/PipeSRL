@@ -1,7 +1,7 @@
 package SupervisedSRL.PD;
 
-import Sentence.PA;
-import Sentence.Sentence;
+import SentenceStruct.PA;
+import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
@@ -32,7 +32,7 @@ public class PD {
         int numOfPDFeatures = 9;
 
         final IndexMap indexMap = new IndexMap(inputFile);
-        final ClusterMap clusterMap= new ClusterMap(clusterFile);
+        final ClusterMap clusterMap = new ClusterMap(clusterFile);
 
         //read trainJoint and test sentences
         ArrayList<String> sentencesInCONLLFormat = IO.readCoNLLFile(inputFile);

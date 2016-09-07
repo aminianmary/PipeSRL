@@ -61,7 +61,7 @@ public class readFrEnEUROPARL {
                 if (GoldFrSents_Sen2EPIndexMap.get(FrSen) == -1)
                     GoldFrSents_Sen2EPIndexMap.put(FrSen, idx);
                 else
-                    System.out.println("Sentence " + idx + " has been observed at least two times!");
+                    System.out.println("SentenceStruct " + idx + " has been observed at least two times!");
             }
         }
 

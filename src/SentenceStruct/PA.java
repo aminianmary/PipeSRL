@@ -1,4 +1,4 @@
-package Sentence;
+package SentenceStruct;
 
 import java.util.ArrayList;
 import java.util.HashSet;

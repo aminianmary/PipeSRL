@@ -146,7 +146,7 @@ public class IndexMap implements Serializable {
         HashSet<String> depRels = new HashSet<String>();
         HashSet<String> words = new HashSet<String>();
 
-        for (String sentence:trainSentences) {
+        for (String sentence : trainSentences) {
             for (String line2read : sentence.split("\n")) {
                 if (line2read.equals(""))
                     continue;

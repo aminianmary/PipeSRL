@@ -1,6 +1,6 @@
-import Sentence.Argument;
-import Sentence.PA;
-import Sentence.Sentence;
+import SentenceStruct.Argument;
+import SentenceStruct.PA;
+import SentenceStruct.Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
 
 import java.io.BufferedWriter;

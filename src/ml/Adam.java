@@ -30,6 +30,9 @@ public class Adam implements Serializable {
     Random random;
     double cost;
     double eps;
+    ExecutorService executor;
+    CompletionService<Pair<Pair<Double, Double>, double[][]>> pool;
+    int numOfThreads;
     // these are for tracking the history
     private double[][] m;
     private double[][] v;
@@ -38,9 +41,7 @@ public class Adam implements Serializable {
     private String[] labelMap;
     private HashMap<String, Integer> reverseLabelMap;
     private int t;
-    ExecutorService executor;
-    CompletionService<Pair<Pair<Double, Double>, double[][]>> pool;
-    int numOfThreads ;
+
     /**
      * @param possibleLabels
      * @param maxNumOfFeatures
@@ -292,9 +293,9 @@ public class Adam implements Serializable {
         double argmaxValue = Double.NEGATIVE_INFINITY;
 
         for (int l = 0; l < probs.length; l++) {
-            probs[l] += decode? aw[l][aw[l].length-1]:w[l][w[l].length-1];
+            probs[l] += decode ? aw[l][aw[l].length - 1] : w[l][w[l].length - 1];
             for (int f = 0; f < features.size(); f++)
-                probs[l] +=  decode? aw[l][features.get(f)]: w[l][features.get(f)];
+                probs[l] += decode ? aw[l][features.get(f)] : w[l][features.get(f)];
             if (probs[l] > argmaxValue) {
                 argmaxValue = probs[l];
                 argmax = l;
@@ -303,7 +304,7 @@ public class Adam implements Serializable {
 
         double sum = 0;
         for (int l = 0; l < probs.length; l++) {
-            probs[l] = Math.exp(probs[l]-argmaxValue);
+            probs[l] = Math.exp(probs[l] - argmaxValue);
             if (Double.isNaN(probs[l]))
                 throw new Exception("prob is NAN in regularizer");
             sum += probs[l];
@@ -313,7 +314,7 @@ public class Adam implements Serializable {
             if (sum != 0)
                 probs[l] /= sum;
             else
-                probs[l] = 1.0/probs.length;
+                probs[l] = 1.0 / probs.length;
 
             if (Double.isNaN(probs[l]))
                 throw new Exception("prob is NAN in regularizer");
@@ -331,12 +332,22 @@ public class Adam implements Serializable {
         writer.close();
     }
 
+    public void shutDownLiveThreads() {
+        if (executor == null)
+            return;
+        boolean isTerminated = executor.isTerminated();
+        while (!isTerminated) {
+            executor.shutdownNow();
+            isTerminated = executor.isTerminated();
+        }
+    }
+
     public class CostThread implements Callable<Pair<Pair<Double, Double>, double[][]>> {
         List<ArrayList<Integer>> features;
         List<String> labels;
         int batchSize;
 
-        public CostThread(List<String> labels, List<ArrayList<Integer>> features,  int batchSize) {
+        public CostThread(List<String> labels, List<ArrayList<Integer>> features, int batchSize) {
             this.labels = labels;
             this.features = features;
             this.batchSize = batchSize;
@@ -345,18 +356,8 @@ public class Adam implements Serializable {
         @Override
         public Pair<Pair<Double, Double>, double[][]> call() throws Exception {
             double[][] g = new double[w.length][w[0].length];
-            Pair<Double, Double> costCorrectPair = calculateGradients(features,labels,g,batchSize);
-            return new Pair<Pair<Double, Double>, double[][]>(costCorrectPair,g);
-        }
-    }
-
-    public void shutDownLiveThreads() {
-        if (executor == null)
-            return;
-        boolean isTerminated = executor.isTerminated();
-        while (!isTerminated) {
-            executor.shutdownNow();
-            isTerminated = executor.isTerminated();
+            Pair<Double, Double> costCorrectPair = calculateGradients(features, labels, g, batchSize);
+            return new Pair<Pair<Double, Double>, double[][]>(costCorrectPair, g);
         }
     }
 }

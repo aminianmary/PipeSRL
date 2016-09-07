@@ -1,8 +1,8 @@
 package SupervisedSRL;
 
+import SupervisedSRL.Reranker.Decoder;
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 import SupervisedSRL.Reranker.Train;
-import SupervisedSRL.Reranker.Decoder;
 import SupervisedSRL.Strcutures.ClassifierType;
 import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
@@ -27,8 +27,8 @@ public class PipeLineWithReranker {
     //predicate cluster features 3
     //argument cluster features 5
 
-    public static int numOfAIFeatures = 25 + 3+ 5+ 13;
-    public static int numOfACFeatures = 25 + 3+ 5+ 15;
+    public static int numOfAIFeatures = 25 + 3 + 5 + 13;
+    public static int numOfACFeatures = 25 + 3 + 5 + 15;
     public static int numOfPDFeatures = 9;
     public static int numOfPDTrainingIterations = 10;
     public static String unseenSymbol = ";;?;;";
@@ -60,7 +60,7 @@ public class PipeLineWithReranker {
             case (3):
                 classifierType = ClassifierType.Adam;
         }
-        String[] modelPaths= new String[4];
+        String[] modelPaths = new String[4];
         if (classifierType == ClassifierType.AveragedPerceptron) {
             //train AI and AC model on the whole train data
             System.out.print("\n\nSTEP 1 Training PD, AI and AC Models on entire train data\n\n");
@@ -80,28 +80,28 @@ public class PipeLineWithReranker {
             System.out.print("\n\nSTEP 2 Training Reranker Model\n\n");
             System.out.print("\nSTEP 2.1 Generating training instances\n");
             int numOfPartitions = 5;
-            String instanceFilePrefix= modelDir+"/reranker_train_instances_";
-            int numOfGlobalFeatures= 1;
+            String instanceFilePrefix = modelDir + "/reranker_train_instances_";
+            int numOfGlobalFeatures = 1;
 
             RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
                     modelDir, instanceFilePrefix, numOfPDFeatures, numOfPDTrainingIterations, numOfTrainingIterations, numOfAIFeatures,
-                    numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,greedy, globalReverseLabelMap);
+                    numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize, greedy, globalReverseLabelMap);
             rerankerInstanceGenerator.buildTrainInstances(trainData, globalClusterMap);
 
             //2- train reranker
             System.out.print("\nSTEP 2.1 Train Reranker Model\n");
-            String rerankerModelPath = Train.trainReranker(numOfPartitions, instanceFilePrefix, numOfTrainingIterations, numOfAIFeatures+numOfACFeatures+numOfGlobalFeatures, modelDir);
+            String rerankerModelPath = Train.trainReranker(numOfPartitions, instanceFilePrefix, numOfTrainingIterations, numOfAIFeatures + numOfACFeatures + numOfGlobalFeatures, modelDir);
             AveragedPerceptron reranker = AveragedPerceptron.loadModel(rerankerModelPath);
 
             //decode using reranker
             System.out.print("\n\nSTEP 3 Running Decoder on Dev data (using reranker model)\n\n");
-            Decoder decoder= new Decoder(aiClassifier, acClassifier,reranker, indexMap, globalClusterMap,modelDir);
+            Decoder decoder = new Decoder(aiClassifier, acClassifier, reranker, indexMap, globalClusterMap, modelDir);
             decoder.decode(devData, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, modelDir, greedy, outputFile);
 
             System.out.print("\n\nSTEP 4 Evaluation\n\n");
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());
-            Evaluation.evaluate(outputFile, devData, indexMap, globalClusterMap,reverseLabelMap);
+            Evaluation.evaluate(outputFile, devData, indexMap, globalClusterMap, reverseLabelMap);
         }
     }
 
