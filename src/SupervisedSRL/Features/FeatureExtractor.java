@@ -4,7 +4,6 @@ package SupervisedSRL.Features;
  */
 
 import SentenceStruct.Sentence;
-import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import util.StringUtils;
@@ -1313,7 +1312,6 @@ public class FeatureExtractor {
         private int aIdx;
         private Sentence sentence;
         private IndexMap indexMap;
-        private ClusterMap clusterMap;
         private int pw;
         private int ppos;
         private int plem;
@@ -1539,16 +1537,16 @@ public class FeatureExtractor {
                 position = 1; //before
 
             leftw = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[leftMostDependentIndex];
-            leftw_cluster = leftMostDependentIndex == IndexMap.nullIdx ? ClusterMap.nullClusterIdx : sentenceWordsClusterIds[leftMostDependentIndex];
+            leftw_cluster = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[leftMostDependentIndex];
             leftpos = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[leftMostDependentIndex];
             rightw = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[rightMostDependentIndex];
-            rightw_cluster = rightMostDependentIndex == IndexMap.nullIdx ? ClusterMap.nullClusterIdx : sentenceWordsClusterIds[rightMostDependentIndex];
+            rightw_cluster = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[rightMostDependentIndex];
             rightpos = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightMostDependentIndex];
             rightsiblingw = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[rightSiblingIndex];
-            rightsiblingw_cluster = rightSiblingIndex == IndexMap.nullIdx ? ClusterMap.nullClusterIdx : sentenceWordsClusterIds[rightSiblingIndex];
+            rightsiblingw_cluster = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[rightSiblingIndex];
             rightsiblingpos = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightSiblingIndex];
             leftsiblingw = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[lefSiblingIndex];
-            leftsiblingw_cluster = lefSiblingIndex == IndexMap.nullIdx ? ClusterMap.nullClusterIdx : sentenceWordsClusterIds[lefSiblingIndex];
+            leftsiblingw_cluster = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[lefSiblingIndex];
             leftsiblingpos = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[lefSiblingIndex];
             return this;
         }

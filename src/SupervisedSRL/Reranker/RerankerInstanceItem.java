@@ -7,6 +7,7 @@ import java.util.HashMap;
  * Created by Maryam Aminian on 8/24/16.
  */
 public class RerankerInstanceItem implements Serializable {
+    // todo this should be hashmap<int, int>
     private HashMap<Object, Integer>[] features;
     private String label;
 

@@ -2,8 +2,8 @@ import SentenceStruct.Argument;
 import SentenceStruct.ArgumentPosition;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
-import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
+import util.IO;
 
 import java.io.*;
 import java.util.*;
@@ -23,8 +23,7 @@ public class extract_argument_combination_classes {
         boolean justCoreRoles = Boolean.parseBoolean(args[2]);
         String clusterFilePath = args[3];
 
-        final IndexMap indexMap = new IndexMap(propBankFile);
-        final ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        final IndexMap indexMap = new IndexMap(IO.readCoNLLFile(propBankFile), clusterFilePath);
 
         //output files
         String predArgLabelFile = output_dir_path + "predArgLabel.out";
@@ -59,7 +58,7 @@ public class extract_argument_combination_classes {
                     System.out.println(sentenceCounter);
 
                 boolean decode = false;
-                Sentence sen = new Sentence(sentence, indexMap, clusterMap);
+                Sentence sen = new Sentence(sentence, indexMap);
 
                 //extracts data for treeLSTM
                 ArrayList<String> treeLSTM_format_sentence = StanfordTreeLSTM.generateData4StanfordTreeLSTM(sen,

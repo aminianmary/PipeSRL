@@ -1,7 +1,6 @@
 package Projection;
 
 import SentenceStruct.*;
-import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import util.IO;
 
@@ -58,8 +57,7 @@ public class Project {
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDic = alignment.getSourceTargetAlignmentDic();
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDicReverse = alignment.getTargetSourceAlignmentDic();
 
-        final IndexMap indexMap = new IndexMap(sourceFile);
-        final ClusterMap clusterMap = new ClusterMap(clusterFilePath);
+        final IndexMap indexMap = new IndexMap(IO.readCoNLLFile(sourceFile), clusterFilePath);
 
         ArrayList<String> sourceSents = IO.readCoNLLFile(sourceFile);
         ArrayList<String> targetSents = IO.readCoNLLFile(targetFile);
@@ -77,8 +75,8 @@ public class Project {
                 String targetSent_GD = targetSents_GD.get(idx);
 
                 boolean decode = false;
-                Sentence sourceSentObj = new Sentence(sourceSent, indexMap, clusterMap);
-                Sentence targetSentObj = new Sentence(targetSent, indexMap, clusterMap);
+                Sentence sourceSentObj = new Sentence(sourceSent, indexMap);
+                Sentence targetSentObj = new Sentence(targetSent, indexMap);
 
                 //do projection for sentences with alignment for > 0.9 of source words
                 //if (alignmentDic.get(idx).keySet().size() >= (0.9* sourceSentObj.getWords().length)) {

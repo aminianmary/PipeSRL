@@ -1,10 +1,5 @@
 package SupervisedSRL.Strcutures;
-
-import de.bwaldvogel.liblinear.Linear;
-import de.bwaldvogel.liblinear.Model;
-import ml.Adam;
 import ml.AveragedPerceptron;
-
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.HashMap;
@@ -17,12 +12,9 @@ import java.util.zip.GZIPOutputStream;
 public class ModelInfo implements Serializable {
 
     AveragedPerceptron classifier;
-    Model classifierLiblinear;
-    Adam classifierAdam;
     HashMap<Object, Integer>[] featDict;
     HashMap<String, Integer> labelDict;
     IndexMap indexMap;
-    ClusterMap clusterMap;
 
     public ModelInfo(AveragedPerceptron classifier, IndexMap indexMap) throws IOException {
         HashMap<Object, CompactArray>[] weights = classifier.getWeights();
@@ -34,7 +26,7 @@ public class ModelInfo implements Serializable {
         HashMap<Object, CompactArray>[] newAvgMap = new HashMap[weights.length];
 
         for (int f = 0; f < weights.length; f++) {
-            newAvgMap[f] = new HashMap<Object, CompactArray>();
+            newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
                 double[] w = weights[f].get(feat).getArray();
                 double[] aw = avgWeights[f].get(feat).getArray();
@@ -50,7 +42,6 @@ public class ModelInfo implements Serializable {
         this.indexMap = indexMap;
     }
 
-
     public ModelInfo(String modelPath) throws Exception {
         FileInputStream fis = new FileInputStream(modelPath);
         GZIPInputStream gz = new GZIPInputStream(fis);
@@ -60,44 +51,16 @@ public class ModelInfo implements Serializable {
         String[] labelMap = (String[]) reader.readObject();
         HashMap<String, Integer> reverseLabelMap = (HashMap<String, Integer>) reader.readObject();
         IndexMap indexMap = (IndexMap) reader.readObject();
-        ClusterMap clusterMap = (ClusterMap) reader.readObject();
         fis.close();
         gz.close();
         reader.close();
 
         this.classifier = new AveragedPerceptron(newAvgWeight, labelMap, reverseLabelMap);
         this.indexMap = indexMap;
-        this.clusterMap = clusterMap;
     }
 
+    public static void saveModel(AveragedPerceptron classifier, IndexMap indexMap, String filePath) throws Exception {
 
-    public ModelInfo(String modelPath, String mappingDictsPath, ClassifierType classifierType) throws Exception {
-
-        if (classifierType == ClassifierType.Liblinear)
-            this.classifierLiblinear = Linear.loadModel(new File(modelPath));
-        else if (classifierType == ClassifierType.Adam)
-            this.classifierAdam = Adam.loadModel(modelPath);
-
-        FileInputStream fis = new FileInputStream(mappingDictsPath);
-        GZIPInputStream gz = new GZIPInputStream(fis);
-        ObjectInput reader = new ObjectInputStream(gz);
-        HashMap<Object, Integer>[] featDict =
-                (HashMap<Object, Integer>[]) reader.readObject();
-        IndexMap indexMap = (IndexMap) reader.readObject();
-        ClusterMap clusterMap = (ClusterMap) reader.readObject();
-        HashMap<String, Integer> labelDict = (HashMap<String, Integer>) reader.readObject();
-        fis.close();
-        gz.close();
-        reader.close();
-        this.indexMap = indexMap;
-        this.clusterMap = clusterMap;
-        this.featDict = featDict;
-        this.labelDict = labelDict;
-    }
-
-    public static void saveModel(AveragedPerceptron classifier, IndexMap indexMap, ClusterMap clusterMap, String filePath) throws Exception {
-
-        DecimalFormat format = new DecimalFormat("##.00");
         HashMap<Object, CompactArray>[] weights = classifier.getWeights();
         HashMap<Object, CompactArray>[] avgWeights = classifier.getAvgWeights();
         String[] labelMap = classifier.getLabelMap();
@@ -107,7 +70,7 @@ public class ModelInfo implements Serializable {
         HashMap<Object, CompactArray>[] newAvgMap = new HashMap[weights.length];
 
         for (int f = 0; f < weights.length; f++) {
-            newAvgMap[f] = new HashMap<Object, CompactArray>();
+            newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
                 double[] w = weights[f].get(feat).getArray();
                 double[] aw = avgWeights[f].get(feat).getArray();
@@ -128,37 +91,6 @@ public class ModelInfo implements Serializable {
         writer.writeObject(labelMap);
         writer.writeObject(reverseLabelMap);
         writer.writeObject(indexMap);
-        writer.writeObject(clusterMap);
-        writer.close();
-    }
-
-    public static void saveModel(Model classifier, IndexMap indexMap, ClusterMap clusterMap, HashMap<Object, Integer>[] featDict,
-                                 HashMap<String, Integer> labelDict, String modelPath, String mappingDictsPath) throws Exception {
-
-        classifier.save(new File(modelPath));
-        //save featDic
-        FileOutputStream fos = new FileOutputStream(mappingDictsPath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(featDict);
-        writer.writeObject(indexMap);
-        writer.writeObject(clusterMap);
-        writer.writeObject(labelDict);
-        writer.close();
-    }
-
-    public static void saveModel(Adam classifier, IndexMap indexMap, ClusterMap clusterMap, HashMap<Object, Integer>[] featDict,
-                                 HashMap<String, Integer> labelDict, String modelPath, String mappingDictsPath) throws Exception {
-
-        classifier.saveModel(modelPath);
-        //save featDic
-        FileOutputStream fos = new FileOutputStream(mappingDictsPath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(featDict);
-        writer.writeObject(indexMap);
-        writer.writeObject(clusterMap);
-        writer.writeObject(labelDict);
         writer.close();
     }
 
@@ -214,21 +146,12 @@ public class ModelInfo implements Serializable {
         writer.close();
     }
 
-    public ClusterMap getClusterMap() {
-        return clusterMap;
-    }
-
     public AveragedPerceptron getClassifier() {
         return classifier;
     }
 
-
     public IndexMap getIndexMap() {
         return indexMap;
-    }
-
-    public Model getClassifierLiblinear() {
-        return classifierLiblinear;
     }
 
     public HashMap<Object, Integer>[] getFeatDict() {
@@ -239,7 +162,4 @@ public class ModelInfo implements Serializable {
         return labelDict;
     }
 
-    public Adam getClassifierAdam() {
-        return classifierAdam;
-    }
 }

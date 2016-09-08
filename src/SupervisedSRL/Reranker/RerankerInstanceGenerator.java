@@ -35,7 +35,6 @@ public class RerankerInstanceGenerator {
     int numOfGlobalFeatures;
     int aiMaxBeamSize;
     int acMaxBeamSize;
-    boolean greedy;
     //this hashMap keeps a mapping from all labels seen in our train data to integers
     //as we train several ai-ac classifiers on different partitions, a single label might end up getting different integers
     //from different classifiers and this map makes sure it won't happen
@@ -44,7 +43,7 @@ public class RerankerInstanceGenerator {
     public RerankerInstanceGenerator(int numOfParts, String modelDir, String instanceFilePrefix,
                                      int numOfPDFeatures, int numOfPDTrainingIterations, int numberOfTrainingIterations,
                                      int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, int aiMaxBeamSize,
-                                     int acMaxBeamSize, boolean greedy, HashMap<String, Integer> globalReverseLabelMap)
+                                     int acMaxBeamSize, HashMap<String, Integer> globalReverseLabelMap)
             throws IOException {
         this.numOfPartitions = numOfParts;
         this.modelDir = modelDir;
@@ -57,7 +56,6 @@ public class RerankerInstanceGenerator {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.aiMaxBeamSize = aiMaxBeamSize;
         this.acMaxBeamSize = acMaxBeamSize;
-        this.greedy = greedy;
         this.globalReverseLabelMap = globalReverseLabelMap;
     }
 
@@ -132,14 +130,14 @@ public class RerankerInstanceGenerator {
         return partitions;
     }
 
-    public void buildTrainInstances(String trainFilePath, ClusterMap clusterMap) throws Exception {
+    public void buildTrainInstances(String trainFilePath) throws Exception {
 
         ArrayList<String>[] trainParts = new ArrayList[numOfPartitions];
         trainParts = getPartitions(trainFilePath);
         ExecutorService executor = Executors.newFixedThreadPool(3);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            executor.execute(new InstanceGenerator(trainParts, clusterMap, devPartIdx));
+            executor.execute(new InstanceGenerator(trainParts, devPartIdx));
         }
         System.out.println("Reranker training instance generation are submitted");
         executor.shutdown();
@@ -148,7 +146,7 @@ public class RerankerInstanceGenerator {
         System.out.println("All jobs done!");
     }
 
-    private void writeTrainSentences(ArrayList<String>[] trainPartitions, ClusterMap clusterMap, int devPartIdx) throws Exception {
+    private void writeTrainSentences(ArrayList<String>[] trainPartitions, int devPartIdx) throws Exception {
         System.out.println("generating reranker train instances for part " + devPartIdx);
         String partitionModelDir = modelDir + "/part_" + devPartIdx + "/";
         String devDataPath = partitionModelDir + "reranker_dev_" + devPartIdx;
@@ -160,13 +158,13 @@ public class RerankerInstanceGenerator {
 
         //train a PD-AI-AC modules on the train parts
         HashSet<String> argLabels = new HashSet<String>(globalReverseLabelMap.keySet());
-        final IndexMap indexMap = new IndexMap(trainSentences);
-        PD.train(trainSentences, indexMap, clusterMap, numOfPDTrainingIterations, partitionModelDir, numOfPDFeatures);
-        String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap, clusterMap,
-                numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize, greedy);
-        String acModelPath = Train.trainAC(trainSentences, devDataPath, argLabels, indexMap, clusterMap,
+        final IndexMap indexMap = new IndexMap(trainSentences, clusterFile);
+        PD.train(trainSentences, indexMap, numOfPDTrainingIterations, partitionModelDir, numOfPDFeatures);
+        String aiModelPath = Train.trainAI(trainSentences, devSentences, indexMap,
+                numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
+        String acModelPath = Train.trainAC(trainSentences, devDataPath, argLabels, indexMap,
                 numberOfTrainingIterations, partitionModelDir, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                aiMaxBeamSize, acMaxBeamSize, greedy);
+                aiMaxBeamSize, acMaxBeamSize);
 
         //decode on dev part
         System.out.println("Decoding started on " + devDataPath + "...\n");
@@ -192,13 +190,12 @@ public class RerankerInstanceGenerator {
                 System.out.println(d + "/" + devSentences.size());
 
             devSentence = devSentences.get(d);
-            sentence = new Sentence(devSentence, indexMap, clusterMap);
+            sentence = new Sentence(devSentence, indexMap);
             goldMap = getGoldArgLabelMap(sentence);
 
             predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, partitionModelDir,
-                            null, null, ClassifierType.AveragedPerceptron, greedy, true);
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, partitionModelDir,true);
 
             //creating the pool
             for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
@@ -299,18 +296,16 @@ public class RerankerInstanceGenerator {
     private class InstanceGenerator implements Runnable {
         int devPartIdx;
         ArrayList<String>[] trainParts;
-        ClusterMap clusterMap;
 
-        public InstanceGenerator(ArrayList<String>[] trainParts, ClusterMap clusterMap, int devPartIdx) {
+        public InstanceGenerator(ArrayList<String>[] trainParts, int devPartIdx) {
             this.devPartIdx = devPartIdx;
             this.trainParts = trainParts;
-            this.clusterMap = clusterMap;
         }
 
         @Override
         public void run() {
             try {
-                writeTrainSentences(trainParts, clusterMap, devPartIdx);
+                writeTrainSentences(trainParts, devPartIdx);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(e.getMessage());

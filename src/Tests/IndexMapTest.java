@@ -2,6 +2,7 @@ package Tests;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
+import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -57,7 +58,7 @@ public class IndexMapTest {
     public void testMaps() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(tmpFilePath);
+        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
         assert map.str2int("\t") == IndexMap.unknownIdx;
         assert map.str2int(".") < 13;
         assert map.str2int("NMOD") > 12;

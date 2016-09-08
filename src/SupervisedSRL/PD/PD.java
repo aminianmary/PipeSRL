@@ -3,7 +3,6 @@ package SupervisedSRL.PD;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.Strcutures.ClusterMap;
 import SupervisedSRL.Strcutures.IndexMap;
 import ml.AveragedPerceptron;
 import util.IO;
@@ -23,46 +22,11 @@ public class PD {
     public static int unseenPreds = 0;
     public static int totalPreds = 0;
 
-    public static void main(String[] args) throws Exception {
-
-        String inputFile = args[0];
-        String modelDir = args[1];
-        String clusterFile = args[2];
-
-        int numOfPDFeatures = 9;
-
-        final IndexMap indexMap = new IndexMap(inputFile);
-        final ClusterMap clusterMap = new ClusterMap(clusterFile);
-
-        //read trainJoint and test sentences
-        ArrayList<String> sentencesInCONLLFormat = IO.readCoNLLFile(inputFile);
-
-        int totalNumOfSentences = sentencesInCONLLFormat.size();
-        int trainSize = (int) Math.floor(0.8 * totalNumOfSentences);
-
-        List<String> train = sentencesInCONLLFormat.subList(0, trainSize);
-        List<String> test = sentencesInCONLLFormat.subList(trainSize, totalNumOfSentences);
-
-        //training
-        train(train, indexMap, clusterMap, 10, modelDir, numOfPDFeatures);
-
-        //prediction
-        HashMap<Integer, String>[] predictions = new HashMap[test.size()];
-        System.out.println("Prediction started...");
-        for (int senIdx = 0; senIdx < test.size(); senIdx++) {
-            boolean decode = true;
-            Sentence sentence = new Sentence(test.get(senIdx), indexMap, clusterMap);
-            predictions[senIdx] = predict(sentence, indexMap, modelDir, numOfPDFeatures);
-        }
-
-    }
-
-
-    public static void train(List<String> trainSentencesInCONLLFormat, IndexMap indexMap, ClusterMap clusterMap, int numberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
+    public static void train(List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
             throws Exception {
         //creates lexicon of all predicates in the trainJoint set
         HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> trainPLexicon =
-                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, clusterMap, numOfPDFeaturs);
+                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
 
         System.out.println("Training Started...");
 
@@ -124,14 +88,13 @@ public class PD {
         return predictions;
     }
 
-
     public static HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> buildPredicateLexicon
-            (List<String> sentencesInCONLLFormat, IndexMap indexMap, ClusterMap clusterMap, int numOfPDFeatures) throws Exception {
+            (List<String> sentencesInCONLLFormat, IndexMap indexMap, int numOfPDFeatures) throws Exception {
         HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> pLexicon = new HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>>();
 
         boolean decode = false;
         for (int senID = 0; senID < sentencesInCONLLFormat.size(); senID++) {
-            Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap, clusterMap);
+            Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap);
 
             ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
             int[] sentenceLemmas = sentence.getLemmas();
@@ -167,7 +130,6 @@ public class PD {
 
         return pLexicon;
     }
-
 
     public static HashSet<String> getLabels(HashSet<PredicateLexiconEntry> featVectors) {
         HashSet<String> labelSet = new HashSet<String>();

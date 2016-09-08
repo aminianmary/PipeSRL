@@ -19,17 +19,15 @@ public class Decoder {
     AveragedPerceptron acClasssifier;
     AveragedPerceptron reranker;
     IndexMap indexMap;
-    ClusterMap clusterMap;
     String pdModelDir;
 
     public Decoder(AveragedPerceptron aiClasssifier, AveragedPerceptron acClasssifier, AveragedPerceptron reranker,
-                   IndexMap indexMap, ClusterMap clusterMap, String pdModelDir) {
+                   IndexMap indexMap, String pdModelDir) {
         this.aiClasssifier = aiClasssifier;
         this.acClasssifier = acClasssifier;
         this.reranker = reranker;
         this.indexMap = indexMap;
         this.pdModelDir = pdModelDir;
-        this.clusterMap = clusterMap;
     }
 
     private int predict(RerankerPool pool) {
@@ -37,22 +35,22 @@ public class Decoder {
     }
 
     public void decode(String testData, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
-                       int aiMaxBeamSize, int acMaxBeamSize, String modelDir, boolean greedy, String outputFile) throws Exception {
+                       int aiMaxBeamSize, int acMaxBeamSize, String modelDir, String outputFile) throws Exception {
+
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.aiClasssifier, this.acClasssifier);
         ArrayList<String> testSentences = IO.readCoNLLFile(testData);
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[testSentences.size()];
 
         for (int senIdx = 0; senIdx < testSentences.size(); senIdx++) {
-            Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap, clusterMap);
+            Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(testSentences.get(senIdx)));
             TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(testSentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir,
-                            null, null, ClassifierType.AveragedPerceptron, greedy, true);
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, true);
 
             //creating the pool and making prediction
             predictions4ThisSentence = obtainFinalPrediction4Sentence(numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, testSentence, goldMap, predictedAIACCandidates4thisSen);
