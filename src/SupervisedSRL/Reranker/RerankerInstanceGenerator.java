@@ -40,6 +40,11 @@ public class RerankerInstanceGenerator {
     //from different classifiers and this map makes sure it won't happen
     HashMap<String, Integer> globalReverseLabelMap;
 
+    public RerankerInstanceGenerator (int numOfPartitions)
+    {
+        this.numOfPartitions= numOfPartitions;
+    }
+
     public RerankerInstanceGenerator(int numOfParts, String modelDir, String clusterFile, String instanceFilePrefix,
                                      int numOfPDFeatures, int numOfPDTrainingIterations, int numberOfTrainingIterations,
                                      int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, int aiMaxBeamSize,
@@ -59,6 +64,7 @@ public class RerankerInstanceGenerator {
         this.acMaxBeamSize = acMaxBeamSize;
         this.globalReverseLabelMap = globalReverseLabelMap;
     }
+
 
     public static HashMap<Integer, Integer> getArgLabelMap(Pair<Double, ArrayList<Integer>> aiCandid,
                                                            Pair<Double, ArrayList<Integer>> acCandid,

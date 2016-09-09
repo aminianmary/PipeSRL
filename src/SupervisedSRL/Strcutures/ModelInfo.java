@@ -2,6 +2,7 @@ package SupervisedSRL.Strcutures;
 import ml.AveragedPerceptron;
 import java.io.*;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -147,6 +148,14 @@ public class ModelInfo implements Serializable {
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
         writer.writeObject(indexMap);
+        writer.close();
+    }
+
+    public static void saveDataPartitions (ArrayList<String>[] parts, String filePath) throws IOException{
+        FileOutputStream fos = new FileOutputStream(filePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
+        writer.writeObject(parts);
         writer.close();
     }
 
