@@ -127,8 +127,8 @@ public class IndexMap implements Serializable {
     private HashMap<String, Integer> buildWordClusterMap(String clusterFilePath) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(clusterFilePath)));
         String line2read = "";
-        HashMap<String, Integer> wordClusterMap = new HashMap<String, Integer>();
-        HashMap<String, Integer> clusterIDMap = new HashMap<String, Integer>();
+        HashMap<String, Integer> wordClusterMap = new HashMap<>();
+        HashMap<String, Integer> clusterIDMap = new HashMap<>();
 
         while ((line2read = reader.readLine()) != null) {
             if (line2read.equals(""))

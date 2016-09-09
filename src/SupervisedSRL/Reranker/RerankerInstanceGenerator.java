@@ -40,13 +40,14 @@ public class RerankerInstanceGenerator {
     //from different classifiers and this map makes sure it won't happen
     HashMap<String, Integer> globalReverseLabelMap;
 
-    public RerankerInstanceGenerator(int numOfParts, String modelDir, String instanceFilePrefix,
+    public RerankerInstanceGenerator(int numOfParts, String modelDir, String clusterFile, String instanceFilePrefix,
                                      int numOfPDFeatures, int numOfPDTrainingIterations, int numberOfTrainingIterations,
                                      int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, int aiMaxBeamSize,
                                      int acMaxBeamSize, HashMap<String, Integer> globalReverseLabelMap)
             throws IOException {
         this.numOfPartitions = numOfParts;
         this.modelDir = modelDir;
+        this.clusterFile= clusterFile;
         this.rerankerInstanceFilePrefix = instanceFilePrefix;
         this.numOfPDFeatures = numOfPDFeatures;
         this.numOfPDTrainingIterations = numOfPDTrainingIterations;

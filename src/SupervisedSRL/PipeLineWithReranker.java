@@ -40,7 +40,6 @@ public class PipeLineWithReranker {
         int aiMaxBeamSize = Integer.parseInt(args[5]);
         int acMaxBeamSize = Integer.parseInt(args[6]);
         int numOfTrainingIterations = Integer.parseInt(args[7]);
-        boolean decodeOnly = Boolean.parseBoolean(args[12]);
 
         String[] modelPaths = new String[4];
             //train AI and AC model on the whole train data
@@ -67,7 +66,7 @@ public class PipeLineWithReranker {
 
             // todo now all features should be from feature map wrapper
             RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
-                    modelDir, instanceFilePrefix, numOfPDFeatures, numOfPDTrainingIterations, numOfTrainingIterations, numOfAIFeatures,
+                    modelDir, clusterFile, instanceFilePrefix, numOfPDFeatures, numOfPDTrainingIterations, numOfTrainingIterations, numOfAIFeatures,
                     numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize, globalReverseLabelMap);
             rerankerInstanceGenerator.buildTrainInstances(trainData);
 

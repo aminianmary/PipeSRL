@@ -95,9 +95,6 @@ public class ModelInfo implements Serializable {
     }
 
     public static void saveModel(AveragedPerceptron classifier, String filePath) throws Exception {
-
-        DecimalFormat format = new DecimalFormat("##.00");
-
         HashMap<Object, CompactArray>[] weights = classifier.getWeights();
         HashMap<Object, CompactArray>[] avgWeights = classifier.getAvgWeights();
         String[] labelMap = classifier.getLabelMap();
@@ -123,26 +120,9 @@ public class ModelInfo implements Serializable {
         FileOutputStream fos = new FileOutputStream(filePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
-
-        //System.out.println("Saving newAvgMap...");
-        long startTime = System.currentTimeMillis();
         writer.writeObject(newAvgMap);
-        long endTime = System.currentTimeMillis();
-        // System.out.println("Total time to save newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
-        // System.out.println("Saving labelMap...");
-        startTime = System.currentTimeMillis();
         writer.writeObject(labelMap);
-        endTime = System.currentTimeMillis();
-        // System.out.println("Total time to save labelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
-
-        // System.out.println("Saving reverseLabelMap...");
-        startTime = System.currentTimeMillis();
         writer.writeObject(reverseLabelMap);
-        endTime = System.currentTimeMillis();
-        // System.out.println("Total time to save reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
         writer.close();
     }
 
@@ -160,6 +140,14 @@ public class ModelInfo implements Serializable {
 
     public HashMap<String, Integer> getLabelDict() {
         return labelDict;
+    }
+
+    public static void saveIndexMap (IndexMap indexMap, String filePath) throws IOException{
+        FileOutputStream fos = new FileOutputStream(filePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
+        writer.writeObject(indexMap);
+        writer.close();
     }
 
 }
