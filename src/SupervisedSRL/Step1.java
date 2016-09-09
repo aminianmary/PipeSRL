@@ -10,15 +10,9 @@ import java.io.IOException;
  * This step creates indexMap for the entire training data and saves it in indexMapFilePath (to be used in the next steps)
  */
 public class Step1 {
-    public static void main(String[] args) {
-        String trainFilePath = args[0]; //input 1
-        String clusterFilePath = args[1]; //input 2
-        String indexMapFilePath = args[2]; //input 3
-        try {
+
+    public static void Step1(String trainFilePath, String clusterFilePath, String indexMapFilePath) throws Exception{
             IndexMap indexMap= new IndexMap(IO.readCoNLLFile(trainFilePath), clusterFilePath);
             ModelInfo.saveIndexMap(indexMap, indexMapFilePath);
-        }catch (IOException ioe){
-            System.out.print(ioe.getMessage());
-        }
     }
 }

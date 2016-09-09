@@ -12,17 +12,9 @@ import java.util.ArrayList;
  *
  */
 public class Step2 {
-    public static void main(String[] args) {
-        String trainFilePath = args[0];
-        int numOfPartitions = Integer.parseInt(args[1]);
-        String partitionsPath = args[2];
-
+    public static void Step2(String trainFilePath, String partitionsPath, int numOfPartitions) throws Exception{
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
-        try {
-            ArrayList<String>[] partitions= rig.getPartitions(trainFilePath);
-            ModelInfo.saveDataPartitions(partitions, partitionsPath);
-        }catch (IOException ioe){
-            System.out.print(ioe.getMessage());
-        }
+        ArrayList<String>[] partitions= rig.getPartitions(trainFilePath);
+        ModelInfo.saveDataPartitions(partitions, partitionsPath);
     }
 }
