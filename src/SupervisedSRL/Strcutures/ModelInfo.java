@@ -60,41 +60,6 @@ public class ModelInfo implements Serializable {
         this.indexMap = indexMap;
     }
 
-    public static void saveModel(AveragedPerceptron classifier, IndexMap indexMap, String filePath) throws Exception {
-
-        HashMap<Object, CompactArray>[] weights = classifier.getWeights();
-        HashMap<Object, CompactArray>[] avgWeights = classifier.getAvgWeights();
-        String[] labelMap = classifier.getLabelMap();
-        HashMap<String, Integer> reverseLabelMap = classifier.getReverseLabelMap();
-        int iteration = classifier.getIteration();
-
-        HashMap<Object, CompactArray>[] newAvgMap = new HashMap[weights.length];
-
-        for (int f = 0; f < weights.length; f++) {
-            newAvgMap[f] = new HashMap<>();
-            for (Object feat : weights[f].keySet()) {
-                double[] w = weights[f].get(feat).getArray();
-                double[] aw = avgWeights[f].get(feat).getArray();
-                double[] naw = new double[w.length];
-                for (int i = 0; i < w.length; i++) {
-                    naw[i] = w[i] - (aw[i] / iteration);
-                }
-                CompactArray nawCompact = new CompactArray(weights[f].get(feat).getOffset(), naw);
-                newAvgMap[f].put(feat, nawCompact);
-            }
-        }
-
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-
-        writer.writeObject(newAvgMap);
-        writer.writeObject(labelMap);
-        writer.writeObject(reverseLabelMap);
-        writer.writeObject(indexMap);
-        writer.close();
-    }
-
     public static void saveModel(AveragedPerceptron classifier, String filePath) throws Exception {
         HashMap<Object, CompactArray>[] weights = classifier.getWeights();
         HashMap<Object, CompactArray>[] avgWeights = classifier.getAvgWeights();
@@ -149,6 +114,13 @@ public class ModelInfo implements Serializable {
         ObjectOutput writer = new ObjectOutputStream(gz);
         writer.writeObject(indexMap);
         writer.close();
+    }
+
+    public static IndexMap loadIndexMap (String filePath) throws Exception{
+        FileInputStream fis = new FileInputStream(filePath);
+        GZIPInputStream gz = new GZIPInputStream(fis);
+        ObjectInput reader = new ObjectInputStream(gz);
+        return (IndexMap) reader.readObject();
     }
 
     public static void saveDataPartitions (ArrayList<String>[] parts, String filePath) throws IOException{

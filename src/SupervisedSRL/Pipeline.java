@@ -1,6 +1,5 @@
 package SupervisedSRL;
 
-import SupervisedSRL.Strcutures.ClassifierType;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;

@@ -68,9 +68,9 @@ public class Decoder {
     ////////////////////////////////// PREDICT ////////////////////////////////////////////////////////
 
     public HashMap<Integer, Prediction> predictAI(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                  int numOfFeatures, String modelDir, int numOfPDFeatures)
+                                                  int numOfFeatures, String pdModelDir, int numOfPDFeatures)
             throws Exception {
-        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
+        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
 
         for (int pIdx : predictedPredicates.keySet()) {
@@ -89,9 +89,9 @@ public class Decoder {
 
     public Object predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                           int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
-                          int numOfPDFeatures, String modelDir, boolean use4Reranker) throws Exception {
+                          int numOfPDFeatures, String pdModelDir, boolean use4Reranker) throws Exception {
 
-        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, modelDir, numOfPDFeatures);
+        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
         for (int pIdx : predictedPredicates.keySet()) {
