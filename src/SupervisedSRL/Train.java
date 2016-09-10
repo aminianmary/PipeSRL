@@ -15,8 +15,6 @@ import java.util.*;
  * Created by Maryam Aminian on 5/23/16.
  */
 public class Train {
-
-    //this function is used to train stacked ai-ac models
     public static void train(String trainData,
                                  String devData,
                                  String pdModelDir, String aiModelPath, String acModelPath,
@@ -37,118 +35,6 @@ public class Train {
                 pdModelDir, aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                 aiMaxBeamSize, acMaxBeamSize);
     }
-
-    /*
-    public static void writeLiblinearFeats(List<String> trainSentencesInCONLLFormat, IndexMap indexMap,  int numOfFeatures,
-                                           HashMap<Object, Integer>[] featDict, HashMap<String, Integer> labelDict,
-                                           String taskType, String filePath) throws Exception {
-        System.out.println("Writing " + filePath + "...");
-        DecimalFormat format = new DecimalFormat("##.00");
-        long startTime = System.currentTimeMillis();
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
-        int numOfSentences2write = 0;
-        StringBuilder sentences2write = new StringBuilder();
-        //writing train data in Liblinear format
-        for (String sentence : trainSentencesInCONLLFormat) {
-            numOfSentences2write++;
-            Object[] instances = null;
-            if (taskType.equals("AI"))
-                instances = obtainTrainInstance4AI(sentence, indexMap,  numOfFeatures);
-            else if (taskType.equals("AC"))
-                instances = obtainTrainInstance4AC(sentence, indexMap,  numOfFeatures);
-            else if (taskType.equalsIgnoreCase("joint"))
-                instances = obtainTrainInstance4JointModel(sentence, indexMap,  numOfFeatures);
-
-            ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
-            ArrayList<String> labels = (ArrayList<String>) instances[1];
-
-            for (int i = 0; i < featVectors.size(); i++) {
-                int label = labelDict.containsKey(labels.get(i)) ? labelDict.get(labels.get(i)) : -1;
-                sentences2write.append(label + " ");
-                for (int d = 0; d < featVectors.get(i).length; d++) {
-                    if (featDict[d].containsKey(featVectors.get(i)[d]))
-                        //seen feature value
-                        sentences2write.append(featDict[d].get(featVectors.get(i)[d]) + ":1");
-                    else
-                        //unseen feature value
-                        sentences2write.append(featDict[d].get(Pipeline.unseenSymbol) + ":1");
-                    if (d != featVectors.get(i).length - 1)
-                        sentences2write.append(" ");
-                }
-                sentences2write.append("\n");
-            }
-
-            if (numOfSentences2write % 1000 == 0 || numOfSentences2write == trainSentencesInCONLLFormat.size()) {
-                writer.write(sentences2write.toString());
-                sentences2write = new StringBuilder();
-            }
-        }
-        writer.flush();
-        writer.close();
-        long endTime = System.currentTimeMillis();
-        System.out.println("Total time for writing: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
-        System.out.println("Done!");
-    }
-
-
-    public static Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>
-    constructFeatureDict4LibLinear(List<String> trainSentencesInCONLLFormat,
-                                   IndexMap indexMap,  int numOfFeatures, String taskType) throws Exception {
-        HashMap<Object, Integer>[] featureDic = new HashMap[numOfFeatures];
-        HashSet<Object>[] featuresSeen = new HashSet[numOfFeatures];
-
-        for (int i = 0; i < numOfFeatures; i++) {
-            featureDic[i] = new HashMap<Object, Integer>();
-            featuresSeen[i] = new HashSet<Object>();
-        }
-        HashMap<String, Integer> labelDic = new HashMap<String, Integer>();
-
-        System.out.print("Extracting mapping dictionary...");
-        DecimalFormat format = new DecimalFormat("##.00");
-        long startTime = System.currentTimeMillis();
-        int numOfTrainInstances = 0;
-        for (String sentence : trainSentencesInCONLLFormat) {
-            Object[] instances = null;
-            if (taskType.equals("AI"))
-                instances = obtainTrainInstance4AI(sentence, indexMap,  numOfFeatures);
-            else if (taskType.equals("AC"))
-                instances = obtainTrainInstance4AC(sentence, indexMap,  numOfFeatures);
-            else if (taskType.equalsIgnoreCase("JOINT"))
-                instances = obtainTrainInstance4JointModel(sentence, indexMap,  numOfFeatures);
-            else if (taskType.equals("PD")) throw new Exception("task not supported");
-
-            ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0]; //in the format averaged perceptron supports
-            ArrayList<String> labels = (ArrayList<String>) instances[1];
-
-            numOfTrainInstances += labels.size();
-            //getting set of all possible values for each slot
-            for (int instance = 0; instance < labels.size(); instance++) {
-                for (int dim = 0; dim < numOfFeatures; dim++) {
-                    featuresSeen[dim].add(featVectors.get(instance)[dim]);
-                }
-                if (!labelDic.containsKey(labels.get(instance)))
-                    labelDic.put(labels.get(instance), labelDic.size());
-            }
-        }
-        //constructing featureDic
-        int featureIndex = 1;
-        //for each feature slot
-        for (int i = 0; i < numOfFeatures; i++) {
-            //adding seen feature indices
-            for (Object feat : featuresSeen[i]) {
-                featureDic[i].put(feat, featureIndex++);
-            }
-            //unseen feature index
-            featureDic[i].put(Pipeline.unseenSymbol, featureIndex++);
-            assert !featuresSeen[i].contains(Pipeline.unseenSymbol);
-        }
-        long endTime = System.currentTimeMillis();
-        System.out.println("Total time for extraction" + format.format(((endTime - startTime) / 1000.0) / 60.0));
-        System.out.println("Done!");
-        return new Pair<HashMap<Object, Integer>[], Pair<HashMap<String, Integer>, Pair<Integer, Integer>>>(featureDic,
-                new Pair<HashMap<String, Integer>, Pair<Integer, Integer>>(labelDic, new Pair<Integer, Integer>(featureIndex, numOfTrainInstances)));
-    }
-     */
 
     public static void trainAI(List<String> trainSentencesInCONLLFormat,
                                  List<String> devSentencesInCONLLFormat,
@@ -369,108 +255,10 @@ public class Train {
     //////////////////////////////  SUPPORT FUNCTIONS  /////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-
     public static String isArgument(int wordIdx, ArrayList<Argument> currentArgs) {
         for (Argument arg : currentArgs)
             if (arg.getIndex() == wordIdx)
                 return arg.getType();
         return "";
-    }
-
-    private List<Integer> obtainSampleIndices(ArrayList<String> labels) {
-        ArrayList<Integer> posIndices = new ArrayList<Integer>();
-        ArrayList<Integer> negIndices = new ArrayList<Integer>();
-
-        for (int k = 0; k < labels.size(); k++) {
-            if (labels.get(k).equals("1"))
-                posIndices.add(k);
-            else
-                negIndices.add(k);
-        }
-
-        Collections.shuffle(posIndices);
-        Collections.shuffle(negIndices);
-
-        //int sampleSize= Math.min(posIndices.size(), negIndices.size());
-        int posSampleSize = posIndices.size();
-        int negSampleSize = negIndices.size() / 8;
-        List<Integer> sampledPosIndices = posIndices.subList(0, posSampleSize);
-        List<Integer> sampledNegIndices = negIndices.subList(0, negSampleSize);
-
-        sampledPosIndices.addAll(sampledNegIndices);
-        return sampledPosIndices;
-    }
-
-    private Object[] sample(ArrayList<List<String>> featVectors,
-                            ArrayList<String> labels,
-                            List<Integer> sampleIndices) {
-        ArrayList<List<String>> sampledFeatVectors = new ArrayList<List<String>>();
-        ArrayList<String> sampledLabels = new ArrayList<String>();
-
-        Collections.shuffle(sampleIndices);
-        for (int idx : sampleIndices) {
-            sampledFeatVectors.add(featVectors.get(idx));
-            sampledLabels.add(labels.get(idx));
-        }
-
-        return new Object[]{sampledFeatVectors, sampledLabels};
-    }
-
-    private Object[] overSample(ArrayList<Object[]> senFeatVecs, ArrayList<String> senLabels) {
-        ArrayList<Integer> negIndices = new ArrayList<Integer>();
-        ArrayList<Integer> posIndices = new ArrayList<Integer>();
-
-        ArrayList<Object[]> overSampledFeatVecs = senFeatVecs;
-        ArrayList<String> overSampledLabels = senLabels;
-
-        for (int idx = 0; idx < senLabels.size(); idx++) {
-            if (senLabels.get(idx).equals("0"))
-                negIndices.add(idx);
-            else
-                posIndices.add(idx);
-        }
-        int numOfSamples = negIndices.size() - posIndices.size();
-        for (int k = 0; k < numOfSamples; k++) {
-            if (posIndices.size() != 0) {
-                int ranIdx = new Random().nextInt(posIndices.size());
-                overSampledFeatVecs.add(senFeatVecs.get(posIndices.get(ranIdx)));
-                overSampledLabels.add(senLabels.get(posIndices.get(ranIdx)));
-            }
-        }
-        return new Object[]{overSampledFeatVecs, overSampledLabels};
-    }
-
-    private Object[] downSample(ArrayList<Object[]> senFeatVecs, ArrayList<String> senLabels) {
-        ArrayList<Integer> negIndices = new ArrayList<Integer>();
-        ArrayList<Integer> posIndices = new ArrayList<Integer>();
-
-        ArrayList<Object[]> downSampledFeatVecs = new ArrayList<Object[]>();
-        ArrayList<String> downSampledLabels = new ArrayList<String>();
-
-        for (int idx = 0; idx < senLabels.size(); idx++) {
-            if (senLabels.get(idx).equals("0"))
-                negIndices.add(idx);
-            else
-                posIndices.add(idx);
-        }
-        int numOfSamples = posIndices.size();
-        ArrayList<Integer> downSampledIndices = new ArrayList<Integer>();
-        //adding down sampled neg indices
-        for (int k = 0; k < numOfSamples; k++) {
-            if (negIndices.size() != 0) {
-                int ranIdx = new Random().nextInt(negIndices.size());
-                downSampledIndices.add(negIndices.get(ranIdx));
-            }
-        }
-        //adding all pos indices
-        downSampledIndices.addAll(posIndices);
-        Collections.shuffle(downSampledIndices);
-
-        for (int idx : downSampledIndices) {
-            downSampledFeatVecs.add(senFeatVecs.get(idx));
-            downSampledLabels.add(senLabels.get(idx));
-        }
-
-        return new Object[]{downSampledFeatVecs, downSampledLabels};
     }
 }

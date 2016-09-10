@@ -78,7 +78,7 @@ public class Decoder {
                     acCandidateIndex++;
                     acCandidateIndexInfo.put(acCandidateIndex, new Pair<Integer, Integer>(i, j));
                     Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
-                    rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractRerankerFeatures(pIdx, pLabel, testSentence, aiCandid, acCandid,
+                    rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractFinalRerankerFeatures(pIdx, pLabel, testSentence, aiCandid, acCandid,
                             numOfAIFeatures, numOfACFeatures, indexMap, acClasssifier.getLabelMap(), acClasssifier.getReverseLabelMap()), "0"), false);
                 }
             }

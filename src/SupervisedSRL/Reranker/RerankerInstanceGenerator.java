@@ -68,19 +68,19 @@ public class RerankerInstanceGenerator {
 
     public static HashMap<Integer, Integer> getArgLabelMap(Pair<Double, ArrayList<Integer>> aiCandid,
                                                            Pair<Double, ArrayList<Integer>> acCandid,
-                                                           String[] labelMap, HashMap<String, Integer> globalReverseLabelMap) {
+                                                           String[] localClassifierLabelMap, HashMap<String, Integer> globalReverseLabelMap) {
         HashMap<Integer, Integer> argLabelMap = new HashMap<Integer, Integer>();
         assert aiCandid.second.size() == acCandid.second.size();
         for (int i = 0; i < aiCandid.second.size(); i++) {
             int wordIdx = aiCandid.second.get(i);
-            int label = globalReverseLabelMap.get(labelMap[acCandid.second.get(i)]);
+            int label = globalReverseLabelMap.get(localClassifierLabelMap[acCandid.second.get(i)]);
             assert !argLabelMap.containsKey(wordIdx);
             argLabelMap.put(wordIdx, label);
         }
         return argLabelMap;
     }
 
-    public static HashMap<Object, Integer>[] extractRerankerFeatures(int pIdx, String pLabel, Sentence sentence, Pair<Double, ArrayList<Integer>> aiCandid, Pair<Double,
+    public static HashMap<Object, Integer>[] extractFinalRerankerFeatures(int pIdx, String pLabel, Sentence sentence, Pair<Double, ArrayList<Integer>> aiCandid, Pair<Double,
             ArrayList<Integer>> acCandid, int numOfAIFeats, int numOfACFeats, IndexMap indexMap, String[] labelMap, HashMap<String, Integer> globalReverseLabelMap) throws Exception {
         HashMap<Integer, Integer> argMap = getArgLabelMap(aiCandid, acCandid, labelMap, globalReverseLabelMap);
         int numOfGlobalFeatures = 1;
@@ -103,6 +103,7 @@ public class RerankerInstanceGenerator {
         return rerankerFeatureVector;
     }
 
+
     public static void addToRerankerFeats(HashMap<Object, Integer>[] rerankerFeatureVector, Object[] feats, int offset) {
         if (feats == null) return;
         for (int i = 0; i < feats.length; i++) {
@@ -115,6 +116,7 @@ public class RerankerInstanceGenerator {
                 rerankerFeatureVector[offset + i].put(feats[i], rerankerFeatureVector[offset + i].get(feats[i]) + 1);
         }
     }
+
 
     public ArrayList<String>[] getPartitions(String trainFilePath) throws IOException {
         ArrayList<String>[] partitions = new ArrayList[numOfPartitions];
@@ -136,6 +138,7 @@ public class RerankerInstanceGenerator {
         }
         return partitions;
     }
+
 
     public void buildTrainInstances(String trainFilePath) throws Exception {
 
@@ -219,7 +222,7 @@ public class RerankerInstanceGenerator {
 
                     for (int j = 0; j < acCandids4thisAiCandid.size(); j++) {
                         Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
-                        rerankerPool.addInstance(new RerankerInstanceItem(extractRerankerFeatures(pIdx, pLabel, sentence, aiCandid, acCandid,
+                        rerankerPool.addInstance(new RerankerInstanceItem(extractFinalRerankerFeatures(pIdx, pLabel, sentence, aiCandid, acCandid,
                                 numOfAIFeatures, numOfACFeatures, indexMap, acClassifier.getLabelMap(), globalReverseLabelMap), "0"), false);
                     }
                 }
@@ -258,7 +261,7 @@ public class RerankerInstanceGenerator {
         return new Object[]{trainSentences, devSentences};
     }
 
-    private HashMap<Integer, HashMap<Integer, Integer>> getGoldArgLabelMap(Sentence sentence) {
+    public static HashMap<Integer, HashMap<Integer, Integer>> getGoldArgLabelMap(Sentence sentence) {
         HashMap<Integer, HashMap<Integer, Integer>> goldArgLabelMap = new HashMap<Integer, HashMap<Integer, Integer>>();
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : goldPAs) {
