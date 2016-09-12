@@ -5,6 +5,7 @@ import SupervisedSRL.Strcutures.IndexMap;
 import ml.AveragedPerceptron;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -13,10 +14,10 @@ import java.util.concurrent.ExecutorService;
 public class Step7 {
 
     public static void Step7(AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier, AveragedPerceptron reranker,
-                             IndexMap indexMap, String devData, String pdModelDir, String outputFile,
+                             IndexMap indexMap, HashMap<Object, Integer>[] rerankerFeatureMap, String devData, String pdModelDir, String outputFile,
                              int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int aiMaxBeamSize, int acMaxBeamSize)
     throws Exception{
-        Decoder decoder = new Decoder(aiClassifier, acClassifier, reranker, indexMap, pdModelDir);
+        Decoder decoder = new Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
         decoder.decode(devData, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);
     }
 }
