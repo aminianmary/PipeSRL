@@ -43,7 +43,6 @@ public class PipeLineWithReranker {
         String[] modelPaths = new String[4];
             //train AI and AC model on the whole train data
             System.out.print("\n\nSTEP 1 Training PD, AI and AC Models on entire train data\n\n");
-            // todo directly load pre-trained AC/AI models with indexMap
             modelPaths = SupervisedSRL.Train.train(trainData, devData, modelDir, clusterFile, numOfTrainingIterations, modelDir,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize);
 
@@ -61,10 +60,7 @@ public class PipeLineWithReranker {
             String instanceFilePrefix = modelDir + "/reranker_train_instances_";
             int numOfGlobalFeatures = 1;
 
-            // todo before instance generator; should have another func/class/etc. for feature map generation.
-
-            // todo now all features should be from feature map wrapper
-            RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
+         RerankerInstanceGenerator rerankerInstanceGenerator = new RerankerInstanceGenerator(numOfPartitions,
                     modelDir, clusterFile, instanceFilePrefix, numOfPDFeatures, numOfPDTrainingIterations, numOfTrainingIterations, numOfAIFeatures,
                     numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize, globalReverseLabelMap);
             rerankerInstanceGenerator.buildTrainInstances(trainData);

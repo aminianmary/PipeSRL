@@ -12,8 +12,8 @@ import java.util.HashSet;
  */
 public class Train {
 
-    public static String trainReranker(int numOfParts, String rerankerInstanceFilePrefix, int numOfTrainingIterations,
-                                       int numOfRerankerFeatures, String modelDir) throws Exception {
+    public static void trainReranker(int numOfParts, String rerankerInstanceFilePrefix, int numOfTrainingIterations,
+                                       int numOfRerankerFeatures, String rerankerModelPath) throws Exception {
         HashSet<String> labels = new HashSet<String>();
         labels.add("1");
         AveragedPerceptron ap = new AveragedPerceptron(labels, numOfRerankerFeatures);
@@ -37,8 +37,6 @@ public class Train {
                 System.out.println("Part " + devPart + " done!");
             }
         }
-        String rerankerModelPath = modelDir + "/reranker.model";
         ap.saveModel(rerankerModelPath);
-        return rerankerModelPath;
     }
 }
