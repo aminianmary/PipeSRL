@@ -4,7 +4,6 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.PD.PredicateLexiconEntry;
-import SupervisedSRL.Pipeline;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import org.junit.Test;

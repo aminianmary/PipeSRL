@@ -2,9 +2,7 @@ package SupervisedSRL.Strcutures;
 
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.Pipeline;
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
-import util.IO;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,7 +11,6 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 /**
