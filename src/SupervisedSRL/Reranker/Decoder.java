@@ -5,6 +5,7 @@ import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
+import ml.RerankerAveragedPerceptron;
 import util.IO;
 
 import java.util.ArrayList;
@@ -17,12 +18,12 @@ import java.util.TreeMap;
 public class Decoder {
     AveragedPerceptron aiClasssifier;
     AveragedPerceptron acClasssifier;
-    AveragedPerceptron reranker;
+    RerankerAveragedPerceptron reranker;
     IndexMap indexMap;
     HashMap<Object, Integer>[] rerankerFeatureMap;
     String pdModelDir;
 
-    public Decoder(AveragedPerceptron aiClasssifier, AveragedPerceptron acClasssifier, AveragedPerceptron reranker,
+    public Decoder(AveragedPerceptron aiClasssifier, AveragedPerceptron acClasssifier, RerankerAveragedPerceptron reranker,
                    IndexMap indexMap, HashMap<Object, Integer>[] featureMap, String pdModelDir) {
         this.aiClasssifier = aiClasssifier;
         this.acClasssifier = acClasssifier;

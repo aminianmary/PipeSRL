@@ -55,38 +55,18 @@ public class AveragedPerceptron implements Serializable {
         this.reverseLabelMap = reverseLabelMap;
     }
 
+
     public static AveragedPerceptron loadModel(String filePath) throws Exception {
-        DecimalFormat format = new DecimalFormat("##.00");
-
-
-        ///System.out.println("loading model...");
         FileInputStream fis = new FileInputStream(filePath);
         GZIPInputStream gz = new GZIPInputStream(fis);
         ObjectInput reader = new ObjectInputStream(gz);
-
-        //System.out.println("loading newAvgWeight...");
-        long startTime = System.currentTimeMillis();
         HashMap<Object, CompactArray>[] newAvgWeight =
                 (HashMap<Object, CompactArray>[]) reader.readObject();
-        long endTime = System.currentTimeMillis();
-        //System.out.println("Total time to load newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
-        //System.out.println("loading labelMap...");
-        startTime = System.currentTimeMillis();
         String[] labelMap = (String[]) reader.readObject();
-        endTime = System.currentTimeMillis();
-        //  System.out.println("Total time to load labelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0 ));
-
-        //  System.out.println("loading reverseLabelMap...");
-        startTime = System.currentTimeMillis();
         HashMap<String, Integer> reverseLabelMap = (HashMap<String, Integer>) reader.readObject();
-        endTime = System.currentTimeMillis();
-        // System.out.println("Total time to load reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0 )/60.0 ));
-
         fis.close();
         gz.close();
         reader.close();
-        // System.out.println("************ DONE ************");
         return new AveragedPerceptron(newAvgWeight, labelMap, reverseLabelMap);
 
     }
@@ -126,62 +106,12 @@ public class AveragedPerceptron implements Serializable {
         iteration++;
     }
 
-    public void learnInstance(RerankerPool pool) {
-        int argmax = argmax(pool, false);
-
-        if (argmax != pool.getGoldIndex()) {
-            updateWeight(argmax, pool.getGoldIndex(), pool);
-        } else correct++;
-
-        iteration++;
-    }
-
     private void updateWeight(int argmax, int gold, Object[] features) {
         for (int i = 0; i < features.length; i++) {
             updateWeight(argmax, i, features[i], -1);
             updateWeight(gold, i, features[i], 1);
         }
     }
-
-    private void updateWeight(int argmax, int gold, RerankerPool pool) {
-        HashMap<Object, Integer>[] argmaxFeats = pool.item(argmax).getFeatures();
-        HashMap<Object, Integer>[] goldFeats = pool.item(gold).getFeatures();
-        for (int i = 0; i < argmaxFeats.length; i++) {
-            // increase the weight for gold
-            if (goldFeats[i] != null) {
-                for (Object goldFeat : goldFeats[i].keySet()) {
-                    CompactArray array = weights[i].get(goldFeat);
-                    CompactArray avgArray = avgWeights[i].get(goldFeat);
-                    if (array == null) {
-                        array = new CompactArray(0, new double[1]);
-                        avgArray = new CompactArray(0, new double[1]);
-                    }
-                    array.expandArray(0, goldFeats[i].get(goldFeat));
-                    avgArray.expandArray(0, iteration * goldFeats[i].get(goldFeat));
-                    weights[i].put(goldFeat, array);
-                    avgWeights[i].put(goldFeat, avgArray);
-                }
-            }
-
-            // decrease the weight for argmax
-            //todo check if it is correct
-            if (argmaxFeats[i] != null) {
-                for (Object argmaxFeat : argmaxFeats[i].keySet()) {
-                    CompactArray array = weights[i].get(argmaxFeat);
-                    CompactArray avgArray = avgWeights[i].get(argmaxFeat);
-                    if (array == null) {
-                        array = new CompactArray(0, new double[1]);
-                        avgArray = new CompactArray(0, new double[1]);
-                    }
-                    array.expandArray(0, -argmaxFeats[i].get(argmaxFeat));
-                    avgArray.expandArray(0, -iteration * argmaxFeats[i].get(argmaxFeat));
-                    weights[i].put(argmaxFeat, array);
-                    avgWeights[i].put(argmaxFeat, avgArray);
-                }
-            }
-        }
-    }
-
 
     private void updateWeight(int label, int featIndex, Object feature, double change) {
         if (!weights[featIndex].containsKey(feature)) {
@@ -233,21 +163,6 @@ public class AveragedPerceptron implements Serializable {
         return argmax;
     }
 
-    public int argmax(RerankerPool pool, boolean decode) {
-        double max = Double.NEGATIVE_INFINITY;
-        int argmax = 0;
-
-        for (int i = 0; i < pool.length(); i++) {
-            double score = score(pool.item(i), decode);
-            if (score > max) {
-                argmax = i;
-                max = score;
-            }
-        }
-        return argmax;
-    }
-
-
     public double[] score(Object[] features) {
         double[] score = new double[labelMap.length];
 
@@ -262,28 +177,7 @@ public class AveragedPerceptron implements Serializable {
         return score;
     }
 
-    private double score(RerankerInstanceItem item, boolean decode) {
-        double score = 0;
-        HashMap<Object, CompactArray>[] map = decode ? avgWeights : weights;
-        HashMap<Object, Integer>[] features = item.getFeatures();
-
-        for (int i = 0; i < features.length; i++) {
-            //todo check if it is correct
-            if (features[i] != null) {
-                for (Object feat : features[i].keySet()) {
-                    if (map[i].containsKey(feat)) {
-                        double weight = map[i].get(feat).getArray()[0];
-                        score += weight * features[i].get(feat);
-                    }
-                }
-            }
-        }
-        return score;
-    }
-
-
     public void saveModel(String filePath) throws Exception {
-        DecimalFormat format = new DecimalFormat("##.00");
 
         HashMap<Object, CompactArray>[] newAvgMap = new HashMap[weights.length];
 
@@ -304,25 +198,9 @@ public class AveragedPerceptron implements Serializable {
         FileOutputStream fos = new FileOutputStream(filePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
-        //System.out.println("Saving newAvgMap...");
-        long startTime = System.currentTimeMillis();
         writer.writeObject(newAvgMap);
-        long endTime = System.currentTimeMillis();
-        //System.out.println("Total time to save newAvgWeight: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
-        //System.out.println("Saving labelMap...");
-        startTime = System.currentTimeMillis();
         writer.writeObject(labelMap);
-        endTime = System.currentTimeMillis();
-        //System.out.println("Total time to save labelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
-
-        // System.out.println("Saving reverseLabelMap...");
-        startTime = System.currentTimeMillis();
         writer.writeObject(reverseLabelMap);
-        endTime = System.currentTimeMillis();
-        // System.out.println("Total time to save reverseLabelMap: " + format.format( ((endTime - startTime)/1000.0)/ 60.0));
-
         writer.close();
     }
 

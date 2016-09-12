@@ -1,11 +1,11 @@
 package SupervisedSRL;
 import SentenceStruct.Sentence;
-import SupervisedSRL.Reranker.RerankerInstanceItem;
 import SupervisedSRL.Strcutures.*;
 
 import java.util.*;
 
 import ml.AveragedPerceptron;
+import ml.RerankerAveragedPerceptron;
 
 /**
  * Created by Maryam Aminian on 9/9/16.

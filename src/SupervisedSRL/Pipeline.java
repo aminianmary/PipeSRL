@@ -2,7 +2,7 @@ package SupervisedSRL;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
-import ml.AveragedPerceptron;
+import ml.RerankerAveragedPerceptron;
 
 import java.util.HashMap;
 
@@ -45,8 +45,8 @@ public class Pipeline {
 
             ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
             IndexMap indexMap = aiModelInfo.getIndexMap();
-            AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
-            AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelPaths[2]);
+            RerankerAveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
+            RerankerAveragedPerceptron acClassifier = RerankerAveragedPerceptron.loadModel(modelPaths[2]);
             Decoder.decode(new Decoder(aiClassifier, acClassifier),
                     aiModelInfo.getIndexMap(),
                     devData, acClassifier.getLabelMap(),
@@ -59,8 +59,8 @@ public class Pipeline {
         } else {
             ModelInfo aiModelInfo = new ModelInfo(modelDir + "/AI.model");
             IndexMap indexMap = aiModelInfo.getIndexMap();
-            AveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
-            AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(modelDir + "/AC.model");
+            RerankerAveragedPerceptron aiClassifier = aiModelInfo.getClassifier();
+            RerankerAveragedPerceptron acClassifier = RerankerAveragedPerceptron.loadModel(modelDir + "/AC.model");
             Decoder.decode(new Decoder(aiClassifier, acClassifier),
                     indexMap, devData, acClassifier.getLabelMap(),
                     aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,

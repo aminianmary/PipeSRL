@@ -1,7 +1,6 @@
 package SupervisedSRL.Strcutures;
 import ml.AveragedPerceptron;
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;

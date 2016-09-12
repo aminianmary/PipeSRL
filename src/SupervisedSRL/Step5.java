@@ -8,6 +8,7 @@ import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import SupervisedSRL.Strcutures.Prediction4Reranker;
 import ml.AveragedPerceptron;
+import ml.RerankerAveragedPerceptron;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutput;
@@ -23,7 +24,7 @@ import java.util.zip.GZIPOutputStream;
 public class Step5 {
 
     public static void Step5(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
-                             HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap,HashMap<String, Integer> globalReverseLabelMap,
+                             HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
                              int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
                              int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception{
 

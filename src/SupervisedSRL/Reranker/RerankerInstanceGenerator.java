@@ -3,22 +3,13 @@ package SupervisedSRL.Reranker;
 import SentenceStruct.Argument;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
-import SupervisedSRL.Decoder;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;
-import SupervisedSRL.Train;
-import com.sun.corba.se.spi.ior.ObjectKey;
-import ml.AveragedPerceptron;
 import util.IO;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Maryam Aminian on 8/19/16.

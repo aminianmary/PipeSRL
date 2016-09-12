@@ -1,6 +1,6 @@
 package SupervisedSRL.Reranker;
 
-import ml.AveragedPerceptron;
+import ml.RerankerAveragedPerceptron;
 
 import java.io.EOFException;
 import java.io.FileInputStream;
@@ -16,7 +16,7 @@ public class Train {
                                        int numOfRerankerFeatures, String rerankerModelPath) throws Exception {
         HashSet<String> labels = new HashSet<String>();
         labels.add("1");
-        AveragedPerceptron ap = new AveragedPerceptron(labels, numOfRerankerFeatures);
+        RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(labels, numOfRerankerFeatures);
 
         for (int iter = 0; iter < numOfTrainingIterations; iter++) {
             System.out.println("Iteration " + iter + "\n>>>>>>>>>>>\n");
