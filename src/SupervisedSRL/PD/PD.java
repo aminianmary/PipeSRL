@@ -1,10 +1,9 @@
 package SupervisedSRL.PD;
-
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
-import ml.RerankerAveragedPerceptron;
+import ml.AveragedPerceptron;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public class PD {
                 HashSet<PredicateLexiconEntry> featVectors = trainPLexicon.get(plem).get(ppos);
                 HashSet<String> labelSet = getLabels(featVectors);
 
-                RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(labelSet, numOfPDFeaturs);
+                AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfPDFeaturs);
 
                 //System.out.print("training model for predicate/pos -->"+ plem+"|"+ppos+"\n");
                 for (int i = 0; i < numberOfTrainingIterations; i++) {
@@ -72,7 +71,7 @@ public class PD {
             f1 = new File(modelDir + "/" + plem + "_" + ppos);
             if (f1.exists() && !f1.isDirectory()) {
                 //seen predicates
-                RerankerAveragedPerceptron classifier = RerankerAveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);
+                AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem + "_" + ppos);
                 String prediction = classifier.predict(pdfeats);
                 predictions.put(pIdx, prediction);
             } else {

@@ -56,13 +56,13 @@ public class Decoder {
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, true);
 
             //creating the pool and making prediction
-            predictions4ThisSentence = obtainFinalPrediction4Sentence(numOfAIFeatures, numOfACFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
+            predictions4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
             predictions[senIdx] = predictions4ThisSentence;
         }
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClasssifier.getLabelMap(), outputFile);
     }
 
-    private TreeMap<Integer, Prediction> obtainFinalPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures, Sentence testSentence, HashMap<Integer, HashMap<Integer, Integer>> goldMap, TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen) throws Exception {
+    private TreeMap<Integer, Prediction> obtainRerankerPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures, Sentence testSentence, HashMap<Integer, HashMap<Integer, Integer>> goldMap, TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen) throws Exception {
         TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();
         for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
             RerankerPool rerankerPool = new RerankerPool();
