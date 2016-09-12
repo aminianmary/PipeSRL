@@ -8,6 +8,7 @@ import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;
 import SupervisedSRL.Train;
+import com.sun.corba.se.spi.ior.ObjectKey;
 import ml.AveragedPerceptron;
 import util.IO;
 
@@ -80,40 +81,46 @@ public class RerankerInstanceGenerator {
         return argLabelMap;
     }
 
-    public static HashMap<Object, Integer>[] extractFinalRerankerFeatures(int pIdx, String pLabel, Sentence sentence, Pair<Double, ArrayList<Integer>> aiCandid, Pair<Double,
-            ArrayList<Integer>> acCandid, int numOfAIFeats, int numOfACFeats, IndexMap indexMap, String[] labelMap, HashMap<String, Integer> globalReverseLabelMap) throws Exception {
-        HashMap<Integer, Integer> argMap = getArgLabelMap(aiCandid, acCandid, labelMap, globalReverseLabelMap);
+    public static HashMap<Integer, Integer>[] extractFinalRerankerFeatures(int pIdx, String pLabel, Sentence sentence,
+                                                                           Pair<Double, ArrayList<Integer>> aiCandid,
+                                                                           Pair<Double, ArrayList<Integer>> acCandid,
+                                                                           int numOfAIFeats, int numOfACFeats,
+                                                                           IndexMap indexMap, String[] localCalssifierLabelMap,
+                                                                           HashMap<String, Integer> globalReverseLabelMap,
+                                                                           HashMap<Object, Integer>[] rerankerFeatureMap) throws Exception {
+        HashMap<Integer, Integer> argMap = getArgLabelMap(aiCandid, acCandid, localCalssifierLabelMap, globalReverseLabelMap);
         int numOfGlobalFeatures = 1;
-        HashMap<Object, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats + numOfACFeats + numOfGlobalFeatures];
-        Object[] aiFeats;
-        Object[] acFeats;
-        Object[] globalFeats;
+        HashMap<Integer, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats + numOfACFeats + numOfGlobalFeatures];
 
         for (int wordIdx = 0; wordIdx < sentence.getWords().length; wordIdx++) {
             //for each word in the sentence
             int aiLabel = (argMap.containsKey(wordIdx)) ? 1 : 0;
             int acLabel = (argMap.containsKey(wordIdx)) ? argMap.get(wordIdx) : -1;
-            aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfAIFeats, indexMap, true, aiLabel);
-            acFeats = (acLabel == -1) ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true, acLabel);
-            addToRerankerFeats(rerankerFeatureVector, aiFeats, 0);
-            addToRerankerFeats(rerankerFeatureVector, acFeats, aiFeats.length);
+            Object[] aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfAIFeats, indexMap, true, aiLabel);
+            Object[] acFeats = (acLabel == -1) ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true, acLabel);
+            addToRerankerFeats(rerankerFeatureVector, aiFeats, 0, rerankerFeatureMap);
+            addToRerankerFeats(rerankerFeatureVector, acFeats, aiFeats.length, rerankerFeatureMap);
         }
-        globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel, aiCandid, acCandid, labelMap);
-        addToRerankerFeats(rerankerFeatureVector, globalFeats, numOfAIFeats + numOfACFeats);
+        Object[] globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel, aiCandid, acCandid, localCalssifierLabelMap);
+        addToRerankerFeats(rerankerFeatureVector, globalFeats, numOfAIFeats + numOfACFeats, rerankerFeatureMap);
         return rerankerFeatureVector;
     }
 
 
-    public static void addToRerankerFeats(HashMap<Object, Integer>[] rerankerFeatureVector, Object[] feats, int offset) {
+    public static void addToRerankerFeats(HashMap<Integer, Integer>[] rerankerFeatureVector, Object[] feats, int offset,
+                                          HashMap<Object, Integer>[] rerankerFeatureMap) {
         if (feats == null) return;
         for (int i = 0; i < feats.length; i++) {
             if (rerankerFeatureVector[offset + i] == null)
-                rerankerFeatureVector[offset + i] = new HashMap<Object, Integer>();
+                rerankerFeatureVector[offset + i] = new HashMap<>();
 
+            int featureIndex = rerankerFeatureMap[offset + i].get(feats[i]);
             if (!rerankerFeatureVector[offset + i].containsKey(feats[i]))
-                rerankerFeatureVector[offset + i].put(feats[i], 1);
-            else
-                rerankerFeatureVector[offset + i].put(feats[i], rerankerFeatureVector[offset + i].get(feats[i]) + 1);
+                rerankerFeatureVector[offset + i].put(featureIndex, 1);
+            else {
+                int oldFrequency = rerankerFeatureVector[offset + i].get(featureIndex);
+                rerankerFeatureVector[offset + i].put(featureIndex, oldFrequency + 1);
+            }
         }
     }
 
@@ -275,20 +282,23 @@ public class RerankerInstanceGenerator {
         return goldArgLabelMap;
     }
 
-    private HashMap<Object, Integer>[] extractRerankerFeatures4GoldAssignment(int pIdx,
-                                                                              Sentence sentence, HashMap<Integer, Integer> goldMap,
-                                                                              int numOfAIFeats, int numOfACFeats, int numOfGlobalFeatures,
-                                                                              IndexMap indexMap, String[] labelMap) throws Exception {
-        HashMap<Object, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats + numOfACFeats + numOfGlobalFeatures];
+
+    public static HashMap<Integer, Integer>[] extractRerankerFeatures4GoldAssignment(int pIdx,
+                                                                               Sentence sentence, HashMap<Integer, Integer> goldMap,
+                                                                               int numOfAIFeats, int numOfACFeats, int numOfGlobalFeatures,
+                                                                               IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap, HashMap<Object, Integer>[] rerankerFeatureMap) throws Exception {
+        HashMap<Integer, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats + numOfACFeats + numOfGlobalFeatures];
+        String[] globalLabelMap = getLabelMap(globalReverseLabelMap);
+
         for (int wordIdx = 0; wordIdx < sentence.getWords().length; wordIdx++) {
-            //for each word in the sentence
             int aiLabel = (goldMap.containsKey(wordIdx)) ? 1 : 0;
             int acLabel = (goldMap.containsKey(wordIdx)) ? goldMap.get(wordIdx) : -1;
+
             Object[] aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfAIFeats, indexMap, true, aiLabel);
             Object[] acFeats = acLabel == -1 ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true, acLabel);
-            //todo check if it works correctly
-            addToRerankerFeats(rerankerFeatureVector, aiFeats, 0);
-            addToRerankerFeats(rerankerFeatureVector, acFeats, numOfAIFeats);
+
+            addToRerankerFeats(rerankerFeatureVector, aiFeats, 0, rerankerFeatureMap);
+            addToRerankerFeats(rerankerFeatureVector, acFeats, numOfAIFeats, rerankerFeatureMap);
         }
         String pLabel = sentence.getPredicatesInfo().get(pIdx);
         ArrayList<Integer> aiAssignment = new ArrayList<Integer>();
@@ -297,11 +307,22 @@ public class RerankerInstanceGenerator {
             aiAssignment.add(arg);
             acAssignment.add(goldMap.get(arg));
         }
-        Object[] globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel, new Pair<Double, ArrayList<Integer>>(1.0D, aiAssignment),
-                new Pair<Double, ArrayList<Integer>>(1.0D, acAssignment), labelMap);
-        addToRerankerFeats(rerankerFeatureVector, globalFeats, numOfAIFeats + numOfACFeats);
+        Object[] globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel, new Pair<>(1.0D, aiAssignment),
+                new Pair<>(1.0D, acAssignment), globalLabelMap);
+        addToRerankerFeats(rerankerFeatureVector, globalFeats, numOfAIFeats + numOfACFeats, rerankerFeatureMap);
         return rerankerFeatureVector;
     }
+
+
+    public static String[] getLabelMap(HashMap<String, Integer> globalReverseLabelMap) {
+        String[] labelMap = new String[globalReverseLabelMap.size()];
+        for (String label : globalReverseLabelMap.keySet()) {
+            int labelIndex = globalReverseLabelMap.get(label);
+            labelMap[labelIndex] = label;
+        }
+        return labelMap;
+    }
+
 
     private class InstanceGenerator implements Runnable {
         int devPartIdx;

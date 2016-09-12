@@ -44,7 +44,7 @@ public class PipeLineWithReranker {
             //train AI and AC model on the whole train data
             System.out.print("\n\nSTEP 1 Training PD, AI and AC Models on entire train data\n\n");
             // todo directly load pre-trained AC/AI models with indexMap
-            modelPaths = SupervisedSRL.Train.train(trainData, devData, clusterFile, numOfTrainingIterations, modelDir,
+            modelPaths = SupervisedSRL.Train.train(trainData, devData, modelDir, clusterFile, numOfTrainingIterations, modelDir,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiMaxBeamSize, acMaxBeamSize);
 
             ModelInfo aiModelInfo = new ModelInfo(modelPaths[0]);
