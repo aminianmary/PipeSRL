@@ -4,31 +4,26 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by monadiab on 9/9/16.
  */
 public class RerankerFeatureMap {
+    public static final String unseenSymbol = ";;??;;";
     HashMap<Object, Integer>[] featureMap;
     HashSet<Object>[] seenFeatures;
-    public static final String unseenSymbol = ";;??;;";
 
-    public RerankerFeatureMap(int numOfFeatures){
+    public RerankerFeatureMap(int numOfFeatures) {
         this.featureMap = new HashMap[numOfFeatures];
-        this.seenFeatures= new HashSet[numOfFeatures];
+        this.seenFeatures = new HashSet[numOfFeatures];
     }
 
     public void updateSeenRerankerFeatures(Object[] features, int offset) {
         for (int dim = 0; dim < features.length; dim++) {
-            seenFeatures[offset+ dim].add(features[dim]);
+            seenFeatures[offset + dim].add(features[dim]);
         }
     }
 
@@ -39,7 +34,7 @@ public class RerankerFeatureMap {
                                                  int numOfAIFeats, int numOfACFeats, IndexMap indexMap,
                                                  String[] labelMap, HashMap<String, Integer> globalReverseLabelMap)
             throws Exception {
-        HashMap<Integer, Integer> argMap= RerankerInstanceGenerator.getArgLabelMap(aiCandid, acCandid, labelMap, globalReverseLabelMap);
+        HashMap<Integer, Integer> argMap = RerankerInstanceGenerator.getArgLabelMap(aiCandid, acCandid, labelMap, globalReverseLabelMap);
 
         Object[] aiFeats;
         Object[] acFeats;
@@ -59,10 +54,10 @@ public class RerankerFeatureMap {
 
 
     public void updateSeenFeatures4GoldInstance(int pIdx, Sentence sentence,
-                                                                       int numOfAIFeats, int numOfACFeats,
-                                                                       IndexMap indexMap, String[] labelMap) throws Exception {
+                                                int numOfAIFeats, int numOfACFeats,
+                                                IndexMap indexMap, String[] labelMap) throws Exception {
 
-        HashMap<Integer, Integer> goldArgMap= RerankerInstanceGenerator.getGoldArgLabelMap(sentence).get(pIdx);
+        HashMap<Integer, Integer> goldArgMap = RerankerInstanceGenerator.getGoldArgLabelMap(sentence).get(pIdx);
 
         for (int wordIdx = 0; wordIdx < sentence.getWords().length; wordIdx++) {
             //for each word in the sentence
@@ -86,9 +81,9 @@ public class RerankerFeatureMap {
         updateSeenRerankerFeatures(globalFeats, numOfAIFeats);
     }
 
-    public void buildRerankerFeatureMap (){
+    public void buildRerankerFeatureMap() {
         //constructing featureDic
-        int numOfFeatures= seenFeatures.length;
+        int numOfFeatures = seenFeatures.length;
         int featureIndex = 1;
         //for each feature slot
         for (int dim = 0; dim < numOfFeatures; dim++) {
@@ -103,12 +98,8 @@ public class RerankerFeatureMap {
     }
 
 
-    public void save (String filePath) throws IOException{
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(featureMap);
-        writer.close();
+    public HashMap<Object, Integer>[] getFeatureMap() {
+        return featureMap;
     }
 
 }

@@ -3,7 +3,10 @@ package SupervisedSRL.Reranker;
 import SentenceStruct.Argument;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
-import SupervisedSRL.Strcutures.*;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Pair;
+import SupervisedSRL.Strcutures.Prediction;
+import SupervisedSRL.Strcutures.Prediction4Reranker;
 import ml.AveragedPerceptron;
 import ml.RerankerAveragedPerceptron;
 import util.IO;
@@ -29,7 +32,7 @@ public class Decoder {
         this.acClasssifier = acClasssifier;
         this.reranker = reranker;
         this.indexMap = indexMap;
-        this.rerankerFeatureMap= featureMap;
+        this.rerankerFeatureMap = featureMap;
         this.pdModelDir = pdModelDir;
     }
 
@@ -37,11 +40,10 @@ public class Decoder {
         return reranker.argmax(pool, true);
     }
 
-    public void decode(String testData, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
+    public void decode(ArrayList<String> testSentences, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
                        int aiMaxBeamSize, int acMaxBeamSize, String modelDir, String outputFile) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.aiClasssifier, this.acClasssifier);
-        ArrayList<String> testSentences = IO.readCoNLLFile(testData);
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[testSentences.size()];
 

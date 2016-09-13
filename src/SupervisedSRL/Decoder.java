@@ -8,7 +8,10 @@ import ml.AveragedPerceptron;
 import util.IO;
 
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Created by Maryam Aminian on 5/24/16.
@@ -35,7 +38,7 @@ public class Decoder {
     ////////////////////////////////// DECODE ////////////////////////////////////////////////////////
 
     //stacked decoding
-    public static void decode(Decoder decoder, IndexMap indexMap, String devDataPath, String[] labelMap,
+    public static void decode(Decoder decoder, IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat, String[] labelMap,
                               int aiMaxBeamSize, int acMaxBeamSize,
                               int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
                               String modelDir, String outputFile) throws Exception {
@@ -45,7 +48,6 @@ public class Decoder {
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
         boolean decode = true;
-        ArrayList<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devDataPath);
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
 

@@ -10,7 +10,10 @@ import util.IO;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by monadiab on 7/13/16.
@@ -18,12 +21,11 @@ import java.util.*;
 public class Evaluation {
 
 
-    public static double evaluate(String systemOutput, String goldOutput, IndexMap indexMap,
+    public static double evaluate(String systemOutput, ArrayList<String> goldOutputInCONLLFormat, IndexMap indexMap,
                                   HashMap<String, Integer> reverseLabelMap) throws IOException {
         DecimalFormat format = new DecimalFormat("##.00");
 
-        List<String> systemOutputInCONLLFormat = IO.readCoNLLFile(systemOutput);
-        List<String> goldOutputInCONLLFormat = IO.readCoNLLFile(goldOutput);
+        ArrayList<String> systemOutputInCONLLFormat = IO.readCoNLLFile(systemOutput);
         Set<String> argLabels = reverseLabelMap.keySet();
 
         int correctPLabel = 0;

@@ -12,12 +12,12 @@ public class IndexMap implements Serializable {
 
     public final static int nullIdx = 0;
     public final static int unknownIdx = 1;
-    private HashMap<String, Integer> string2intMap;
-    private String[] int2stringMap;
     //clusterMap attributes
     public final static int unknownClusterIdx = -100;
     public final static int nullClusterIdx = -200;
     public final static int ROOTClusterIdx = -300;
+    private HashMap<String, Integer> string2intMap;
+    private String[] int2stringMap;
     //Note clusterMap can not be a HashMap <int, int> as some of the words in the cluster file are not seen in IndexMap
     private HashMap<String, Integer> wordClusterMap;
 
@@ -56,7 +56,7 @@ public class IndexMap implements Serializable {
             int2stringMap[string2intMap.get(str)] = str;
 
         //building clusterMap
-        HashMap<String, Integer> wordClusterMap  = buildWordClusterMap(clusterFilePath);
+        HashMap<String, Integer> wordClusterMap = buildWordClusterMap(clusterFilePath);
         this.wordClusterMap = wordClusterMap;
     }
 

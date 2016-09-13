@@ -13,7 +13,7 @@ import java.util.HashSet;
 public class Train {
 
     public static void trainReranker(int numOfParts, String rerankerInstanceFilePrefix, int numOfTrainingIterations,
-                                       int numOfRerankerFeatures, String rerankerModelPath) throws Exception {
+                                     int numOfRerankerFeatures, String rerankerModelPath) throws Exception {
         HashSet<String> labels = new HashSet<String>();
         labels.add("1");
         RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(labels, numOfRerankerFeatures);

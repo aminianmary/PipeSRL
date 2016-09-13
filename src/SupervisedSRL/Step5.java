@@ -8,7 +8,6 @@ import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import SupervisedSRL.Strcutures.Prediction4Reranker;
 import ml.AveragedPerceptron;
-import ml.RerankerAveragedPerceptron;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutput;
@@ -23,10 +22,10 @@ import java.util.zip.GZIPOutputStream;
  */
 public class Step5 {
 
-    public static void Step5(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
-                             HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
-                             int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                             int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception{
+    public static void generateRerankerInstances(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
+                                                 HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
+                                                 int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                                                 int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception {
 
         Decoder decoder = new Decoder(trainedClassifier.first, trainedClassifier.second);
         String[] localClassifierLabelMap = trainedClassifier.second.getLabelMap();
@@ -42,7 +41,7 @@ public class Step5 {
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir,true);
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, true);
 
             //creating the pool
             for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {

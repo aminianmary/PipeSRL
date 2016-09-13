@@ -1,11 +1,8 @@
 package ml;
 
-import SupervisedSRL.Reranker.RerankerInstanceItem;
-import SupervisedSRL.Reranker.RerankerPool;
 import SupervisedSRL.Strcutures.CompactArray;
 
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.zip.GZIPInputStream;

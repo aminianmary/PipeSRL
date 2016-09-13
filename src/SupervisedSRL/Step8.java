@@ -3,6 +3,7 @@ package SupervisedSRL;
 import SupervisedSRL.Strcutures.IndexMap;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -10,10 +11,10 @@ import java.util.HashMap;
  */
 public class Step8 {
 
-    public static void Step8(String goldData, String outputFile, HashMap<String, Integer> globalReverseLabelMap,
-                             IndexMap indexMap) throws IOException {
+    public static void evaluate(ArrayList<String> goldSentences, String outputFile, HashMap<String, Integer> globalReverseLabelMap,
+                                IndexMap indexMap) throws IOException {
         HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
         reverseLabelMap.put("0", reverseLabelMap.size());
-        Evaluation.evaluate(outputFile, goldData, indexMap, reverseLabelMap);
+        Evaluation.evaluate(outputFile, goldSentences, indexMap, reverseLabelMap);
     }
 }

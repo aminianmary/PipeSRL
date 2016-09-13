@@ -1,5 +1,7 @@
 package SupervisedSRL.Strcutures;
+
 import ml.AveragedPerceptron;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,6 +93,69 @@ public class ModelInfo implements Serializable {
         writer.close();
     }
 
+
+    public static void saveReverseLabelMap(HashMap<String, Integer> reverseLabelMap, String filePath) throws Exception {
+        FileOutputStream fos = new FileOutputStream(filePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
+        writer.writeObject(reverseLabelMap);
+        writer.close();
+    }
+
+    public static HashMap<String, Integer> loadReverseLabelMap(String filePath) throws Exception {
+        FileInputStream fis = new FileInputStream(filePath);
+        GZIPInputStream gz = new GZIPInputStream(fis);
+        ObjectInput reader = new ObjectInputStream(gz);
+        return (HashMap<String, Integer>) reader.readObject();
+    }
+
+    public static void saveIndexMap(IndexMap indexMap, String filePath) throws IOException {
+        FileOutputStream fos = new FileOutputStream(filePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
+        writer.writeObject(indexMap);
+        writer.close();
+    }
+
+    public static IndexMap loadIndexMap(String filePath) throws Exception {
+        FileInputStream fis = new FileInputStream(filePath);
+        GZIPInputStream gz = new GZIPInputStream(fis);
+        ObjectInput reader = new ObjectInputStream(gz);
+        return (IndexMap) reader.readObject();
+    }
+
+    public static void saveDataPartitions(ArrayList<String>[] parts, String filePath) throws IOException {
+        FileOutputStream fos = new FileOutputStream(filePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
+        writer.writeObject(parts);
+        writer.close();
+    }
+
+    public static ArrayList<String>[] loadDataPartitions(String filePath) throws Exception {
+        FileInputStream fis = new FileInputStream(filePath);
+        GZIPInputStream gz = new GZIPInputStream(fis);
+        ObjectInput reader = new ObjectInputStream(gz);
+        ArrayList<String>[] parts = (ArrayList<String>[]) reader.readObject();
+        reader.close();
+        return parts;
+    }
+
+    public static void saveFeatureMap(HashMap<Object, Integer>[] featureMap, String filePath) throws IOException {
+        FileOutputStream fos = new FileOutputStream(filePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
+        writer.writeObject(featureMap);
+        writer.close();
+    }
+
+    public static HashMap<Object, Integer>[] loadFeatureMap(String filePath) throws Exception {
+        FileInputStream fis = new FileInputStream(filePath);
+        GZIPInputStream gz = new GZIPInputStream(fis);
+        ObjectInput reader = new ObjectInputStream(gz);
+        return (HashMap<Object, Integer>[]) reader.readObject();
+    }
+
     public AveragedPerceptron getClassifier() {
         return classifier;
     }
@@ -106,28 +171,4 @@ public class ModelInfo implements Serializable {
     public HashMap<String, Integer> getLabelDict() {
         return labelDict;
     }
-
-    public static void saveIndexMap (IndexMap indexMap, String filePath) throws IOException{
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(indexMap);
-        writer.close();
-    }
-
-    public static IndexMap loadIndexMap (String filePath) throws Exception{
-        FileInputStream fis = new FileInputStream(filePath);
-        GZIPInputStream gz = new GZIPInputStream(fis);
-        ObjectInput reader = new ObjectInputStream(gz);
-        return (IndexMap) reader.readObject();
-    }
-
-    public static void saveDataPartitions (ArrayList<String>[] parts, String filePath) throws IOException{
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(parts);
-        writer.close();
-    }
-
 }

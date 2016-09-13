@@ -2,8 +2,8 @@ package SupervisedSRL;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
-import util.IO;
-import java.io.IOException;
+
+import java.util.ArrayList;
 
 /**
  * Created by Maryam Aminian on 9/9/16.
@@ -11,8 +11,8 @@ import java.io.IOException;
  */
 public class Step1 {
 
-    public static void Step1(String trainFilePath, String clusterFilePath, String indexMapFilePath) throws Exception{
-            IndexMap indexMap= new IndexMap(IO.readCoNLLFile(trainFilePath), clusterFilePath);
-            ModelInfo.saveIndexMap(indexMap, indexMapFilePath);
+    public static void buildIndexMap(ArrayList<String> trainData, String clusterFilePath, String indexMapFilePath) throws Exception {
+        IndexMap indexMap = new IndexMap(trainData, clusterFilePath);
+        ModelInfo.saveIndexMap(indexMap, indexMapFilePath);
     }
 }

@@ -4,10 +4,13 @@ import SentenceStruct.Argument;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.Strcutures.*;
-import util.IO;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Pair;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,6 +18,10 @@ import java.util.HashMap;
  * Created by Maryam Aminian on 8/19/16.
  */
 public class RerankerInstanceGenerator {
+    //this hashMap keeps a mapping from all labels seen in our train data to integers
+    //as we train several ai-ac classifiers on different partitions, a single label might end up getting different integers
+    //from different classifiers and this map makes sure it won't happen
+    static HashMap<String, Integer> globalReverseLabelMap;
     int numOfPartitions;
     String clusterFile;
     String modelDir;
@@ -27,14 +34,9 @@ public class RerankerInstanceGenerator {
     int numOfGlobalFeatures;
     int aiMaxBeamSize;
     int acMaxBeamSize;
-    //this hashMap keeps a mapping from all labels seen in our train data to integers
-    //as we train several ai-ac classifiers on different partitions, a single label might end up getting different integers
-    //from different classifiers and this map makes sure it won't happen
-    static HashMap<String, Integer> globalReverseLabelMap;
 
-    public RerankerInstanceGenerator (int numOfPartitions)
-    {
-        this.numOfPartitions= numOfPartitions;
+    public RerankerInstanceGenerator(int numOfPartitions) {
+        this.numOfPartitions = numOfPartitions;
     }
 
     public RerankerInstanceGenerator(int numOfParts, String modelDir, String clusterFile, String instanceFilePrefix,
@@ -44,7 +46,7 @@ public class RerankerInstanceGenerator {
             throws IOException {
         this.numOfPartitions = numOfParts;
         this.modelDir = modelDir;
-        this.clusterFile= clusterFile;
+        this.clusterFile = clusterFile;
         this.rerankerInstanceFilePrefix = instanceFilePrefix;
         this.numOfPDFeatures = numOfPDFeatures;
         this.numOfPDTrainingIterations = numOfPDTrainingIterations;
@@ -115,51 +117,6 @@ public class RerankerInstanceGenerator {
         }
     }
 
-
-    public ArrayList<String>[] getPartitions(String trainFilePath) throws IOException {
-        ArrayList<String>[] partitions = new ArrayList[numOfPartitions];
-        ArrayList<String> sentencesInCoNLLFormat = IO.readCoNLLFile(trainFilePath);
-        //Collections.shuffle(sentencesInCoNLLFormat);
-        int partitionSize = (int) Math.ceil((double) sentencesInCoNLLFormat.size() / numOfPartitions);
-        int startIndex = 0;
-        int endIndex = 0;
-        for (int i = 0; i < numOfPartitions; i++) {
-            endIndex = startIndex + partitionSize;
-            ArrayList<String> partitionSentences = new ArrayList<String>();
-            if (endIndex < sentencesInCoNLLFormat.size())
-                partitionSentences = new ArrayList<String>(sentencesInCoNLLFormat.subList(startIndex, endIndex));
-            else
-                partitionSentences = new ArrayList<String>(sentencesInCoNLLFormat.subList(startIndex, sentencesInCoNLLFormat.size()));
-
-            partitions[i] = partitionSentences;
-            startIndex = endIndex;
-        }
-        return partitions;
-    }
-
-
-    private Object[] obtainTrainDevSentences(ArrayList<String>[] trainPartitions, int devPartIdx, String devDataPath)
-            throws IOException {
-        ArrayList<String> trainSentences = new ArrayList<String>();
-        ArrayList<String> devSentences = new ArrayList<String>();
-
-        for (int partIdx = 0; partIdx < numOfPartitions; partIdx++) {
-            if (partIdx == devPartIdx)
-                devSentences = trainPartitions[partIdx];
-            else
-                trainSentences.addAll(trainPartitions[partIdx]);
-        }
-        //write dev sentences into a file (to be compatible with previous functions)
-        BufferedWriter devWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(devDataPath)));
-        for (String sentence : devSentences)
-            devWriter.write(sentence + "\n\n");
-        devWriter.flush();
-        devWriter.close();
-
-        return new Object[]{trainSentences, devSentences};
-    }
-
-
     public static HashMap<Integer, HashMap<Integer, Integer>> getGoldArgLabelMap(Sentence sentence) {
         HashMap<Integer, HashMap<Integer, Integer>> goldArgLabelMap = new HashMap<Integer, HashMap<Integer, Integer>>();
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
@@ -174,11 +131,10 @@ public class RerankerInstanceGenerator {
         return goldArgLabelMap;
     }
 
-
     public static HashMap<Integer, Integer>[] extractRerankerFeatures4GoldAssignment(int pIdx,
-                                                                               Sentence sentence, HashMap<Integer, Integer> goldMap,
-                                                                               int numOfAIFeats, int numOfACFeats, int numOfGlobalFeatures,
-                                                                               IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap, HashMap<Object, Integer>[] rerankerFeatureMap) throws Exception {
+                                                                                     Sentence sentence, HashMap<Integer, Integer> goldMap,
+                                                                                     int numOfAIFeats, int numOfACFeats, int numOfGlobalFeatures,
+                                                                                     IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap, HashMap<Object, Integer>[] rerankerFeatureMap) throws Exception {
         HashMap<Integer, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats + numOfACFeats + numOfGlobalFeatures];
         String[] globalLabelMap = getLabelMap(globalReverseLabelMap);
 
@@ -212,6 +168,47 @@ public class RerankerInstanceGenerator {
             labelMap[labelIndex] = label;
         }
         return labelMap;
+    }
+
+    public ArrayList<String>[] getPartitions(ArrayList<String> trainSentences) throws IOException {
+        ArrayList<String>[] partitions = new ArrayList[numOfPartitions];
+        //Collections.shuffle(sentencesInCoNLLFormat);
+        int partitionSize = (int) Math.ceil((double) trainSentences.size() / numOfPartitions);
+        int startIndex = 0;
+        int endIndex = 0;
+        for (int i = 0; i < numOfPartitions; i++) {
+            endIndex = startIndex + partitionSize;
+            ArrayList<String> partitionSentences = new ArrayList<String>();
+            if (endIndex < trainSentences.size())
+                partitionSentences = new ArrayList<String>(trainSentences.subList(startIndex, endIndex));
+            else
+                partitionSentences = new ArrayList<String>(trainSentences.subList(startIndex, trainSentences.size()));
+
+            partitions[i] = partitionSentences;
+            startIndex = endIndex;
+        }
+        return partitions;
+    }
+
+    private Object[] obtainTrainDevSentences(ArrayList<String>[] trainPartitions, int devPartIdx, String devDataPath)
+            throws IOException {
+        ArrayList<String> trainSentences = new ArrayList<String>();
+        ArrayList<String> devSentences = new ArrayList<String>();
+
+        for (int partIdx = 0; partIdx < numOfPartitions; partIdx++) {
+            if (partIdx == devPartIdx)
+                devSentences = trainPartitions[partIdx];
+            else
+                trainSentences.addAll(trainPartitions[partIdx]);
+        }
+        //write dev sentences into a file (to be compatible with previous functions)
+        BufferedWriter devWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(devDataPath)));
+        for (String sentence : devSentences)
+            devWriter.write(sentence + "\n\n");
+        devWriter.flush();
+        devWriter.close();
+
+        return new Object[]{trainSentences, devSentences};
     }
 
 }

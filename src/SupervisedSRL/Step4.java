@@ -1,29 +1,31 @@
 package SupervisedSRL;
+
 import SentenceStruct.Sentence;
 import SupervisedSRL.Strcutures.*;
-
-import java.util.*;
-
 import ml.AveragedPerceptron;
-import ml.RerankerAveragedPerceptron;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  * Created by Maryam Aminian on 9/9/16.
  */
 public class Step4 {
 
-    public static void Step4(Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers,
-                             ArrayList<String>[] devPartitions, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
-                             int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures,
-                             int numOfPDFeatures, int numOfGlobalFeatures, String pdModelDir, String featureMapPath) throws Exception{
+    public static void buildRerankerFeatureMap(Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers,
+                                               ArrayList<String>[] devPartitions, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
+                                               int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures,
+                                               int numOfPDFeatures, int numOfGlobalFeatures, String partitionPrefix, String featureMapPath) throws Exception {
 
         int numOfPartitions = devPartitions.length;
         RerankerFeatureMap rerankerFeatureMap = new RerankerFeatureMap(numOfAIFeatures + numOfGlobalFeatures);
 
-        for (int devPart = 0; devPart < numOfPartitions ; devPart++){
+        for (int devPart = 0; devPart < numOfPartitions; devPart++) {
             Decoder decoder = new Decoder(trainedClassifiers[devPart].first, trainedClassifiers[devPart].second);
             String[] localClassifierLabelMap = trainedClassifiers[devPart].second.getLabelMap();
             ArrayList<String> devSentences = devPartitions[devPart];
+            String pdModelDir = partitionPrefix + devPart;
 
             for (int d = 0; d < devSentences.size(); d++) {
                 if (d % 1000 == 0)
@@ -32,7 +34,7 @@ public class Step4 {
                 Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
                 TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                         (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir,true);
+                                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, true);
 
                 for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
                     String pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();
@@ -52,12 +54,12 @@ public class Step4 {
                     }
                     //add gold instance feature to the featureMap
                     rerankerFeatureMap.updateSeenFeatures4GoldInstance(pIdx, devSentence, numOfAIFeatures, numOfACFeatures,
-                            indexMap,localClassifierLabelMap );
+                            indexMap, localClassifierLabelMap);
                 }
             }
         }
         rerankerFeatureMap.buildRerankerFeatureMap();
-        rerankerFeatureMap.save(featureMapPath);
+        ModelInfo.saveFeatureMap(rerankerFeatureMap.getFeatureMap(), featureMapPath);
     }
 
 }

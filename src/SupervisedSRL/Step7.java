@@ -5,6 +5,7 @@ import SupervisedSRL.Strcutures.IndexMap;
 import ml.AveragedPerceptron;
 import ml.RerankerAveragedPerceptron;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -12,11 +13,15 @@ import java.util.HashMap;
  */
 public class Step7 {
 
-    public static void Step7(AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier, RerankerAveragedPerceptron reranker,
-                             IndexMap indexMap, HashMap<Object, Integer>[] rerankerFeatureMap, String devData, String pdModelDir, String outputFile,
-                             int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int aiMaxBeamSize, int acMaxBeamSize)
-    throws Exception{
+    public static void decode(String aiModelPath, String acModelPath, String rerankerModelPath,
+                              IndexMap indexMap, HashMap<Object, Integer>[] rerankerFeatureMap, ArrayList<String> devSentences, String pdModelDir, String outputFile,
+                              int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int aiMaxBeamSize, int acMaxBeamSize)
+            throws Exception {
+        AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(aiModelPath);
+        AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
+        RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(rerankerModelPath);
+
         Decoder decoder = new Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
-        decoder.decode(devData, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);
+        decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);
     }
 }

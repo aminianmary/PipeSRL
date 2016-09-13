@@ -5,44 +5,46 @@ import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
-import SupervisedSRL.Strcutures.*;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.ModelInfo;
+import SupervisedSRL.Strcutures.Prediction;
+import SupervisedSRL.Strcutures.ProjectConstantPrefixes;
 import ml.AveragedPerceptron;
 import util.IO;
 
-import javax.management.BadAttributeValueExpException;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Created by Maryam Aminian on 5/23/16.
  */
 public class Train {
-    public static void train(String trainData,
-                                 String devData,
-                                 String pdModelDir, String aiModelPath, String acModelPath,
-                                 IndexMap indexMap,
-                                 int numberOfTrainingIterations,
-                                 int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                                 int aiMaxBeamSize, int acMaxBeamSize) throws Exception {
+    public static void train(ArrayList<String> trainSentencesInCONLLFormat,
+                             ArrayList<String> devSentencesInCONLLFormat,
+                             String pdModelDir, String aiModelPath, String acModelPath,
+                             IndexMap indexMap,
+                             int numberOfTrainingIterations,
+                             int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                             int aiMaxBeamSize, int acMaxBeamSize, boolean saveReverseLabelMap) throws Exception {
 
-        ArrayList<String> trainSentencesInCONLLFormat = IO.readCoNLLFile(trainData);
-        ArrayList<String> devSentencesInCONLLFormat = IO.readCoNLLFile(devData);
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
-
         //training PD module
         PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, pdModelDir, numOfPDFeatures);
         trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfTrainingIterations,
                 pdModelDir, aiModelPath, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
-        trainAC(trainSentencesInCONLLFormat, devData, argLabels, indexMap, numberOfTrainingIterations,
+        trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfTrainingIterations,
                 pdModelDir, aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                aiMaxBeamSize, acMaxBeamSize);
+                aiMaxBeamSize, acMaxBeamSize, saveReverseLabelMap);
     }
 
     public static void trainAI(List<String> trainSentencesInCONLLFormat,
-                                 List<String> devSentencesInCONLLFormat,
-                                 IndexMap indexMap, 
-                                 int numberOfTrainingIterations,
-                                 String pdModelDir, String aiModelPath, int numOfFeatures, int numOfPDFeatures, int aiMaxBeamSize)
+                               List<String> devSentencesInCONLLFormat,
+                               IndexMap indexMap,
+                               int numberOfTrainingIterations,
+                               String pdModelDir, String aiModelPath, int numOfFeatures, int numOfPDFeatures, int aiMaxBeamSize)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -65,7 +67,7 @@ public class Train {
             ap.correct = 0;
             for (String sentence : trainSentencesInCONLLFormat) {
 
-                Object[] instances = obtainTrainInstance4AI(sentence, indexMap,  numOfFeatures);
+                Object[] instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
@@ -135,12 +137,12 @@ public class Train {
         }
     }
 
-    public static void trainAC(List<String> trainSentencesInCONLLFormat,
-                                 String devData,
-                                 HashSet<String> labelSet, IndexMap indexMap, 
-                                 int numberOfTrainingIterations,
-                                 String pdModelDir, String aiModelPath, String acModelPath,int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                                 int aiMaxBeamSize, int acMaxBeamSize)
+    public static void trainAC(ArrayList<String> trainSentencesInCONLLFormat,
+                               ArrayList<String> devSentencesInCONLLFormat,
+                               HashSet<String> labelSet, IndexMap indexMap,
+                               int numberOfTrainingIterations,
+                               String pdModelDir, String aiModelPath, String acModelPath, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                               int aiMaxBeamSize, int acMaxBeamSize, boolean saveReverseLabelMap)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -158,7 +160,7 @@ public class Train {
             int dataSize = 0;
             int s = 0;
             for (String sentence : trainSentencesInCONLLFormat) {
-                Object[] instances = obtainTrainInstance4AC(sentence, indexMap,  numOfACFeatures);
+                Object[] instances = obtainTrainInstance4AC(sentence, indexMap, numOfACFeatures);
                 s++;
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
@@ -178,21 +180,23 @@ public class Train {
 
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
-            String tempOutputFile = ProjectConstantPrefixes.TMP_DIR + "AC_dev_output_"+ iter;
+            String tempOutputFile = ProjectConstantPrefixes.TMP_DIR + "AC_dev_output_" + iter;
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
-            Decoder.decode(argumentDecoder, indexMap,  devData, ap.getLabelMap(),
+            Decoder.decode(argumentDecoder, indexMap, devSentencesInCONLLFormat, ap.getLabelMap(),
                     aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                     pdModelDir, tempOutputFile);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());
 
-            double f1 = Evaluation.evaluate(tempOutputFile, devData, indexMap,  reverseLabelMap);
+            double f1 = Evaluation.evaluate(tempOutputFile, devSentencesInCONLLFormat, indexMap, reverseLabelMap);
             if (f1 > bestFScore) {
                 noImprovement = 0;
                 bestFScore = f1;
                 System.out.print("\nSaving final model...");
                 ModelInfo.saveModel(ap, acModelPath);
+                if (saveReverseLabelMap)
+                    ModelInfo.saveReverseLabelMap(reverseLabelMap, acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP);
                 System.out.println("Done!");
             } else {
                 noImprovement++;
@@ -204,7 +208,7 @@ public class Train {
         }
     }
 
-    public static Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap,  int numOfFeatures) throws Exception {
+    public static Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
         boolean decode = false;
