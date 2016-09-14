@@ -4,6 +4,7 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.PD.PredicateLexiconEntry;
+import SupervisedSRL.Pipeline;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import org.junit.Test;
@@ -65,7 +66,7 @@ public class FeatureExtractionTest {
     public void testPDFeatures() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
         int numOfPDFeatures = Pipeline.numOfPDFeatures;
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
@@ -123,7 +124,7 @@ public class FeatureExtractionTest {
         writeConllText();
         writeClusterFile();
         int aiFeatLength = Pipeline.numOfAIFeatures;
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
 
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);
@@ -249,7 +250,7 @@ public class FeatureExtractionTest {
         writeConllText();
         writeClusterFile();
         int aiFeatLength = Pipeline.numOfAIFeatures;
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
 
         List<String> textList = new ArrayList<String>();
         textList.add(conllText);

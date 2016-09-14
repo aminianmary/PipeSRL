@@ -1,16 +1,14 @@
 package SupervisedSRL;
 
 import SupervisedSRL.Reranker.Train;
+import SupervisedSRL.Strcutures.Properties;
 
 /**
  * Created by Maryam Aminian on 9/12/16.
  */
 public class Step6 {
-    public static void buildRerankerModel(int numOfPartitions, String instanceFilePrefix, int numOfTrainingIterations,
-                                          int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, String rerankerModelPath)
+    public static void buildRerankerModel(Properties properties)
             throws Exception {
-
-        Train.trainReranker(numOfPartitions, instanceFilePrefix, numOfTrainingIterations,
-                numOfAIFeatures + numOfACFeatures + numOfGlobalFeatures, rerankerModelPath);
+        Train.trainReranker(properties);
     }
 }

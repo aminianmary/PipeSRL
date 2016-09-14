@@ -6,6 +6,7 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
+import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -170,8 +171,9 @@ public class RerankerInstanceGenerator {
         return labelMap;
     }
 
-    public ArrayList<String>[] getPartitions(ArrayList<String> trainSentences) throws IOException {
+    public ArrayList<String>[] getPartitions(String trainFilePath) throws IOException {
         ArrayList<String>[] partitions = new ArrayList[numOfPartitions];
+        ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         //Collections.shuffle(sentencesInCoNLLFormat);
         int partitionSize = (int) Math.ceil((double) trainSentences.size() / numOfPartitions);
         int startIndex = 0;
@@ -190,25 +192,5 @@ public class RerankerInstanceGenerator {
         return partitions;
     }
 
-    private Object[] obtainTrainDevSentences(ArrayList<String>[] trainPartitions, int devPartIdx, String devDataPath)
-            throws IOException {
-        ArrayList<String> trainSentences = new ArrayList<String>();
-        ArrayList<String> devSentences = new ArrayList<String>();
-
-        for (int partIdx = 0; partIdx < numOfPartitions; partIdx++) {
-            if (partIdx == devPartIdx)
-                devSentences = trainPartitions[partIdx];
-            else
-                trainSentences.addAll(trainPartitions[partIdx]);
-        }
-        //write dev sentences into a file (to be compatible with previous functions)
-        BufferedWriter devWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(devDataPath)));
-        for (String sentence : devSentences)
-            devWriter.write(sentence + "\n\n");
-        devWriter.flush();
-        devWriter.close();
-
-        return new Object[]{trainSentences, devSentences};
-    }
 
 }

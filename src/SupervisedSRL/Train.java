@@ -28,16 +28,16 @@ public class Train {
                              IndexMap indexMap,
                              int numberOfTrainingIterations,
                              int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                             int aiMaxBeamSize, int acMaxBeamSize, boolean saveReverseLabelMap) throws Exception {
+                             int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData) throws Exception {
 
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         //training PD module
-        PD.train(trainSentencesInCONLLFormat, indexMap, Pipeline.numOfPDTrainingIterations, pdModelDir, numOfPDFeatures);
+        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, pdModelDir, numOfPDFeatures);
         trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfTrainingIterations,
                 pdModelDir, aiModelPath, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
         trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfTrainingIterations,
                 pdModelDir, aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                aiMaxBeamSize, acMaxBeamSize, saveReverseLabelMap);
+                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData);
     }
 
     public static void trainAI(List<String> trainSentencesInCONLLFormat,
@@ -142,7 +142,7 @@ public class Train {
                                HashSet<String> labelSet, IndexMap indexMap,
                                int numberOfTrainingIterations,
                                String pdModelDir, String aiModelPath, String acModelPath, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                               int aiMaxBeamSize, int acMaxBeamSize, boolean saveReverseLabelMap)
+                               int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -195,7 +195,7 @@ public class Train {
                 bestFScore = f1;
                 System.out.print("\nSaving final model...");
                 ModelInfo.saveModel(ap, acModelPath);
-                if (saveReverseLabelMap)
+                if (isModelBuiltOnEntireTrainData)
                     ModelInfo.saveReverseLabelMap(reverseLabelMap, acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP);
                 System.out.println("Done!");
             } else {

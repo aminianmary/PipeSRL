@@ -62,7 +62,7 @@ public class SentenceTest {
     public void testConstructor() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
         Sentence sentence = new Sentence(conllText, map);
 
         int[] depHeads = sentence.getDepHeads();
@@ -118,7 +118,7 @@ public class SentenceTest {
     public void testGetDepPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
         Sentence sentence = new Sentence(conllText, map);
         ArrayList<Integer> depPath = sentence.getDepPath(5, 12);
 
@@ -130,7 +130,7 @@ public class SentenceTest {
     public void testGetPOSPath() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
         Sentence sentence = new Sentence(conllText, map);
         ArrayList<Integer> depPath = sentence.getPOSPath(5, 12);
 

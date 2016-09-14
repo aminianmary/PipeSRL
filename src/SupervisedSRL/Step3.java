@@ -1,9 +1,8 @@
 package SupervisedSRL;
 
-import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.ModelInfo;
-import SupervisedSRL.Strcutures.Pair;
+import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
+import util.IO;
 
 import java.io.FileInputStream;
 import java.io.ObjectInput;
@@ -16,24 +15,52 @@ import java.util.zip.GZIPInputStream;
  * Created by Maryam Aminian on 9/9/16.
  */
 public class Step3 {
-    public static void buildModels(ArrayList<String> trainSentences, ArrayList<String> devSentences, String indexMapPath, String pdModelDir,
-                                   String aiModelPath, String acModelPath, int maxTrainingIters, int numOfPDFeatures,
-                                   int numOfAIFeatures, int numOfACFeatures, int aiBeamSize, int acBeamSize, boolean saveReverseLabelMap) throws Exception {
+    public static void buildModel4EntireData(Properties properties) throws Exception {
+        String indexMapPath = properties.getIndexMapFilePath();
+        String pdModelDir =properties.getPdModelDir() ;
+        String aiModelPath =properties.getAiModelPath() ;
+        String acModelPath =properties.getAcModelPath();
+        String trainFilePath = properties.getTrainFile();
+        String devFilePath =  properties.getDevFile();
+        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
+        int numOfAIFeatures= properties.getNumOfAIFeatures();
+        int numOfACFeatures= properties.getNumOfACFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        int aiBeamSize= properties.getNumOfAIBeamSize();
+        int acBeamSize= properties.getNumOfACBeamSize();
+
+        ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
+        ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
+
         IndexMap indexMap = ModelInfo.loadIndexMap(indexMapPath);
+        boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
-                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, saveReverseLabelMap);
+                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData);
     }
 
-    public static Pair<AveragedPerceptron, AveragedPerceptron> loadModels(String aiModelPath, String acModelPath) throws Exception {
-        AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(aiModelPath);
-        AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
-        return new Pair<>(aiClassifier, acClassifier);
+    public static void buildModel4Partitions(Properties properties) throws Exception {
+        String indexMapPath = properties.getIndexMapFilePath();
+        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
+        int numOfAIFeatures= properties.getNumOfAIFeatures();
+        int numOfACFeatures= properties.getNumOfACFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        int aiBeamSize= properties.getNumOfAIBeamSize();
+        int acBeamSize= properties.getNumOfACBeamSize();
+        int numOfPartitions = properties.getNumOfPartitions();
+        IndexMap indexMap = ModelInfo.loadIndexMap(indexMapPath);
+
+        for (int devPartIdx =0 ; devPartIdx < numOfPartitions ; devPartIdx++) {
+            String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
+            String aiModelPath = properties.getPartitionAIModelPath(devPartIdx);
+            String acModelPath = properties.getPartitionACModelPath(devPartIdx);
+            String trainFilePath =  properties.getPartitionTrainDataPath(devPartIdx);
+            String devFilePath = properties.getPartitionDevDataPath(devPartIdx);
+            ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
+            ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
+            boolean isModelBuiltOnEntireTrainData = false;
+            Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
+                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData);
+        }
     }
 
-    public static HashMap<String, Integer> loadReverseLabelMap(String reverseLabelMapPath) throws Exception {
-        FileInputStream fis = new FileInputStream(reverseLabelMapPath);
-        GZIPInputStream gz = new GZIPInputStream(fis);
-        ObjectInput reader = new ObjectInputStream(gz);
-        return (HashMap<String, Integer>) reader.readObject();
-    }
 }

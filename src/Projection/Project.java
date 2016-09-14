@@ -57,7 +57,7 @@ public class Project {
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDic = alignment.getSourceTargetAlignmentDic();
         HashMap<Integer, HashMap<Integer, Integer>> alignmentDicReverse = alignment.getTargetSourceAlignmentDic();
 
-        final IndexMap indexMap = new IndexMap(IO.readCoNLLFile(sourceFile), clusterFilePath);
+        final IndexMap indexMap = new IndexMap(sourceFile, clusterFilePath);
 
         ArrayList<String> sourceSents = IO.readCoNLLFile(sourceFile);
         ArrayList<String> targetSents = IO.readCoNLLFile(targetFile);

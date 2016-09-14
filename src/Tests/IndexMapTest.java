@@ -58,7 +58,7 @@ public class IndexMapTest {
     public void testMaps() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap map = new IndexMap(IO.readCoNLLFile(tmpFilePath), clusterFilePath);
+        IndexMap map = new IndexMap(tmpFilePath, clusterFilePath);
         assert map.str2int("\t") == IndexMap.unknownIdx;
         assert map.str2int(".") < 13;
         assert map.str2int("NMOD") > 12;

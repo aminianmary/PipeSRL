@@ -1,5 +1,6 @@
 package SupervisedSRL.Reranker;
 
+import SupervisedSRL.Strcutures.Properties;
 import ml.RerankerAveragedPerceptron;
 
 import java.io.EOFException;
@@ -12,17 +13,24 @@ import java.util.HashSet;
  */
 public class Train {
 
-    public static void trainReranker(int numOfParts, String rerankerInstanceFilePrefix, int numOfTrainingIterations,
-                                     int numOfRerankerFeatures, String rerankerModelPath) throws Exception {
+    public static void trainReranker(Properties properties) throws Exception {
+        int numOfPartitions = properties.getNumOfPartitions();
+        int numOfTrainingIterations = properties.getMaxNumOfTrainingIterations();
+        int numOfAIFeatures = properties.getNumOfAIFeatures();
+        int numOfACFeatures = properties.getNumOfACFeatures();
+        int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
+        String rerankerModelPath = properties.getRerankerModelPath();
+        int numOfRerankerFeatures = numOfAIFeatures + numOfACFeatures + numOfGlobalFeatures;
+
         HashSet<String> labels = new HashSet<String>();
         labels.add("1");
         RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(labels, numOfRerankerFeatures);
 
         for (int iter = 0; iter < numOfTrainingIterations; iter++) {
             System.out.println("Iteration " + iter + "\n>>>>>>>>>>>\n");
-            for (int devPart = 0; devPart < numOfParts; devPart++) {
+            for (int devPart = 0; devPart < numOfPartitions; devPart++) {
                 System.out.println("Loading/learning train instances for dev part " + devPart + "\n");
-                FileInputStream fis = new FileInputStream(rerankerInstanceFilePrefix + devPart);
+                FileInputStream fis = new FileInputStream(properties.getRerankerInstancesFilePath(devPart));
                 ObjectInputStream reader = new ObjectInputStream(fis);
 
                 while (true) {

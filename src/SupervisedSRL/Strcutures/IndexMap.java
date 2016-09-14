@@ -1,5 +1,7 @@
 package SupervisedSRL.Strcutures;
 
+import util.IO;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,13 +23,13 @@ public class IndexMap implements Serializable {
     //Note clusterMap can not be a HashMap <int, int> as some of the words in the cluster file are not seen in IndexMap
     private HashMap<String, Integer> wordClusterMap;
 
-    public IndexMap(ArrayList<String> trainSentences, String clusterFilePath) throws IOException {
+    public IndexMap(String trainFilePath, String clusterFilePath) throws IOException {
         string2intMap = new HashMap<>();
         string2intMap.put("NULL", nullIdx);
         string2intMap.put("UNK", unknownIdx);
         int index = 2;
 
-        Object[] sets = buildIndividualSets(trainSentences);
+        Object[] sets = buildIndividualSets(IO.readCoNLLFile(trainFilePath));
         HashSet<String> posTags = (HashSet<String>) sets[0];
         HashSet<String> depRels = (HashSet<String>) sets[1];
         HashSet<String> words = (HashSet<String>) sets[2];

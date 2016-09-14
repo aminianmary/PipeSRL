@@ -2,6 +2,7 @@ package Tests;
 
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 import org.junit.Test;
+import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

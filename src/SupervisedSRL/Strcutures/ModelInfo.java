@@ -124,21 +124,21 @@ public class ModelInfo implements Serializable {
         return (IndexMap) reader.readObject();
     }
 
-    public static void saveDataPartitions(ArrayList<String>[] parts, String filePath) throws IOException {
+    public static void saveDataPartition(ArrayList<String> part, String filePath) throws IOException {
         FileOutputStream fos = new FileOutputStream(filePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(parts);
+        writer.writeObject(part);
         writer.close();
     }
 
-    public static ArrayList<String>[] loadDataPartitions(String filePath) throws Exception {
+    public static ArrayList<String> loadDataPartition(String filePath) throws Exception {
         FileInputStream fis = new FileInputStream(filePath);
         GZIPInputStream gz = new GZIPInputStream(fis);
         ObjectInput reader = new ObjectInputStream(gz);
-        ArrayList<String>[] parts = (ArrayList<String>[]) reader.readObject();
+        ArrayList<String> part = (ArrayList<String>) reader.readObject();
         reader.close();
-        return parts;
+        return part ;
     }
 
     public static void saveFeatureMap(HashMap<Object, Integer>[] featureMap, String filePath) throws IOException {
@@ -170,5 +170,11 @@ public class ModelInfo implements Serializable {
 
     public HashMap<String, Integer> getLabelDict() {
         return labelDict;
+    }
+
+    public static Pair<AveragedPerceptron, AveragedPerceptron> loadTrainedModels(String aiModelPath, String acModelPath) throws Exception {
+        AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(aiModelPath);
+        AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
+        return new Pair<>(aiClassifier, acClassifier);
     }
 }

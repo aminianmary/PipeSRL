@@ -2,6 +2,7 @@ package SupervisedSRL;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
+import SupervisedSRL.Strcutures.Properties;
 
 import java.util.ArrayList;
 
@@ -11,8 +12,11 @@ import java.util.ArrayList;
  */
 public class Step1 {
 
-    public static void buildIndexMap(ArrayList<String> trainData, String clusterFilePath, String indexMapFilePath) throws Exception {
-        IndexMap indexMap = new IndexMap(trainData, clusterFilePath);
+    public static void buildIndexMap(Properties properties) throws Exception {
+        String trainFilePath = properties.getTrainFile();
+        String clusterFilePath = properties.getClusterFile();
+        String indexMapFilePath = properties.getIndexMapFilePath();
+        IndexMap indexMap = new IndexMap(trainFilePath, clusterFilePath);
         ModelInfo.saveIndexMap(indexMap, indexMapFilePath);
     }
 }
