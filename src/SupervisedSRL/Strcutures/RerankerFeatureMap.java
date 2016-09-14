@@ -12,7 +12,7 @@ import java.util.HashSet;
  * Created by monadiab on 9/9/16.
  */
 public class RerankerFeatureMap {
-    public static final String unseenSymbol = ";;??;;";
+    public static final int unseenFeatureIndex = 0;
     HashMap<Object, Integer>[] featureMap;
     HashSet<Object>[] seenFeatures;
 
@@ -22,8 +22,13 @@ public class RerankerFeatureMap {
     }
 
     public void updateSeenRerankerFeatures(Object[] features, int offset) {
-        for (int dim = 0; dim < features.length; dim++) {
-            seenFeatures[offset + dim].add(features[dim]);
+        if (features != null) {
+            for (int dim = 0; dim < features.length; dim++) {
+                if (seenFeatures[offset + dim] == null)
+                    seenFeatures[offset + dim] = new HashSet<>();
+
+                seenFeatures[offset + dim].add(features[dim]);
+            }
         }
     }
 
@@ -55,9 +60,10 @@ public class RerankerFeatureMap {
 
     public void updateSeenFeatures4GoldInstance(int pIdx, Sentence sentence,
                                                 int numOfAIFeats, int numOfACFeats,
-                                                IndexMap indexMap, String[] labelMap) throws Exception {
+                                                IndexMap indexMap, String[] labelMap, HashMap<String, Integer> globalReverseLabelMap) throws Exception {
 
-        HashMap<Integer, Integer> goldArgMap = RerankerInstanceGenerator.getGoldArgLabelMap(sentence).get(pIdx);
+        HashMap<Integer, Integer> goldArgMap = RerankerInstanceGenerator.getGoldArgLabelMap(sentence, globalReverseLabelMap).get(pIdx);
+        String[] globalLabelMap = RerankerInstanceGenerator.getLabelMap(globalReverseLabelMap);
 
         for (int wordIdx = 0; wordIdx < sentence.getWords().length; wordIdx++) {
             //for each word in the sentence
@@ -77,7 +83,7 @@ public class RerankerFeatureMap {
             acAssignment.add(goldArgMap.get(arg));
         }
         Object[] globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel, new Pair<>(1.0D, aiAssignment),
-                new Pair<>(1.0D, acAssignment), labelMap);
+                new Pair<>(1.0D, acAssignment), globalLabelMap);
         updateSeenRerankerFeatures(globalFeats, numOfAIFeats);
     }
 
@@ -89,11 +95,11 @@ public class RerankerFeatureMap {
         for (int dim = 0; dim < numOfFeatures; dim++) {
             //adding seen feature indices
             for (Object feat : seenFeatures[dim]) {
+                if (featureMap[dim] == null)
+                    featureMap[dim] = new HashMap<>();
+
                 featureMap[dim].put(feat, featureIndex++);
             }
-            //unseen feature index
-            featureMap[dim].put(unseenSymbol, featureIndex++);
-            assert !seenFeatures[dim].contains(unseenSymbol);
         }
     }
 

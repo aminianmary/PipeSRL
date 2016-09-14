@@ -2,11 +2,7 @@ package SupervisedSRL;
 
 import SentenceStruct.Sentence;
 import SupervisedSRL.Strcutures.*;
-import com.sun.java.swing.plaf.windows.WindowsTreeUI;
-import com.sun.tools.internal.ws.wsdl.document.jaxws.Exception;
-import com.sun.tools.internal.xjc.reader.RawTypeSet;
 import ml.AveragedPerceptron;
-import util.IO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +16,7 @@ public class Step4 {
     public static void buildRerankerFeatureMap(Properties properties) throws java.lang.Exception {
 
 
-        Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers = loadTrainedClassifiersOnPartitions (properties);
+        Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers = loadTrainedClassifiersOnPartitions(properties);
         IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());
         HashMap<String, Integer> globalReverseLabelMap = ModelInfo.loadReverseLabelMap(properties.getGlobalReverseLabelMapPath());
         int numOfPartitions = properties.getNumOfPartitions();
@@ -30,10 +26,10 @@ public class Step4 {
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
-        String rerankerFeatureMapFilePath  = properties.getRerankerFeatureMapPath();
+        String rerankerFeatureMapFilePath = properties.getRerankerFeatureMapPath();
 
 
-        assert globalReverseLabelMap.size()!=0;
+        assert globalReverseLabelMap.size() != 0;
         RerankerFeatureMap rerankerFeatureMap = new RerankerFeatureMap(numOfAIFeatures + numOfGlobalFeatures);
 
         for (int devPart = 0; devPart < numOfPartitions; devPart++) {
@@ -69,7 +65,7 @@ public class Step4 {
                     }
                     //add gold instance feature to the featureMap
                     rerankerFeatureMap.updateSeenFeatures4GoldInstance(pIdx, devSentence, numOfAIFeatures, numOfACFeatures,
-                            indexMap, localClassifierLabelMap);
+                            indexMap, localClassifierLabelMap, globalReverseLabelMap);
                 }
             }
         }
@@ -81,7 +77,7 @@ public class Step4 {
         int numOfPartitions = properties.getNumOfPartitions();
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = new Pair[numOfPartitions];
 
-        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++)  {
+        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             String aiModelPath4Partition = properties.getPartitionAIModelPath(devPartIdx);
             String acModelPath4Partition = properties.getPartitionACModelPath(devPartIdx);
             trainedClassifiersOnPartitions[devPartIdx] = ModelInfo.loadTrainedModels(aiModelPath4Partition, acModelPath4Partition);

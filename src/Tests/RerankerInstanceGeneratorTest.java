@@ -2,7 +2,6 @@ package Tests;
 
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 import org.junit.Test;
-import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -80,7 +79,7 @@ public class RerankerInstanceGeneratorTest {
         writeClusterFile();
         int numOfPartitions = 2;
         HashMap<String, Integer> globalReverseLabelMap = new HashMap<String, Integer>();
-        RerankerInstanceGenerator r = new RerankerInstanceGenerator(numOfPartitions, "", "", "", 0, 0, 0, 0, 0, 0, 0, 0, globalReverseLabelMap);
+        RerankerInstanceGenerator r = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainParts = r.getPartitions(tmpFilePath);
         assert trainParts[0].get(0).equals("1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
                 "2\teconomy\teconomy\teconomy\tNN\tNN\t_\t_\t4\t4\tNMOD\tNMOD\t_\t_\tA1\t_\t_\t_\n" +

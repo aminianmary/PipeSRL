@@ -3,7 +3,6 @@ import SentenceStruct.ArgumentPosition;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
-import util.IO;
 
 import java.io.*;
 import java.util.*;

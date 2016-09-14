@@ -138,7 +138,7 @@ public class ModelInfo implements Serializable {
         ObjectInput reader = new ObjectInputStream(gz);
         ArrayList<String> part = (ArrayList<String>) reader.readObject();
         reader.close();
-        return part ;
+        return part;
     }
 
     public static void saveFeatureMap(HashMap<Object, Integer>[] featureMap, String filePath) throws IOException {
@@ -156,6 +156,12 @@ public class ModelInfo implements Serializable {
         return (HashMap<Object, Integer>[]) reader.readObject();
     }
 
+    public static Pair<AveragedPerceptron, AveragedPerceptron> loadTrainedModels(String aiModelPath, String acModelPath) throws Exception {
+        AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(aiModelPath);
+        AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
+        return new Pair<>(aiClassifier, acClassifier);
+    }
+
     public AveragedPerceptron getClassifier() {
         return classifier;
     }
@@ -170,11 +176,5 @@ public class ModelInfo implements Serializable {
 
     public HashMap<String, Integer> getLabelDict() {
         return labelDict;
-    }
-
-    public static Pair<AveragedPerceptron, AveragedPerceptron> loadTrainedModels(String aiModelPath, String acModelPath) throws Exception {
-        AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(aiModelPath);
-        AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);
-        return new Pair<>(aiClassifier, acClassifier);
     }
 }

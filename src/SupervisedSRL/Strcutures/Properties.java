@@ -137,17 +137,33 @@ public class Properties {
         return outputFilePath;
     }
 
-    public String getPartitionTrainDataPath(int devPartIdx) {return  partitionPrefix + devPartIdx + ProjectConstantPrefixes.PARTITION_TRAIN_DATA;}
+    public String getPartitionTrainDataPath(int devPartIdx) {
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.PARTITION_TRAIN_DATA;
+    }
 
-    public String getPartitionDevDataPath(int devPartIdx) {return  partitionPrefix + devPartIdx + ProjectConstantPrefixes.PARTITION_DEV_DATA;}
+    public String getPartitionDevDataPath(int devPartIdx) {
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.PARTITION_DEV_DATA;
+    }
 
-    public String getPartitionPdModelDir (int devPartIdx) {return  partitionPrefix + devPartIdx;}
+    public String getPartitionDir(int devPartIdx) {
+        return partitionPrefix + devPartIdx;
+    }
 
-    public String getPartitionAIModelPath (int devPartIdx) {return  partitionPrefix + devPartIdx + ProjectConstantPrefixes.AI_MODEL;}
+    public String getPartitionPdModelDir(int devPartIdx) {
+        return partitionPrefix + devPartIdx;
+    }
 
-    public String getPartitionACModelPath (int devPartIdx) {return  partitionPrefix + devPartIdx + ProjectConstantPrefixes.AC_MODEL;}
+    public String getPartitionAIModelPath(int devPartIdx) {
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.AI_MODEL;
+    }
 
-    public String getRerankerInstancesFilePath(int devPartIdx) {return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE;}
+    public String getPartitionACModelPath(int devPartIdx) {
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.AC_MODEL;
+    }
+
+    public String getRerankerInstancesFilePath(int devPartIdx) {
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE;
+    }
 
 }
 

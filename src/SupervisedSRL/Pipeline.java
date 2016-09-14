@@ -1,28 +1,26 @@
 package SupervisedSRL;
 
-import SentenceStruct.Sentence;
-import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Properties;
-import SupervisedSRL.Strcutures.ModelInfo;
-import SupervisedSRL.Strcutures.Pair;
-import SupervisedSRL.Strcutures.ProjectConstantPrefixes;
-import ml.AveragedPerceptron;
-import util.IO;
-import util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeSet;
 
 /**
  * Created by Maryam Aminian on 9/12/16.
  */
 public class Pipeline {
 
+    //single features 25 + 3 (predicate cluster features) + 5(argument cluster features)
+    //p-p features 55
+    //a-a feature 91
+    //p-a features 154
+    //p-a-a features 91
+    //some msc tri-gram feature 6
+    //joined features based on original paper (ai) 13
+    //joined features based on original paper (ac) 15
+    //predicate cluster features 3
+    //argument cluster features 5
+
     public final static int numOfPDFeatures = 9;
-    public final static int numOfAIFeatures = 25;
-    public final static int numOfACFeatures = 25;
+    public final static int numOfAIFeatures = 25 + 3 + 5 + 13;
+    public final static int numOfACFeatures = 25 + 3 + 5 + 13;
     public final static int numOfGlobalFeatures = 1;
 
     public static void main(String[] args) {
@@ -35,10 +33,11 @@ public class Pipeline {
         int numOfAIBeamSize = Integer.parseInt(args[6]);
         int numOfACBeamSize = Integer.parseInt(args[7]);
 
-         Properties properties = new Properties(trainFile, devFile, clusterFile,modelDir, numOfPartitions,
-                 maxNumOfTrainingIterations,numOfAIBeamSize, numOfACBeamSize,
-                 numOfPDFeatures, numOfAIFeatures, numOfACFeatures,numOfGlobalFeatures);
+        Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, numOfPartitions,
+                maxNumOfTrainingIterations, numOfAIBeamSize, numOfACBeamSize,
+                numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures);
         try {
+
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);
             Step3.buildModel4EntireData(properties);
@@ -48,8 +47,9 @@ public class Pipeline {
             Step6.buildRerankerModel(properties);
             Step7.decode(properties);
             Step8.evaluate(properties);
+
         } catch (Exception e) {
-            System.out.print(e.getMessage());
+            e.printStackTrace();
         }
     }
 

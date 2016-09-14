@@ -5,7 +5,6 @@ import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Properties;
 import util.IO;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -18,7 +17,7 @@ public class Step8 {
         HashMap<String, Integer> globalReverseLabelMap = ModelInfo.loadReverseLabelMap(properties.getGlobalReverseLabelMapPath());
         String outputFile = properties.getOutputFilePath();
         IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());
-        ArrayList<String> goldSentences= IO.readCoNLLFile(properties.getDevFile());
+        ArrayList<String> goldSentences = IO.readCoNLLFile(properties.getDevFile());
         HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
         reverseLabelMap.put("0", reverseLabelMap.size());
         Evaluation.evaluate(outputFile, goldSentences, indexMap, reverseLabelMap);

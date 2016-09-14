@@ -66,6 +66,7 @@ public class Decoder {
 
     private TreeMap<Integer, Prediction> obtainRerankerPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures, Sentence testSentence, HashMap<Integer, HashMap<Integer, Integer>> goldMap, TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen) throws Exception {
         TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();
+
         for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
             RerankerPool rerankerPool = new RerankerPool();
             String pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();
@@ -73,8 +74,8 @@ public class Decoder {
 
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAiCandidates();
             ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAcCandidates();
-
             int acCandidateIndex = -1;
+
             for (int i = 0; i < aiCandidates.size(); i++) {
                 Pair<Double, ArrayList<Integer>> aiCandid = aiCandidates.get(i);
                 ArrayList<Pair<Double, ArrayList<Integer>>> acCandids4thisAiCandid = acCandidates.get(i);
@@ -87,6 +88,7 @@ public class Decoder {
                             numOfAIFeatures, numOfACFeatures, indexMap, acClasssifier.getLabelMap(), acClasssifier.getReverseLabelMap(), rerankerFeatureMap), "0"), false);
                 }
             }
+
             int bestCandidateIndex = predict(rerankerPool);
             int bestAICandidIndex = acCandidateIndexInfo.get(bestCandidateIndex).first;
             int bestACCandidIndex = acCandidateIndexInfo.get(bestCandidateIndex).second;

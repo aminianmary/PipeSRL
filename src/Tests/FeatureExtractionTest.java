@@ -8,7 +8,6 @@ import SupervisedSRL.Pipeline;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
 import org.junit.Test;
-import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

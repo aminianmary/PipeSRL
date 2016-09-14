@@ -2,7 +2,6 @@ package Tests;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import org.junit.Test;
-import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

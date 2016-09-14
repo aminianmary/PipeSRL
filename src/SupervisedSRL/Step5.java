@@ -5,7 +5,6 @@ import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 import SupervisedSRL.Reranker.RerankerInstanceItem;
 import SupervisedSRL.Reranker.RerankerPool;
 import SupervisedSRL.Strcutures.*;
-import com.sun.javafx.sg.prism.NGShape;
 import ml.AveragedPerceptron;
 
 import java.io.FileOutputStream;
@@ -21,9 +20,9 @@ import java.util.zip.GZIPOutputStream;
  */
 public class Step5 {
 
-    public static void generateRerankerInstances (Properties properties) throws Exception {
+    public static void generateRerankerInstances(Properties properties) throws Exception {
         int numOfPartitions = properties.getNumOfPartitions();
-        Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = Step4.loadTrainedClassifiersOnPartitions (properties);
+        Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = Step4.loadTrainedClassifiersOnPartitions(properties);
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainDataPartitions = rig.getPartitions(properties.getTrainFile());
         HashMap<Object, Integer>[] rerankerFeatureMap = ModelInfo.loadFeatureMap(properties.getRerankerFeatureMapPath());
@@ -47,10 +46,10 @@ public class Step5 {
         }
     }
 
-    public static void generateRerankerInstances4ThisPartition (Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
-                                                                HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
-                                                                int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                                                                int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception {
+    public static void generateRerankerInstances4ThisPartition(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
+                                                               HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
+                                                               int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                                                               int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception {
         Decoder decoder = new Decoder(trainedClassifier.first, trainedClassifier.second);
         String[] localClassifierLabelMap = trainedClassifier.second.getLabelMap();
         FileOutputStream fos = new FileOutputStream(rerankerInstancesFilePath);
@@ -61,7 +60,7 @@ public class Step5 {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentences.size());
             Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
-            HashMap<Integer, HashMap<Integer, Integer>> goldMap = RerankerInstanceGenerator.getGoldArgLabelMap(devSentence);
+            HashMap<Integer, HashMap<Integer, Integer>> goldMap = RerankerInstanceGenerator.getGoldArgLabelMap(devSentence, globalReverseLabelMap);
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
