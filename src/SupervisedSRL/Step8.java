@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Created by monadiab on 9/12/16.
+ * Created by Maryam Aminian on 9/12/16.
  */
 public class Step8 {
 
     public static void evaluate(Properties properties) throws Exception {
         if (!properties.getSteps().contains(8))
             return;
-        System.out.println("Step 8 -- Evaluation");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 8 -- Evaluation\n>>>>>>>>>>>>>\n");
         HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
         String outputFile = properties.getOutputFilePath();
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());

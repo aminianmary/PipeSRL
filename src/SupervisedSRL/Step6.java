@@ -11,7 +11,7 @@ public class Step6 {
             throws Exception {
         if (!properties.getSteps().contains(6) || !properties.useReranker())
             return;
-        System.out.println("Step 6 -- Build Reranker Model");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 6 -- Build Reranker Model\n>>>>>>>>>>>>>\n");
         Train.trainReranker(properties);
     }
 }

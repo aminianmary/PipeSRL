@@ -19,7 +19,7 @@ public class Step7 {
             throws Exception {
         if (!properties.getSteps().contains(7))
             return;
-        System.out.println("Step 7 -- Decoding");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 7 -- Decoding\n>>>>>>>>>>>>>\n");
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());

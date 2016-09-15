@@ -18,7 +18,7 @@ public class Step4 {
 
         if (!properties.getSteps().contains(4) || !properties.useReranker())
             return;
-        System.out.println("Step 4 -- Building Reranker FeatureMap");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 4 -- Building Reranker FeatureMap\n>>>>>>>>>>>>>\n");
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers = loadTrainedClassifiersOnPartitions(properties);
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
         HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());

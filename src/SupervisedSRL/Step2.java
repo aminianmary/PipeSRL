@@ -14,7 +14,7 @@ public class Step2 {
     public static void buildTrainDataPartitions(Properties properties) throws Exception {
         if (!properties.getSteps().contains(2) || !properties.useReranker())
             return;
-        System.out.println("Step 2 -- Creating Data Partitions");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 2 -- Creating Data Partitions\n>>>>>>>>>>>>>\n");
         String trainFilePath = properties.getTrainFile();
         int numOfPartitions = properties.getNumOfPartitions();
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
