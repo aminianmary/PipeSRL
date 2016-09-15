@@ -13,6 +13,7 @@ public class Step3 {
     public static void buildModel4EntireData(Properties properties) throws Exception {
         if (!properties.getSteps().contains(3))
             return;
+        System.out.println("Step 3.1 -- Building PD-AI-AC models on entire data");
         String indexMapPath = properties.getIndexMapFilePath();
         String pdModelDir = properties.getPdModelDir();
         String aiModelPath = properties.getAiModelPath();
@@ -38,6 +39,7 @@ public class Step3 {
     public static void buildModel4Partitions(Properties properties) throws Exception {
         if (!properties.getSteps().contains(3) || !properties.useReranker())
             return;
+        System.out.println("Step 3.2 -- Building PD-AI-AC models on partitions");
         String indexMapPath = properties.getIndexMapFilePath();
         int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
         int numOfAIFeatures = properties.getNumOfAIFeatures();

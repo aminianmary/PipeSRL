@@ -13,6 +13,7 @@ public class Step1 {
     public static void buildIndexMap(Properties properties) throws Exception {
         if (!properties.getSteps().contains(1))
             return;
+        System.out.println("Step 1 -- building IndexMap");
         String trainFilePath = properties.getTrainFile();
         String clusterFilePath = properties.getClusterFile();
         String indexMapFilePath = properties.getIndexMapFilePath();

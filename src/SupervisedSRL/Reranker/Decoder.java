@@ -48,6 +48,9 @@ public class Decoder {
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[testSentences.size()];
 
         for (int senIdx = 0; senIdx < testSentences.size(); senIdx++) {
+            if (senIdx%1000 ==0)
+                System.out.println(senIdx+"/"+ testSentences.size());
+
             Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(testSentences.get(senIdx)));

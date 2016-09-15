@@ -24,6 +24,7 @@ public class Step5 {
     public static void generateRerankerInstances(Properties properties) throws Exception {
         if (!properties.getSteps().contains(5) || !properties.useReranker())
             return;
+        System.out.println("Step 5 -- Generate Reranker Train Instances");
         int numOfPartitions = properties.getNumOfPartitions();
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = Step4.loadTrainedClassifiersOnPartitions(properties);
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
@@ -39,6 +40,7 @@ public class Step5 {
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
+            System.out.println("PART "+ devPartIdx);
             String pdModelDir4Partition = properties.getPartitionPdModelDir(devPartIdx);
             String rerankerInstanceFilePath = properties.getRerankerInstancesFilePath(devPartIdx);
 

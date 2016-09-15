@@ -15,17 +15,9 @@ import java.util.zip.GZIPInputStream;
  * Created by Maryam Aminian on 8/25/16.
  */
 public class Train {
-    // todo this is not efficient.
-    private static int numOfFeatures(Properties properties) throws Exception {
-        return ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getNumOfSeenFeatures();
-    }
-
     public static void trainReranker(Properties properties) throws Exception {
         int numOfPartitions = properties.getNumOfPartitions();
         int numOfTrainingIterations = properties.getMaxNumOfTrainingIterations();
-        int numOfAIFeatures = properties.getNumOfAIFeatures();
-        int numOfACFeatures = properties.getNumOfACFeatures();
-        int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
         String rerankerModelPath = properties.getRerankerModelPath();
 
         RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(numOfFeatures(properties));
@@ -51,5 +43,10 @@ public class Train {
             }
         }
         ap.saveModel(rerankerModelPath);
+    }
+
+    // todo this is not efficient.
+    private static int numOfFeatures(Properties properties) throws Exception {
+        return ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getNumOfSeenFeatures();
     }
 }

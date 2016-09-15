@@ -15,6 +15,7 @@ public class Step8 {
     public static void evaluate(Properties properties) throws Exception {
         if (!properties.getSteps().contains(8))
             return;
+        System.out.println("Step 8 -- Evaluation");
         HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
         String outputFile = properties.getOutputFilePath();
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
