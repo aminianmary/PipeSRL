@@ -27,7 +27,7 @@ public class Step5 {
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = Step4.loadTrainedClassifiersOnPartitions(properties);
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainDataPartitions = rig.getPartitions(properties.getTrainFile());
-        HashMap<Object, Integer>[] rerankerFeatureMap = ModelInfo.load(properties.getRerankerFeatureMapPath());
+        HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap)ModelInfo.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
         IndexMap indexMap = ModelInfo.load(properties.getIndexMapFilePath());
         HashMap<String, Integer> globalReverseLabelMap = ModelInfo.load(properties.getGlobalReverseLabelMapPath());
         int numOfAIBeamSize = properties.getNumOfAIBeamSize();

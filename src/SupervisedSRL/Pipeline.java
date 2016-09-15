@@ -39,17 +39,24 @@ public class Pipeline {
                 maxNumOfTrainingIterations, numOfAIBeamSize, numOfACBeamSize,
                 numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, reranker, steps);
         try {
-
+            System.out.println("Step 1");
             Step1.buildIndexMap(properties);
+            System.out.println("Step 2");
             Step2.buildTrainDataPartitions(properties);
+            System.out.println("Step 3 -- entire data");
             Step3.buildModel4EntireData(properties);
+            System.out.println("Step 3 -- partition");
             Step3.buildModel4Partitions(properties);
+            System.out.println("Step 4");
             Step4.buildRerankerFeatureMap(properties);
+            System.out.println("Step 5");
             Step5.generateRerankerInstances(properties);
+            System.out.println("Step 6");
             Step6.buildRerankerModel(properties);
+            System.out.println("Step 7");
             Step7.decode(properties);
+            System.out.println("Step 8");
             Step8.evaluate(properties);
-
         } catch (Exception e) {
             e.printStackTrace();
         }

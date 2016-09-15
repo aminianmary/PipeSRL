@@ -71,7 +71,7 @@ public class Step4 {
             }
         }
         rerankerFeatureMap.buildRerankerFeatureMap();
-        ModelInfo.write(rerankerFeatureMap.getFeatureMap(), rerankerFeatureMapFilePath);
+        ModelInfo.write(rerankerFeatureMap, rerankerFeatureMapFilePath);
     }
 
     public static Pair<AveragedPerceptron, AveragedPerceptron>[] loadTrainedClassifiersOnPartitions(Properties properties) throws java.lang.Exception {

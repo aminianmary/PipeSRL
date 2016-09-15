@@ -3,6 +3,7 @@ package SupervisedSRL;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Properties;
+import SupervisedSRL.Strcutures.RerankerFeatureMap;
 import ml.AveragedPerceptron;
 import ml.RerankerAveragedPerceptron;
 import util.IO;
@@ -32,7 +33,7 @@ public class Step7 {
         String outputFile = properties.getOutputFilePath();
 
         if (properties.useReranker()) {
-            HashMap<Object, Integer>[] rerankerFeatureMap = ModelInfo.load(properties.getRerankerFeatureMapPath());
+            HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap)ModelInfo.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
             RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
             decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);

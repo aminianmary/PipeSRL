@@ -219,5 +219,4 @@ public class AveragedPerceptron implements Serializable {
         }
         return new AveragedPerceptron(newAvgMap, labelMap, reverseLabelMap);
     }
-
 }

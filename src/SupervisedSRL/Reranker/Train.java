@@ -1,6 +1,8 @@
 package SupervisedSRL.Reranker;
 
+import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Properties;
+import SupervisedSRL.Strcutures.RerankerFeatureMap;
 import ml.RerankerAveragedPerceptron;
 
 import java.io.EOFException;
@@ -14,6 +16,10 @@ import java.util.zip.GZIPInputStream;
  * Created by Maryam Aminian on 8/25/16.
  */
 public class Train {
+    // todo this is not efficient.
+    private static int numOfFeatures(Properties properties) throws Exception {
+        return ((RerankerFeatureMap) ModelInfo.load(properties.getRerankerFeatureMapPath())).getNumOfSeenFeatures();
+    }
 
     public static void trainReranker(Properties properties) throws Exception {
         int numOfPartitions = properties.getNumOfPartitions();
@@ -22,11 +28,8 @@ public class Train {
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
         String rerankerModelPath = properties.getRerankerModelPath();
-        int numOfRerankerFeatures = numOfAIFeatures + numOfACFeatures + numOfGlobalFeatures;
 
-        HashSet<String> labels = new HashSet<String>();
-        labels.add("1");
-        RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(labels, numOfRerankerFeatures);
+        RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(numOfFeatures(properties));
 
         for (int iter = 0; iter < numOfTrainingIterations; iter++) {
             System.out.println("Iteration " + iter + "\n>>>>>>>>>>>\n");

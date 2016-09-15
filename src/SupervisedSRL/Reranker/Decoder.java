@@ -36,7 +36,7 @@ public class Decoder {
         this.pdModelDir = pdModelDir;
     }
 
-    private int predict(RerankerPool pool) {
+    private int predict(RerankerPool pool) throws Exception {
         return reranker.argmax(pool, true);
     }
 

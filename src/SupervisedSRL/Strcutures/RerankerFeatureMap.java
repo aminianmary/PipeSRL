@@ -4,6 +4,7 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,10 +12,11 @@ import java.util.HashSet;
 /**
  * Created by monadiab on 9/9/16.
  */
-public class RerankerFeatureMap {
+public class RerankerFeatureMap implements Serializable {
     public static final int unseenFeatureIndex = 0;
     HashMap<Object, Integer>[] featureMap;
     HashSet<Object>[] seenFeatures;
+    private int numOfSeenFeatures;
 
     public RerankerFeatureMap(int numOfFeatures) {
         this.featureMap = new HashMap[numOfFeatures];
@@ -100,10 +102,15 @@ public class RerankerFeatureMap {
                 featureMap[dim].put(feat, featureIndex++);
             }
         }
-    }
 
+        this.numOfSeenFeatures = featureIndex;
+    }
 
     public HashMap<Object, Integer>[] getFeatureMap() {
         return featureMap;
+    }
+
+    public int getNumOfSeenFeatures() {
+        return numOfSeenFeatures;
     }
 }
