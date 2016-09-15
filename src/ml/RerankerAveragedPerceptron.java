@@ -2,13 +2,13 @@ package ml;
 
 import SupervisedSRL.Reranker.RerankerInstanceItem;
 import SupervisedSRL.Reranker.RerankerPool;
-import SupervisedSRL.Strcutures.CompactArray;
-import SupervisedSRL.Strcutures.ModelInfo;
+import util.IO;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -35,7 +35,7 @@ public class RerankerAveragedPerceptron implements Serializable {
     }
 
     public static RerankerAveragedPerceptron loadModel(String filePath) throws Exception {
-        double[] newAvgWeight = ModelInfo.load(filePath);
+        double[] newAvgWeight = IO.load(filePath);
         return new RerankerAveragedPerceptron(newAvgWeight);
     }
 
@@ -51,7 +51,7 @@ public class RerankerAveragedPerceptron implements Serializable {
         return iteration;
     }
 
-    public void learnInstance(RerankerPool pool) throws Exception{
+    public void learnInstance(RerankerPool pool) throws Exception {
         int argmax = argmax(pool, false);
 
         if (argmax != pool.getGoldIndex()) {
@@ -68,15 +68,15 @@ public class RerankerAveragedPerceptron implements Serializable {
             // increase the weight for gold
             if (goldFeats[i] != null) {
                 for (int goldFeat : goldFeats[i].keySet()) {
-                    weights[goldFeat] +=  goldFeats[i].get(goldFeat);
-                    avgWeights[goldFeat]+= iteration * goldFeats[i].get(goldFeat);
+                    weights[goldFeat] += goldFeats[i].get(goldFeat);
+                    avgWeights[goldFeat] += iteration * goldFeats[i].get(goldFeat);
                 }
             }
 
             // decrease the weight for argmax
             if (argmaxFeats[i] != null) {
                 for (Integer argmaxFeat : argmaxFeats[i].keySet()) {
-                    weights[argmaxFeat] -=  argmaxFeats[i].get(argmaxFeat);
+                    weights[argmaxFeat] -= argmaxFeats[i].get(argmaxFeat);
                     avgWeights[argmaxFeat] -= iteration * argmaxFeats[i].get(argmaxFeat);
                 }
             }
@@ -106,8 +106,8 @@ public class RerankerAveragedPerceptron implements Serializable {
             //todo check if it is correct
             if (features[i] != null) {
                 for (Integer feat : features[i].keySet()) {
-                    if(feat == null) continue;
-                    if (feat >= map.length)  throw new Exception("Unknown feature!");
+                    if (feat == null) continue;
+                    if (feat >= map.length) throw new Exception("Unknown feature!");
                     score += map[feat] * features[i].get(feat);
                 }
             }

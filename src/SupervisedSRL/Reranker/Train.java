@@ -1,15 +1,14 @@
 package SupervisedSRL.Reranker;
 
-import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Properties;
 import SupervisedSRL.Strcutures.RerankerFeatureMap;
 import ml.RerankerAveragedPerceptron;
+import util.IO;
 
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.util.HashSet;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -18,7 +17,7 @@ import java.util.zip.GZIPInputStream;
 public class Train {
     // todo this is not efficient.
     private static int numOfFeatures(Properties properties) throws Exception {
-        return ((RerankerFeatureMap) ModelInfo.load(properties.getRerankerFeatureMapPath())).getNumOfSeenFeatures();
+        return ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getNumOfSeenFeatures();
     }
 
     public static void trainReranker(Properties properties) throws Exception {

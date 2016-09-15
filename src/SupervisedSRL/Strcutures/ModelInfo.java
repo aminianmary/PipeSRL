@@ -101,21 +101,6 @@ public class ModelInfo implements Serializable {
         writer.close();
     }
 
-    public static <T> void write(T o, String filePath) throws IOException {
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(o);
-        writer.close();
-    }
-
-    public static <T> T load(String filePath) throws Exception {
-        FileInputStream fis = new FileInputStream(filePath);
-        GZIPInputStream gz = new GZIPInputStream(fis);
-        ObjectInput reader = new ObjectInputStream(gz);
-        return (T) reader.readObject();
-    }
-
     public static Pair<AveragedPerceptron, AveragedPerceptron> loadTrainedModels(String aiModelPath, String acModelPath) throws Exception {
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(aiModelPath);
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(acModelPath);

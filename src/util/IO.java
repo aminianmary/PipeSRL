@@ -4,6 +4,8 @@ import SupervisedSRL.Strcutures.Prediction;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by monadiab on 4/12/16.
@@ -56,6 +58,20 @@ public class IO {
         return sentences;
     }
 
+    public static <T> void write(T o, String filePath) throws IOException {
+        FileOutputStream fos = new FileOutputStream(filePath);
+        GZIPOutputStream gz = new GZIPOutputStream(fos);
+        ObjectOutput writer = new ObjectOutputStream(gz);
+        writer.writeObject(o);
+        writer.close();
+    }
+
+    public static <T> T load(String filePath) throws Exception {
+        FileInputStream fis = new FileInputStream(filePath);
+        GZIPInputStream gz = new GZIPInputStream(fis);
+        ObjectInput reader = new ObjectInputStream(gz);
+        return (T) reader.readObject();
+    }
 
     public static ArrayList<String> readPlainFile(String plainFile) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(plainFile)));

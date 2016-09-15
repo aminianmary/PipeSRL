@@ -1,8 +1,8 @@
 package SupervisedSRL;
 
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Properties;
+import util.IO;
 
 /**
  * Created by Maryam Aminian on 9/9/16.
@@ -17,6 +17,6 @@ public class Step1 {
         String clusterFilePath = properties.getClusterFile();
         String indexMapFilePath = properties.getIndexMapFilePath();
         IndexMap indexMap = new IndexMap(trainFilePath, clusterFilePath);
-        ModelInfo.write(indexMap, indexMapFilePath);
+        IO.write(indexMap, indexMapFilePath);
     }
 }

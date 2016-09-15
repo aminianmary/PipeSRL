@@ -6,6 +6,7 @@ import SupervisedSRL.Reranker.RerankerInstanceItem;
 import SupervisedSRL.Reranker.RerankerPool;
 import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
+import util.IO;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutput;
@@ -27,9 +28,9 @@ public class Step5 {
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = Step4.loadTrainedClassifiersOnPartitions(properties);
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainDataPartitions = rig.getPartitions(properties.getTrainFile());
-        HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap)ModelInfo.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
-        IndexMap indexMap = ModelInfo.load(properties.getIndexMapFilePath());
-        HashMap<String, Integer> globalReverseLabelMap = ModelInfo.load(properties.getGlobalReverseLabelMapPath());
+        HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
+        IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
+        HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
         int numOfAIBeamSize = properties.getNumOfAIBeamSize();
         int numOfACBeamSize = properties.getNumOfACBeamSize();
         int numOfAIFeatures = properties.getNumOfAIFeatures();

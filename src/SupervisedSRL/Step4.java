@@ -3,6 +3,7 @@ package SupervisedSRL;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
+import util.IO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,8 +19,8 @@ public class Step4 {
         if (!properties.getSteps().contains(4) || !properties.useReranker())
             return;
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers = loadTrainedClassifiersOnPartitions(properties);
-        IndexMap indexMap = ModelInfo.load(properties.getIndexMapFilePath());
-        HashMap<String, Integer> globalReverseLabelMap = ModelInfo.load(properties.getGlobalReverseLabelMapPath());
+        IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
+        HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
         int numOfPartitions = properties.getNumOfPartitions();
         int aiBeamSize = properties.getNumOfAIBeamSize();
         int acBeamSize = properties.getNumOfACBeamSize();
@@ -36,7 +37,7 @@ public class Step4 {
         for (int devPart = 0; devPart < numOfPartitions; devPart++) {
             Decoder decoder = new Decoder(trainedClassifiers[devPart].first, trainedClassifiers[devPart].second);
             String[] localClassifierLabelMap = trainedClassifiers[devPart].second.getLabelMap();
-            ArrayList<String> devSentences = ModelInfo.load(properties.getPartitionDevDataPath(devPart));
+            ArrayList<String> devSentences = IO.load(properties.getPartitionDevDataPath(devPart));
             String pdModelDir = properties.getPartitionPdModelDir(devPart);
 
             for (int d = 0; d < devSentences.size(); d++) {
@@ -71,7 +72,7 @@ public class Step4 {
             }
         }
         rerankerFeatureMap.buildRerankerFeatureMap();
-        ModelInfo.write(rerankerFeatureMap, rerankerFeatureMapFilePath);
+        IO.write(rerankerFeatureMap, rerankerFeatureMapFilePath);
     }
 
     public static Pair<AveragedPerceptron, AveragedPerceptron>[] loadTrainedClassifiersOnPartitions(Properties properties) throws java.lang.Exception {
