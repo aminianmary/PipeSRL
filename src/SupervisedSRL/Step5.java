@@ -21,6 +21,8 @@ import java.util.zip.GZIPOutputStream;
 public class Step5 {
 
     public static void generateRerankerInstances(Properties properties) throws Exception {
+        if (!properties.useReranker())
+            return;
         int numOfPartitions = properties.getNumOfPartitions();
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = Step4.loadTrainedClassifiersOnPartitions(properties);
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);

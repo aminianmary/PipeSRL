@@ -15,7 +15,8 @@ public class Step4 {
 
     public static void buildRerankerFeatureMap(Properties properties) throws java.lang.Exception {
 
-
+        if (!properties.useReranker())
+            return;
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers = loadTrainedClassifiersOnPartitions(properties);
         IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());
         HashMap<String, Integer> globalReverseLabelMap = ModelInfo.loadReverseLabelMap(properties.getGlobalReverseLabelMapPath());

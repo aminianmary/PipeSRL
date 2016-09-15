@@ -26,10 +26,11 @@ public class Properties {
     private String globalReverseLabelMapPath;
     private String rerankerModelPath;
     private String outputFilePath;
+    private boolean useReranker;
 
     public Properties(String trainFile, String devFile, String clusterFile, String modelDir,
                       int numOfPartitions, int maxNumOfTrainingIterations, int numOfAIBeamSize, int numOfACBeamSize,
-                      int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures) {
+                      int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, boolean useReranker) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -51,6 +52,7 @@ public class Properties {
         this.globalReverseLabelMapPath = acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP;
         this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL;
         this.outputFilePath = modelDir + ProjectConstantPrefixes.OUTPUT_FILE;
+        this.useReranker = useReranker;
     }
 
     public int getNumOfGlobalFeatures() {
@@ -164,6 +166,8 @@ public class Properties {
     public String getRerankerInstancesFilePath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE;
     }
+
+    public boolean useReranker () {return useReranker;}
 
 }
 

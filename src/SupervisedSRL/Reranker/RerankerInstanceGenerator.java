@@ -78,7 +78,7 @@ public class RerankerInstanceGenerator {
                 featureIndex = rerankerFeatureMap[i].get(feats[i]);
 
             if (featureIndex != RerankerFeatureMap.unseenFeatureIndex) {
-                if (!rerankerFeatureVector[offset + i].containsKey(feats[i]))
+                if (!rerankerFeatureVector[offset + i].containsKey(featureIndex))
                     rerankerFeatureVector[offset + i].put(featureIndex, 1);
                 else {
                     int oldFrequency = rerankerFeatureVector[offset + i].get(featureIndex);

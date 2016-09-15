@@ -38,10 +38,10 @@ public class Decoder {
     ////////////////////////////////// DECODE ////////////////////////////////////////////////////////
 
     //stacked decoding
-    public static void decode(Decoder decoder, IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat, String[] labelMap,
+    public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
                               int aiMaxBeamSize, int acMaxBeamSize,
                               int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                              String modelDir, String outputFile) throws Exception {
+                              String pdModelDir, String outputFile) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -58,12 +58,12 @@ public class Decoder {
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap);
 
-            predictions[d] = (TreeMap<Integer, Prediction>) decoder.predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, false);
+            predictions[d] = (TreeMap<Integer, Prediction>) predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
+                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, false);
 
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
         }
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, labelMap, outputFile);
+        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClassifier.getLabelMap(), outputFile);
         long endTime = System.currentTimeMillis();
         System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
     }
@@ -120,7 +120,7 @@ public class Decoder {
 
     ////////////////////////////////// GET BEST CANDIDATES ///////////////////////////////////////////////
 
-    private ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
+    public ArrayList<Pair<Double, ArrayList<Integer>>> getBestAICandidates
             (Sentence sentence, int pIdx, IndexMap indexMap, int maxBeamSize, int numOfFeatures) throws Exception {
         ArrayList<Pair<Double, ArrayList<Integer>>> currentBeam = new ArrayList<Pair<Double, ArrayList<Integer>>>();
         currentBeam.add(new Pair<Double, ArrayList<Integer>>(0., new ArrayList<Integer>()));

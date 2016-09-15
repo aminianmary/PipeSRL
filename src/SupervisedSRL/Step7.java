@@ -1,11 +1,10 @@
 package SupervisedSRL;
-
-import SupervisedSRL.Reranker.Decoder;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Properties;
 import ml.AveragedPerceptron;
 import ml.RerankerAveragedPerceptron;
+import se.lth.cs.srl.pipeline.Reranker;
 import util.IO;
 
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ public class Step7 {
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
         IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());
-        HashMap<Object, Integer>[] rerankerFeatureMap = ModelInfo.loadFeatureMap(properties.getRerankerFeatureMapPath());
         String pdModelDir = properties.getPdModelDir();
         ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
         int numOfPDFeatures = properties.getNumOfPDFeatures();
@@ -31,8 +29,15 @@ public class Step7 {
         int acMaxBeamSize = properties.getNumOfACBeamSize();
         String outputFile = properties.getOutputFilePath();
 
-        RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
-        Decoder decoder = new Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
-        decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);
+        if (properties.useReranker()){
+            HashMap<Object, Integer>[] rerankerFeatureMap = ModelInfo.loadFeatureMap(properties.getRerankerFeatureMapPath());
+            RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
+            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
+            decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);
+        }else
+        {
+            SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(aiClassifier, acClassifier);
+            decoder.decode(indexMap,devSentences,aiMaxBeamSize, acMaxBeamSize,numOfAIFeatures, numOfACFeatures,numOfPDFeatures,pdModelDir,outputFile);
+        }
     }
 }

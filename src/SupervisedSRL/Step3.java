@@ -35,6 +35,8 @@ public class Step3 {
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
+        if (!properties.useReranker())
+            return;
         String indexMapPath = properties.getIndexMapFilePath();
         int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
         int numOfAIFeatures = properties.getNumOfAIFeatures();

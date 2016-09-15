@@ -12,6 +12,8 @@ import java.util.ArrayList;
  */
 public class Step2 {
     public static void buildTrainDataPartitions(Properties properties) throws Exception {
+        if (!properties.useReranker())
+            return;
         String trainFilePath = properties.getTrainFile();
         int numOfPartitions = properties.getNumOfPartitions();
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);

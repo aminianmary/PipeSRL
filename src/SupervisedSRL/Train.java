@@ -182,7 +182,7 @@ public class Train {
             //instead of loading model from file, we just calculate the average weights
             String tempOutputFile = ProjectConstantPrefixes.TMP_DIR + "AC_dev_output_" + iter;
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
-            Decoder.decode(argumentDecoder, indexMap, devSentencesInCONLLFormat, ap.getLabelMap(),
+            argumentDecoder.decode(indexMap, devSentencesInCONLLFormat,
                     aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                     pdModelDir, tempOutputFile);
 
