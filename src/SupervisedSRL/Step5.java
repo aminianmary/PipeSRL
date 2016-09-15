@@ -59,7 +59,7 @@ public class Step5 {
         String[] localClassifierLabelMap = trainedClassifier.second.getLabelMap();
         FileOutputStream fos = new FileOutputStream(rerankerInstancesFilePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
+        ObjectOutputStream writer = new ObjectOutputStream(gz);
 
         for (int d = 0; d < devSentences.size(); d++) {
             if (d % 1000 == 0)
@@ -95,6 +95,7 @@ public class Step5 {
                         numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, globalReverseLabelMap, rerankerFeatureMap), "1"), true);
                 writer.writeObject(rerankerPool);
                 writer.flush();
+                writer.reset();
             }
         }
         writer.close();
