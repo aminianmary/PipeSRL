@@ -26,7 +26,6 @@ public class RerankerFeatureMap {
             for (int dim = 0; dim < features.length; dim++) {
                 if (seenFeatures[offset + dim] == null)
                     seenFeatures[offset + dim] = new HashSet<>();
-
                 seenFeatures[offset + dim].add(features[dim]);
             }
         }
@@ -107,5 +106,4 @@ public class RerankerFeatureMap {
     public HashMap<Object, Integer>[] getFeatureMap() {
         return featureMap;
     }
-
 }

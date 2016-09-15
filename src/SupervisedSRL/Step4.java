@@ -18,8 +18,8 @@ public class Step4 {
         if (!properties.getSteps().contains(4) || !properties.useReranker())
             return;
         Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers = loadTrainedClassifiersOnPartitions(properties);
-        IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());
-        HashMap<String, Integer> globalReverseLabelMap = ModelInfo.loadReverseLabelMap(properties.getGlobalReverseLabelMapPath());
+        IndexMap indexMap = ModelInfo.load(properties.getIndexMapFilePath());
+        HashMap<String, Integer> globalReverseLabelMap = ModelInfo.load(properties.getGlobalReverseLabelMapPath());
         int numOfPartitions = properties.getNumOfPartitions();
         int aiBeamSize = properties.getNumOfAIBeamSize();
         int acBeamSize = properties.getNumOfACBeamSize();
@@ -36,7 +36,7 @@ public class Step4 {
         for (int devPart = 0; devPart < numOfPartitions; devPart++) {
             Decoder decoder = new Decoder(trainedClassifiers[devPart].first, trainedClassifiers[devPart].second);
             String[] localClassifierLabelMap = trainedClassifiers[devPart].second.getLabelMap();
-            ArrayList<String> devSentences = ModelInfo.loadDataPartition(properties.getPartitionDevDataPath(devPart));
+            ArrayList<String> devSentences = ModelInfo.load(properties.getPartitionDevDataPath(devPart));
             String pdModelDir = properties.getPartitionPdModelDir(devPart);
 
             for (int d = 0; d < devSentences.size(); d++) {
@@ -71,7 +71,7 @@ public class Step4 {
             }
         }
         rerankerFeatureMap.buildRerankerFeatureMap();
-        ModelInfo.saveFeatureMap(rerankerFeatureMap.getFeatureMap(), rerankerFeatureMapFilePath);
+        ModelInfo.write(rerankerFeatureMap.getFeatureMap(), rerankerFeatureMapFilePath);
     }
 
     public static Pair<AveragedPerceptron, AveragedPerceptron>[] loadTrainedClassifiersOnPartitions(Properties properties) throws java.lang.Exception {

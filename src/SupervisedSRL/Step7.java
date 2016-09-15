@@ -21,7 +21,7 @@ public class Step7 {
             return;
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
-        IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());
+        IndexMap indexMap = ModelInfo.load(properties.getIndexMapFilePath());
         String pdModelDir = properties.getPdModelDir();
         ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
         int numOfPDFeatures = properties.getNumOfPDFeatures();
@@ -32,7 +32,7 @@ public class Step7 {
         String outputFile = properties.getOutputFilePath();
 
         if (properties.useReranker()){
-            HashMap<Object, Integer>[] rerankerFeatureMap = ModelInfo.loadFeatureMap(properties.getRerankerFeatureMapPath());
+            HashMap<Object, Integer>[] rerankerFeatureMap = ModelInfo.load(properties.getRerankerFeatureMapPath());
             RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
             decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);

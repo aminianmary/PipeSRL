@@ -17,6 +17,6 @@ public class Step1 {
         String clusterFilePath = properties.getClusterFile();
         String indexMapFilePath = properties.getIndexMapFilePath();
         IndexMap indexMap = new IndexMap(trainFilePath, clusterFilePath);
-        ModelInfo.saveIndexMap(indexMap, indexMapFilePath);
+        ModelInfo.write(indexMap, indexMapFilePath);
     }
 }

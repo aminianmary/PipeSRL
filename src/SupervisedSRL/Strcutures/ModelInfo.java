@@ -93,37 +93,6 @@ public class ModelInfo implements Serializable {
         writer.close();
     }
 
-
-    public static void saveReverseLabelMap(HashMap<String, Integer> reverseLabelMap, String filePath) throws Exception {
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(reverseLabelMap);
-        writer.close();
-    }
-
-    public static HashMap<String, Integer> loadReverseLabelMap(String filePath) throws Exception {
-        FileInputStream fis = new FileInputStream(filePath);
-        GZIPInputStream gz = new GZIPInputStream(fis);
-        ObjectInput reader = new ObjectInputStream(gz);
-        return (HashMap<String, Integer>) reader.readObject();
-    }
-
-    public static void saveIndexMap(IndexMap indexMap, String filePath) throws IOException {
-        FileOutputStream fos = new FileOutputStream(filePath);
-        GZIPOutputStream gz = new GZIPOutputStream(fos);
-        ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(indexMap);
-        writer.close();
-    }
-
-    public static IndexMap loadIndexMap(String filePath) throws Exception {
-        FileInputStream fis = new FileInputStream(filePath);
-        GZIPInputStream gz = new GZIPInputStream(fis);
-        ObjectInput reader = new ObjectInputStream(gz);
-        return (IndexMap) reader.readObject();
-    }
-
     public static void saveDataPartition(ArrayList<String> part, String filePath) throws IOException {
         FileOutputStream fos = new FileOutputStream(filePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
@@ -132,28 +101,19 @@ public class ModelInfo implements Serializable {
         writer.close();
     }
 
-    public static ArrayList<String> loadDataPartition(String filePath) throws Exception {
-        FileInputStream fis = new FileInputStream(filePath);
-        GZIPInputStream gz = new GZIPInputStream(fis);
-        ObjectInput reader = new ObjectInputStream(gz);
-        ArrayList<String> part = (ArrayList<String>) reader.readObject();
-        reader.close();
-        return part;
-    }
-
-    public static void saveFeatureMap(HashMap<Object, Integer>[] featureMap, String filePath) throws IOException {
+    public static <T> void write(T o, String filePath) throws  IOException{
         FileOutputStream fos = new FileOutputStream(filePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
-        writer.writeObject(featureMap);
+        writer.writeObject(o);
         writer.close();
     }
 
-    public static HashMap<Object, Integer>[] loadFeatureMap(String filePath) throws Exception {
+    public static <T> T load(String filePath) throws  Exception {
         FileInputStream fis = new FileInputStream(filePath);
         GZIPInputStream gz = new GZIPInputStream(fis);
         ObjectInput reader = new ObjectInputStream(gz);
-        return (HashMap<Object, Integer>[]) reader.readObject();
+        return (T) reader.readObject();
     }
 
     public static Pair<AveragedPerceptron, AveragedPerceptron> loadTrainedModels(String aiModelPath, String acModelPath) throws Exception {
@@ -162,19 +122,7 @@ public class ModelInfo implements Serializable {
         return new Pair<>(aiClassifier, acClassifier);
     }
 
-    public AveragedPerceptron getClassifier() {
-        return classifier;
-    }
-
     public IndexMap getIndexMap() {
         return indexMap;
-    }
-
-    public HashMap<Object, Integer>[] getFeatDict() {
-        return featDict;
-    }
-
-    public HashMap<String, Integer> getLabelDict() {
-        return labelDict;
     }
 }

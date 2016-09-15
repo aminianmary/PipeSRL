@@ -196,7 +196,7 @@ public class Train {
                 System.out.print("\nSaving final model...");
                 ModelInfo.saveModel(ap, acModelPath);
                 if (isModelBuiltOnEntireTrainData)
-                    ModelInfo.saveReverseLabelMap(ap.getReverseLabelMap(), acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP);
+                    ModelInfo.write(ap.getReverseLabelMap(), acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP);
                 System.out.println("Done!");
             } else {
                 noImprovement++;

@@ -30,7 +30,7 @@ public class Step3 {
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
 
-        IndexMap indexMap = ModelInfo.loadIndexMap(indexMapPath);
+        IndexMap indexMap = ModelInfo.load(indexMapPath);
         boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
                 numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData);
@@ -47,7 +47,7 @@ public class Step3 {
         int aiBeamSize = properties.getNumOfAIBeamSize();
         int acBeamSize = properties.getNumOfACBeamSize();
         int numOfPartitions = properties.getNumOfPartitions();
-        IndexMap indexMap = ModelInfo.loadIndexMap(indexMapPath);
+        IndexMap indexMap = ModelInfo.load(indexMapPath);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
@@ -55,8 +55,8 @@ public class Step3 {
             String acModelPath = properties.getPartitionACModelPath(devPartIdx);
             String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
             String devFilePath = properties.getPartitionDevDataPath(devPartIdx);
-            ArrayList<String> trainSentences = ModelInfo.loadDataPartition(trainFilePath);
-            ArrayList<String> devSentences = ModelInfo.loadDataPartition(devFilePath);
+            ArrayList<String> trainSentences = ModelInfo.load(trainFilePath);
+            ArrayList<String> devSentences = ModelInfo.load(devFilePath);
             boolean isModelBuiltOnEntireTrainData = false;
             Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData);
