@@ -19,7 +19,6 @@ import java.util.HashMap;
 public class RerankerInstanceGenerator {
     int numOfPartitions;
 
-
     public RerankerInstanceGenerator(int numOfPartitions) {
         this.numOfPartitions = numOfPartitions;
     }
@@ -63,9 +62,10 @@ public class RerankerInstanceGenerator {
         return rerankerFeatureVector;
     }
 
-
-    public static void addToRerankerFeats(HashMap<Integer, Integer>[] rerankerFeatureVector, Object[] feats, int offset,
-                                          HashMap<Object, Integer>[] rerankerFeatureMap, boolean isGlobalFeatures, int numOfAIFeatures) {
+    // todo write test for this!
+    private static void addToRerankerFeats(HashMap<Integer, Integer>[] rerankerFeatureVector, Object[] feats, int offset,
+                                           HashMap<Object, Integer>[] rerankerFeatureMap, boolean isGlobalFeatures,
+                                           int numOfAIFeatures) {
         if (feats == null) return;
         for (int i = 0; i < feats.length; i++) {
             if (rerankerFeatureVector[offset + i] == null)
@@ -103,9 +103,16 @@ public class RerankerInstanceGenerator {
     }
 
     public static HashMap<Integer, Integer>[] extractRerankerFeatures4GoldAssignment(int pIdx,
-                                                                                     Sentence sentence, HashMap<Integer, Integer> goldMap,
-                                                                                     int numOfAIFeats, int numOfACFeats, int numOfGlobalFeatures,
-                                                                                     IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap, HashMap<Object, Integer>[] rerankerFeatureMap) throws Exception {
+                                                                                     Sentence sentence,
+                                                                                     HashMap<Integer, Integer> goldMap,
+                                                                                     int numOfAIFeats, int numOfACFeats,
+                                                                                     int numOfGlobalFeatures,
+                                                                                     IndexMap indexMap,
+                                                                                     HashMap<String, Integer>
+                                                                                             globalReverseLabelMap,
+                                                                                     HashMap<Object, Integer>[]
+                                                                                             rerankerFeatureMap)
+            throws Exception {
         HashMap<Integer, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats + numOfACFeats + numOfGlobalFeatures];
         String[] globalLabelMap = getLabelMap(globalReverseLabelMap);
 
@@ -120,14 +127,14 @@ public class RerankerInstanceGenerator {
             addToRerankerFeats(rerankerFeatureVector, acFeats, numOfAIFeats, rerankerFeatureMap, false, numOfAIFeats);
         }
         String pLabel = sentence.getPredicatesInfo().get(pIdx);
-        ArrayList<Integer> aiAssignment = new ArrayList<Integer>();
-        ArrayList<Integer> acAssignment = new ArrayList<Integer>();
+        ArrayList<Integer> aiAssignment = new ArrayList<>();
+        ArrayList<Integer> acAssignment = new ArrayList<>();
         for (int arg : goldMap.keySet()) {
             aiAssignment.add(arg);
             acAssignment.add(goldMap.get(arg));
         }
-        Object[] globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel, new Pair<>(1.0D, aiAssignment),
-                new Pair<>(1.0D, acAssignment), globalLabelMap);
+        Object[] globalFeats = FeatureExtractor.extractGlobalFeatures(pIdx, pLabel, new Pair<>(1.0, aiAssignment),
+                new Pair<>(1.0, acAssignment), globalLabelMap);
         addToRerankerFeats(rerankerFeatureVector, globalFeats, numOfAIFeats + numOfACFeats, rerankerFeatureMap, true, numOfAIFeats);
         return rerankerFeatureVector;
     }
@@ -150,17 +157,15 @@ public class RerankerInstanceGenerator {
         int endIndex = 0;
         for (int i = 0; i < numOfPartitions; i++) {
             endIndex = startIndex + partitionSize;
-            ArrayList<String> partitionSentences = new ArrayList<String>();
+            ArrayList<String> partitionSentences = new ArrayList<>();
             if (endIndex < trainSentences.size())
-                partitionSentences = new ArrayList<String>(trainSentences.subList(startIndex, endIndex));
+                partitionSentences = new ArrayList<>(trainSentences.subList(startIndex, endIndex));
             else
-                partitionSentences = new ArrayList<String>(trainSentences.subList(startIndex, trainSentences.size()));
+                partitionSentences = new ArrayList<>(trainSentences.subList(startIndex, trainSentences.size()));
 
             partitions[i] = partitionSentences;
             startIndex = endIndex;
         }
         return partitions;
     }
-
-
 }

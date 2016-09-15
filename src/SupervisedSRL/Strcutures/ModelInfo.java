@@ -101,7 +101,7 @@ public class ModelInfo implements Serializable {
         writer.close();
     }
 
-    public static <T> void write(T o, String filePath) throws  IOException{
+    public static <T> void write(T o, String filePath) throws IOException {
         FileOutputStream fos = new FileOutputStream(filePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutput writer = new ObjectOutputStream(gz);
@@ -109,7 +109,7 @@ public class ModelInfo implements Serializable {
         writer.close();
     }
 
-    public static <T> T load(String filePath) throws  Exception {
+    public static <T> T load(String filePath) throws Exception {
         FileInputStream fis = new FileInputStream(filePath);
         GZIPInputStream gz = new GZIPInputStream(fis);
         ObjectInput reader = new ObjectInputStream(gz);

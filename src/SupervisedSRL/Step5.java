@@ -48,10 +48,10 @@ public class Step5 {
         }
     }
 
-    public static void generateRerankerInstances4ThisPartition(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
-                                                               HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
-                                                               int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                                                               int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception {
+    private static void generateRerankerInstances4ThisPartition(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
+                                                                HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
+                                                                int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                                                                int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception {
         Decoder decoder = new Decoder(trainedClassifier.first, trainedClassifier.second);
         String[] localClassifierLabelMap = trainedClassifier.second.getLabelMap();
         FileOutputStream fos = new FileOutputStream(rerankerInstancesFilePath);

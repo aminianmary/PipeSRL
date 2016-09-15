@@ -56,7 +56,7 @@ public class Properties {
         this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL;
         this.outputFilePath = modelDir + ProjectConstantPrefixes.OUTPUT_FILE;
         this.useReranker = useReranker;
-        this.steps = convertSteps2Array(steps) ;
+        this.steps = convertSteps2Array(steps);
     }
 
     public int getNumOfGlobalFeatures() {
@@ -171,13 +171,17 @@ public class Properties {
         return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE;
     }
 
-    public boolean useReranker () {return useReranker;}
+    public boolean useReranker() {
+        return useReranker;
+    }
 
-    public ArrayList<Integer> getSteps() {return steps;}
+    public ArrayList<Integer> getSteps() {
+        return steps;
+    }
 
-    private ArrayList<Integer> convertSteps2Array (String steps){
+    private ArrayList<Integer> convertSteps2Array(String steps) {
         ArrayList<Integer> s = new ArrayList<>();
-        for (String part: steps.trim().split(","))
+        for (String part : steps.trim().split(","))
             s.add(Integer.parseInt(part.trim()));
         return s;
     }

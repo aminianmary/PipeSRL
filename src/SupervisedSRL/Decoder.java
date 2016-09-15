@@ -39,9 +39,9 @@ public class Decoder {
 
     //stacked decoding
     public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
-                              int aiMaxBeamSize, int acMaxBeamSize,
-                              int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                              String pdModelDir, String outputFile) throws Exception {
+                       int aiMaxBeamSize, int acMaxBeamSize,
+                       int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                       String pdModelDir, String outputFile) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
 
