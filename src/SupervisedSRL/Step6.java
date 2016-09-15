@@ -9,7 +9,7 @@ import SupervisedSRL.Strcutures.Properties;
 public class Step6 {
     public static void buildRerankerModel(Properties properties)
             throws Exception {
-        if (!properties.useReranker())
+        if (!properties.getSteps().contains(6) || !properties.useReranker())
             return;
         Train.trainReranker(properties);
     }

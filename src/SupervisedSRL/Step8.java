@@ -14,6 +14,8 @@ import java.util.HashMap;
 public class Step8 {
 
     public static void evaluate(Properties properties) throws Exception {
+        if (!properties.getSteps().contains(8))
+            return;
         HashMap<String, Integer> globalReverseLabelMap = ModelInfo.loadReverseLabelMap(properties.getGlobalReverseLabelMapPath());
         String outputFile = properties.getOutputFilePath();
         IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());

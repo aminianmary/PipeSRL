@@ -11,6 +11,8 @@ import SupervisedSRL.Strcutures.Properties;
 public class Step1 {
 
     public static void buildIndexMap(Properties properties) throws Exception {
+        if (!properties.getSteps().contains(1))
+            return;
         String trainFilePath = properties.getTrainFile();
         String clusterFilePath = properties.getClusterFile();
         String indexMapFilePath = properties.getIndexMapFilePath();

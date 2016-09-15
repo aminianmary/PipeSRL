@@ -28,15 +28,16 @@ public class Pipeline {
         String devFile = args[1];
         String clusterFile = args[2];
         String modelDir = args[3];
-        int numOfPartitions = Integer.parseInt(args[4]);
-        int maxNumOfTrainingIterations = Integer.parseInt(args[5]);
-        int numOfAIBeamSize = Integer.parseInt(args[6]);
-        int numOfACBeamSize = Integer.parseInt(args[7]);
-        boolean reranker = Boolean.parseBoolean(args[8]);
+        String steps = args[4];
+        int numOfPartitions = Integer.parseInt(args[5]);
+        int maxNumOfTrainingIterations = Integer.parseInt(args[6]);
+        int numOfAIBeamSize = Integer.parseInt(args[7]);
+        int numOfACBeamSize = Integer.parseInt(args[8]);
+        boolean reranker = Boolean.parseBoolean(args[9]);
 
         Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, numOfPartitions,
                 maxNumOfTrainingIterations, numOfAIBeamSize, numOfACBeamSize,
-                numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, reranker);
+                numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, reranker, steps);
         try {
 
             Step1.buildIndexMap(properties);

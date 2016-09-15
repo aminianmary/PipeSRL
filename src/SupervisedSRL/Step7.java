@@ -17,6 +17,8 @@ public class Step7 {
 
     public static void decode(Properties properties)
             throws Exception {
+        if (!properties.getSteps().contains(7))
+            return;
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
         IndexMap indexMap = ModelInfo.loadIndexMap(properties.getIndexMapFilePath());

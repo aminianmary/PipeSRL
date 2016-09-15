@@ -1,5 +1,7 @@
 package SupervisedSRL.Strcutures;
 
+import java.util.ArrayList;
+
 /**
  * Created by Maryam Aminian on 9/13/16.
  */
@@ -27,10 +29,11 @@ public class Properties {
     private String rerankerModelPath;
     private String outputFilePath;
     private boolean useReranker;
+    private ArrayList<Integer> steps;
 
     public Properties(String trainFile, String devFile, String clusterFile, String modelDir,
                       int numOfPartitions, int maxNumOfTrainingIterations, int numOfAIBeamSize, int numOfACBeamSize,
-                      int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, boolean useReranker) {
+                      int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, boolean useReranker, String steps) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -53,6 +56,7 @@ public class Properties {
         this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL;
         this.outputFilePath = modelDir + ProjectConstantPrefixes.OUTPUT_FILE;
         this.useReranker = useReranker;
+        this.steps = convertSteps2Array(steps) ;
     }
 
     public int getNumOfGlobalFeatures() {
@@ -169,5 +173,13 @@ public class Properties {
 
     public boolean useReranker () {return useReranker;}
 
+    public ArrayList<Integer> getSteps() {return steps;}
+
+    private ArrayList<Integer> convertSteps2Array (String steps){
+        ArrayList<Integer> s = new ArrayList<>();
+        for (String part: steps.trim().split(","))
+            s.add(Integer.parseInt(part.trim()));
+        return s;
+    }
 }
 
