@@ -94,8 +94,8 @@ public class Step5 {
                 rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractRerankerFeatures4GoldAssignment(pIdx, devSentence, goldMap4ThisPredicate,
                         numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, globalReverseLabelMap, rerankerFeatureMap), "1"), true);
                 writer.writeObject(rerankerPool);
+                writer.flush();
             }
-            writer.flush();
         }
         writer.close();
     }

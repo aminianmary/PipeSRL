@@ -13,6 +13,8 @@ import java.util.HashSet;
  * Created by monadiab on 9/9/16.
  */
 public class RerankerFeatureMap implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public static final int unseenFeatureIndex = 0;
     HashMap<Object, Integer>[] featureMap;
     HashSet<Object>[] seenFeatures;
