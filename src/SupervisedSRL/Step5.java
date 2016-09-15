@@ -87,7 +87,7 @@ public class Step5 {
                     for (int j = 0; j < acCandids4thisAiCandid.size(); j++) {
                         Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
                         rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractFinalRerankerFeatures(pIdx, pLabel, devSentence, aiCandid, acCandid,
-                                numOfAIFeatures, numOfACFeatures, indexMap, localClassifierLabelMap, globalReverseLabelMap, rerankerFeatureMap), "0"), false);
+                                numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, localClassifierLabelMap, globalReverseLabelMap, rerankerFeatureMap), "0"), false);
                     }
                 }
                 //add gold assignment to the pool

@@ -61,7 +61,7 @@ public class RerankerFeatureMap implements Serializable {
 
     public void updateSeenFeatures4GoldInstance(int pIdx, Sentence sentence,
                                                 int numOfAIFeats, int numOfACFeats,
-                                                IndexMap indexMap, String[] labelMap, HashMap<String, Integer> globalReverseLabelMap) throws Exception {
+                                                IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap) throws Exception {
 
         HashMap<Integer, Integer> goldArgMap = RerankerInstanceGenerator.getGoldArgLabelMap(sentence, globalReverseLabelMap).get(pIdx);
         String[] globalLabelMap = RerankerInstanceGenerator.getLabelMap(globalReverseLabelMap);

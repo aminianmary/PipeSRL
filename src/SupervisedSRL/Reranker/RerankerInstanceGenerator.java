@@ -40,12 +40,11 @@ public class RerankerInstanceGenerator {
     public static HashMap<Integer, Integer>[] extractFinalRerankerFeatures(int pIdx, String pLabel, Sentence sentence,
                                                                            Pair<Double, ArrayList<Integer>> aiCandid,
                                                                            Pair<Double, ArrayList<Integer>> acCandid,
-                                                                           int numOfAIFeats, int numOfACFeats,
+                                                                           int numOfAIFeats, int numOfACFeats, int numOfGlobalFeatures,
                                                                            IndexMap indexMap, String[] localCalssifierLabelMap,
                                                                            HashMap<String, Integer> globalReverseLabelMap,
                                                                            HashMap<Object, Integer>[] rerankerFeatureMap) throws Exception {
         HashMap<Integer, Integer> argMap = getArgLabelMap(aiCandid, acCandid, localCalssifierLabelMap, globalReverseLabelMap);
-        int numOfGlobalFeatures = 1;
         HashMap<Integer, Integer>[] rerankerFeatureVector = new HashMap[numOfAIFeats + numOfACFeats + numOfGlobalFeatures];
 
         for (int wordIdx = 0; wordIdx < sentence.getWords().length; wordIdx++) {
@@ -67,6 +66,7 @@ public class RerankerInstanceGenerator {
                                            HashMap<Object, Integer>[] rerankerFeatureMap, boolean isGlobalFeatures,
                                            int numOfAIFeatures) {
         if (feats == null) return;
+
         for (int i = 0; i < feats.length; i++) {
             if (rerankerFeatureVector[offset + i] == null)
                 rerankerFeatureVector[offset + i] = new HashMap<>();
@@ -78,6 +78,9 @@ public class RerankerInstanceGenerator {
                 featureIndex = rerankerFeatureMap[i].get(feats[i]);
 
             if (featureIndex != RerankerFeatureMap.unseenFeatureIndex) {
+                if (rerankerFeatureVector[offset + i] == null)
+                    rerankerFeatureVector[offset + i] = new HashMap<>();
+
                 if (!rerankerFeatureVector[offset + i].containsKey(featureIndex))
                     rerankerFeatureVector[offset + i].put(featureIndex, 1);
                 else {

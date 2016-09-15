@@ -1,7 +1,11 @@
 package Tests;
 
+import SentenceStruct.Sentence;
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.RerankerFeatureMap;
 import org.junit.Test;
+import util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -78,7 +82,6 @@ public class RerankerInstanceGeneratorTest {
         writeConllText();
         writeClusterFile();
         int numOfPartitions = 2;
-        HashMap<String, Integer> globalReverseLabelMap = new HashMap<String, Integer>();
         RerankerInstanceGenerator r = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainParts = r.getPartitions(tmpFilePath);
         assert trainParts[0].get(0).equals("1\tThe\tthe\tthe\tDT\tDT\t_\t_\t2\t2\tNMOD\tNMOD\t_\t_\t_\t_\t_\t_\n" +
@@ -121,6 +124,24 @@ public class RerankerInstanceGeneratorTest {
                 "13\tweek\tweek\tweek\tNN\tNN\t_\t_\t7\t7\tTMP\tTMP\t_\t_\t_\tAM-TMP\t_\t_\n" +
                 "14\t,\t,\t,\t,\t,\t_\t_\t7\t7\tP\tP\t_\t_\t_\t_\t_\t_\n" +
                 "15\twith\twith\twith\tIN\tIN\t_\t_\t7\t7\tADV\tADV\t_\t_\t_\tAM-ADV\t_\t_");
+    }
+
+    @Test
+    public void testRerankerFeatureVector() throws Exception {
+        writeConllText();
+        writeClusterFile();
+        IndexMap indexMap = new IndexMap(tmpFilePath,clusterFilePath);
+        Sentence sentence = new Sentence(IO.readCoNLLFile(tmpFilePath).get(0),indexMap);
+        HashMap<String, Integer> globalReverseLabelMap = IO.load("/Users/monadiab/Codes/IdeaProjects/SRL/sample_data/models/AC.model_reverseLabelMap");
+        //RerankerFeatureMap rfm=  IO.load("/Users/monadiab/Codes/IdeaProjects/SRL/sample_data/models/reranker.featureMap");
+        //HashMap<Integer, HashMap<Integer, Integer>> goldMap = RerankerInstanceGenerator.getGoldArgLabelMap(sentence, globalReverseLabelMap);
+        //HashMap<Integer, Integer>[] rerankerFeatureVector =
+        //        RerankerInstanceGenerator.extractRerankerFeatures4GoldAssignment(1, sentence,goldMap.get(1),46,46,1,
+        //                indexMap,globalReverseLabelMap,rerankerFeatureMap);
+
+        //testing
+        //assert rerankerFeatureVector.length == 46 + 46 +1;
+
     }
 
     private void writeConllText() throws Exception {

@@ -69,7 +69,7 @@ public class Step4 {
                     }
                     //add gold instance feature to the featureMap
                     rerankerFeatureMap.updateSeenFeatures4GoldInstance(pIdx, devSentence, numOfAIFeatures, numOfACFeatures,
-                            indexMap, localClassifierLabelMap, globalReverseLabelMap);
+                            indexMap, globalReverseLabelMap);
                 }
             }
         }

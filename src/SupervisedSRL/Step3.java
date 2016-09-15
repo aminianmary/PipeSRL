@@ -51,6 +51,7 @@ public class Step3 {
         IndexMap indexMap = IO.load(indexMapPath);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
+            System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
             String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
             String aiModelPath = properties.getPartitionAIModelPath(devPartIdx);
             String acModelPath = properties.getPartitionACModelPath(devPartIdx);

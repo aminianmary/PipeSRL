@@ -40,7 +40,7 @@ public class Decoder {
         return reranker.argmax(pool, true);
     }
 
-    public void decode(ArrayList<String> testSentences, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
+    public void decode(ArrayList<String> testSentences, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
                        int aiMaxBeamSize, int acMaxBeamSize, String modelDir, String outputFile) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.aiClasssifier, this.acClasssifier);
@@ -61,13 +61,13 @@ public class Decoder {
                             numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, true);
 
             //creating the pool and making prediction
-            predictions4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
+            predictions4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
             predictions[senIdx] = predictions4ThisSentence;
         }
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClasssifier.getLabelMap(), outputFile);
     }
 
-    private TreeMap<Integer, Prediction> obtainRerankerPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures, Sentence testSentence, HashMap<Integer, HashMap<Integer, Integer>> goldMap, TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen) throws Exception {
+    private TreeMap<Integer, Prediction> obtainRerankerPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, Sentence testSentence, HashMap<Integer, HashMap<Integer, Integer>> goldMap, TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen) throws Exception {
         TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();
 
         for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
@@ -88,7 +88,7 @@ public class Decoder {
                     acCandidateIndexInfo.put(acCandidateIndex, new Pair<Integer, Integer>(i, j));
                     Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
                     rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractFinalRerankerFeatures(pIdx, pLabel, testSentence, aiCandid, acCandid,
-                            numOfAIFeatures, numOfACFeatures, indexMap, acClasssifier.getLabelMap(), acClasssifier.getReverseLabelMap(), rerankerFeatureMap), "0"), false);
+                            numOfAIFeatures, numOfACFeatures,numOfGlobalFeatures,  indexMap, acClasssifier.getLabelMap(), acClasssifier.getReverseLabelMap(), rerankerFeatureMap), "0"), false);
                 }
             }
 
