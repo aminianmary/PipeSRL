@@ -50,13 +50,17 @@ public class Properties {
         this.numOfACFeatures = numOfACFeatures;
         this.indexMapFilePath = modelDir + ProjectConstantPrefixes.INDEX_MAP;
         this.pdModelDir = modelDir;
-        this.aiModelPath = modelDir + ProjectConstantPrefixes.AI_MODEL;
-        this.acModelPath = modelDir + ProjectConstantPrefixes.AC_MODEL;
+        this.aiModelPath = modelDir + ProjectConstantPrefixes.AI_MODEL +".AIF_"+numOfAIFeatures;
+        this.acModelPath = modelDir + ProjectConstantPrefixes.AC_MODEL + ".ACF_"+numOfACFeatures;
         this.partitionPrefix = modelDir + ProjectConstantPrefixes.PARTITION_PREFIX;
-        this.rerankerFeatureMapPath = modelDir + ProjectConstantPrefixes.RERANKER_FEATURE_MAP;
+        this.rerankerFeatureMapPath = modelDir + ProjectConstantPrefixes.RERANKER_FEATURE_MAP +
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
         this.globalReverseLabelMapPath = acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP;
-        this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL;
-        this.outputFilePath = outputDir + ProjectConstantPrefixes.OUTPUT_FILE;
+        this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL +
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+        String reranker = (useReranker) ? "wr" : "wor";
+        this.outputFilePath = outputDir + ProjectConstantPrefixes.OUTPUT_FILE + "."+ reranker +
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
         this.useReranker = useReranker;
         this.steps = convertSteps2Array(steps);
         printModelProperties();
@@ -163,15 +167,16 @@ public class Properties {
     }
 
     public String getPartitionAIModelPath(int devPartIdx) {
-        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.AI_MODEL;
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.AI_MODEL +".AIF_"+numOfAIFeatures;
     }
 
     public String getPartitionACModelPath(int devPartIdx) {
-        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.AC_MODEL;
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.AC_MODEL + ".ACF_"+numOfACFeatures;
     }
 
     public String getRerankerInstancesFilePath(int devPartIdx) {
-        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE;
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE +
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
     }
 
     public String getOutputDir() {
