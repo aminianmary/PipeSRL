@@ -19,8 +19,8 @@ public class Pipeline {
     //argument cluster features 5
 
     public final static int numOfPDFeatures = 9;
-    public final static int numOfAIFeatures = 25 + 3 + 5 + 13;
-    public final static int numOfACFeatures = 25 + 3 + 5 + 13;
+    public final static int numOfAIFeatures = 25 + 3 + 5 + 154;
+    public final static int numOfACFeatures = 25 + 3 + 5 + 154;
     public final static int numOfGlobalFeatures = 1;
 
     public static void main(String[] args) {
