@@ -160,7 +160,7 @@ public class AveragedPerceptron implements Serializable {
         return argmax;
     }
 
-    public double[] score(Object[] features) {
+    public double[] score(Object[] features) throws Exception {
         double[] score = new double[labelMap.length];
 
         for (int f = 0; f < features.length; f++) {
@@ -171,7 +171,40 @@ public class AveragedPerceptron implements Serializable {
                     score[i + offset] += w.getArray()[i];
             }
         }
-        return score;
+
+        double[] probs = new double[labelMap.length];
+        if (labelMap.length >2){
+            //use softmax
+            double sumOfScores = 0;
+            double maxScore = Double.NEGATIVE_INFINITY;
+            for (double s : score){
+                if (s > maxScore)
+                    maxScore =s;
+            }
+
+            for (double s : score)
+                sumOfScores += Math.exp(s - maxScore);
+
+            for (int i=0; i< score.length; i++)
+                probs[i] = Math.log(Math.exp(score[i]- maxScore) / sumOfScores);
+
+        }else if (labelMap.length == 2){
+            //use logit function
+            double score1 = (labelMap[0].equals("1")) ? score[0] : score[1];
+            double prob1 = Math.exp(score1)/(1 + Math.exp(score1));
+            double prob0 = 1- prob1;
+            if (labelMap[0].equals("1")){
+                probs[0] = Math.log(prob1);
+                probs[1] = Math.log(prob0);
+            }else{
+                probs[0] = Math.log(prob0);
+                probs[1] = Math.log(prob1);
+            }
+
+        }else
+            throw new Exception("Less than 2 labels!");
+
+        return probs;
     }
 
     public void saveModel(String filePath) throws Exception {
