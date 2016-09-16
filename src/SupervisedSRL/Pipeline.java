@@ -28,14 +28,15 @@ public class Pipeline {
         String devFile = args[1];
         String clusterFile = args[2];
         String modelDir = args[3];
-        String steps = args[4];
-        int numOfPartitions = Integer.parseInt(args[5]);
-        int maxNumOfTrainingIterations = Integer.parseInt(args[6]);
-        int numOfAIBeamSize = Integer.parseInt(args[7]);
-        int numOfACBeamSize = Integer.parseInt(args[8]);
-        boolean reranker = Boolean.parseBoolean(args[9]);
+        String outputDir = args[4];
+        String steps = args[5];
+        int numOfPartitions = Integer.parseInt(args[6]);
+        int maxNumOfTrainingIterations = Integer.parseInt(args[7]);
+        int numOfAIBeamSize = Integer.parseInt(args[8]);
+        int numOfACBeamSize = Integer.parseInt(args[9]);
+        boolean reranker = Boolean.parseBoolean(args[10]);
 
-        Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, numOfPartitions,
+        Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, outputDir, numOfPartitions,
                 maxNumOfTrainingIterations, numOfAIBeamSize, numOfACBeamSize,
                 numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, reranker, steps);
         try {

@@ -11,6 +11,7 @@ public class Properties {
     private String devFile;
     private String clusterFile;
     private String modelDir;
+    private String outputDir;
     private int numOfPartitions;
     private int maxNumOfTrainingIterations;
     private int numOfAIBeamSize;
@@ -31,7 +32,7 @@ public class Properties {
     private boolean useReranker;
     private ArrayList<Integer> steps;
 
-    public Properties(String trainFile, String devFile, String clusterFile, String modelDir,
+    public Properties(String trainFile, String devFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfTrainingIterations, int numOfAIBeamSize, int numOfACBeamSize,
                       int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, boolean useReranker, String steps) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
@@ -39,6 +40,7 @@ public class Properties {
         this.devFile = devFile;
         this.clusterFile = clusterFile;
         this.modelDir = modelDir;
+        this.outputDir = outputDir;
         this.numOfPartitions = numOfPartitions;
         this.maxNumOfTrainingIterations = maxNumOfTrainingIterations;
         this.numOfAIBeamSize = numOfAIBeamSize;
@@ -54,7 +56,7 @@ public class Properties {
         this.rerankerFeatureMapPath = modelDir + ProjectConstantPrefixes.RERANKER_FEATURE_MAP;
         this.globalReverseLabelMapPath = acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP;
         this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL;
-        this.outputFilePath = modelDir + ProjectConstantPrefixes.OUTPUT_FILE;
+        this.outputFilePath = outputDir + ProjectConstantPrefixes.OUTPUT_FILE;
         this.useReranker = useReranker;
         this.steps = convertSteps2Array(steps);
     }
@@ -169,6 +171,10 @@ public class Properties {
 
     public String getRerankerInstancesFilePath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE;
+    }
+
+    public String getOutputDir() {
+        return outputDir;
     }
 
     public boolean useReranker() {
