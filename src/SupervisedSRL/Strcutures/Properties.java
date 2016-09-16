@@ -59,6 +59,7 @@ public class Properties {
         this.outputFilePath = outputDir + ProjectConstantPrefixes.OUTPUT_FILE;
         this.useReranker = useReranker;
         this.steps = convertSteps2Array(steps);
+        printModelProperties();
     }
 
     public int getNumOfGlobalFeatures() {
@@ -190,6 +191,38 @@ public class Properties {
         for (String part : steps.trim().split(","))
             s.add(Integer.parseInt(part.trim()));
         return s;
+    }
+
+    private void printModelProperties (){
+
+        System.out.print("\n************** MODEL PROPERTIES **************\n" +
+                "Train File Path : "+ trainFile +"\n" +
+                "Dev File Path: " + devFile +"\n" +
+                "Cluster File Path: "+ clusterFile+"\n" +
+                "Model Directory: "+ modelDir+"\n" +
+                "Output Directory: "+ outputDir+"\n" +
+                "IndexMap File Path: "+ indexMapFilePath+"\n" +
+                "Predicate Disambiguation Models Dir: "+ pdModelDir+"\n" +
+                "AI Model Path: "+ aiModelPath+"\n" +
+                "AC Model Path: "+ acModelPath+"\n" +
+                "Reranker FeatureMap Path: "+ rerankerFeatureMapPath+"\n" +
+                "Global Reverse LabeMap Path: "+ globalReverseLabelMapPath+"\n" +
+                "Reranker Model Path: "+ rerankerModelPath+"\n" +
+                "Output File Path: "+ outputFilePath+"\n" +
+                "Number of Partitions: "+ numOfPartitions+"\n" +
+                "AI Beam Size: "+ numOfAIBeamSize+"\n" +
+                "AC Beam Size: "+ numOfACBeamSize+"\n" +
+                "AI Feature Size: "+ numOfAIFeatures+"\n" +
+                "AC Feature Size: "+ numOfACFeatures+"\n" +
+                "PD Feature Size: "+ numOfPDFeatures+"\n" +
+                "Global Feature Size: "+ numOfGlobalFeatures+"\n" +
+                "Max Number of Perceptron Iterations: "+ maxNumOfTrainingIterations+"\n" +
+                "Pipeline Steps: "+ steps+"\n");
+        if (useReranker)
+            System.out.print("Reranker USED\n****************************\n");
+        else
+            System.out.print("Reranker NOT USED\n****************************\n");
+
     }
 }
 
