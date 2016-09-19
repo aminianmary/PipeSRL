@@ -19,7 +19,6 @@ public class Step4 {
         if (!properties.getSteps().contains(4) || !properties.useReranker())
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 4 -- Building Reranker FeatureMap\n>>>>>>>>>>>>>\n");
-        Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiers = loadTrainedClassifiersOnPartitions(properties);
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
         HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
         int numOfPartitions = properties.getNumOfPartitions();
@@ -37,8 +36,13 @@ public class Step4 {
 
         for (int devPart = 0; devPart < numOfPartitions; devPart++) {
             System.out.println("PART "+devPart);
-            Decoder decoder = new Decoder(trainedClassifiers[devPart].first, trainedClassifiers[devPart].second);
-            String[] localClassifierLabelMap = trainedClassifiers[devPart].second.getLabelMap();
+
+            String aiModelPath4Partition = properties.getPartitionAIModelPath(devPart);
+            String acModelPath4Partition = properties.getPartitionACModelPath(devPart);
+            Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifiersOnThisPartition = ModelInfo.loadTrainedModels(aiModelPath4Partition, acModelPath4Partition);
+
+            Decoder decoder = new Decoder(trainedClassifiersOnThisPartition.first, trainedClassifiersOnThisPartition.second);
+            String[] localClassifierLabelMap = trainedClassifiersOnThisPartition.second.getLabelMap();
             ArrayList<String> devSentences = IO.load(properties.getPartitionDevDataPath(devPart));
             String pdModelDir = properties.getPartitionPdModelDir(devPart);
 
@@ -76,17 +80,4 @@ public class Step4 {
         rerankerFeatureMap.buildRerankerFeatureMap();
         IO.write(rerankerFeatureMap, rerankerFeatureMapFilePath);
     }
-
-    public static Pair<AveragedPerceptron, AveragedPerceptron>[] loadTrainedClassifiersOnPartitions(Properties properties) throws java.lang.Exception {
-        int numOfPartitions = properties.getNumOfPartitions();
-        Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = new Pair[numOfPartitions];
-
-        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            String aiModelPath4Partition = properties.getPartitionAIModelPath(devPartIdx);
-            String acModelPath4Partition = properties.getPartitionACModelPath(devPartIdx);
-            trainedClassifiersOnPartitions[devPartIdx] = ModelInfo.loadTrainedModels(aiModelPath4Partition, acModelPath4Partition);
-        }
-        return trainedClassifiersOnPartitions;
-    }
-
 }

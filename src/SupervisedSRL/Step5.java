@@ -26,7 +26,6 @@ public class Step5 {
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 5 -- Generate Reranker Train Instances\n>>>>>>>>>>>>>\n");
         int numOfPartitions = properties.getNumOfPartitions();
-        Pair<AveragedPerceptron, AveragedPerceptron>[] trainedClassifiersOnPartitions = Step4.loadTrainedClassifiersOnPartitions(properties);
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainDataPartitions = rig.getPartitions(properties.getTrainFile());
         HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
@@ -44,7 +43,11 @@ public class Step5 {
             String pdModelDir4Partition = properties.getPartitionPdModelDir(devPartIdx);
             String rerankerInstanceFilePath = properties.getRerankerInstancesFilePath(devPartIdx);
 
-            generateRerankerInstances4ThisPartition(trainedClassifiersOnPartitions[devPartIdx], trainDataPartitions[devPartIdx],
+            String aiModelPath4Partition = properties.getPartitionAIModelPath(devPartIdx);
+            String acModelPath4Partition = properties.getPartitionACModelPath(devPartIdx);
+            Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifiersOnThisPartition = ModelInfo.loadTrainedModels(aiModelPath4Partition, acModelPath4Partition);
+
+            generateRerankerInstances4ThisPartition(trainedClassifiersOnThisPartition, trainDataPartitions[devPartIdx],
                     rerankerFeatureMap, indexMap, globalReverseLabelMap, numOfAIBeamSize, numOfACBeamSize,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, numOfGlobalFeatures,
                     pdModelDir4Partition, rerankerInstanceFilePath);
