@@ -152,6 +152,7 @@ public class RerankerInstanceGenerator {
     }
 
     public ArrayList<String>[] getPartitions(String trainFilePath) throws IOException {
+        System.out.println("Getting train data partitions...");
         ArrayList<String>[] partitions = new ArrayList[numOfPartitions];
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         //Collections.shuffle(sentencesInCoNLLFormat);
@@ -169,6 +170,7 @@ public class RerankerInstanceGenerator {
             partitions[i] = partitionSentences;
             startIndex = endIndex;
         }
+        System.out.println("Done!");
         return partitions;
     }
 }

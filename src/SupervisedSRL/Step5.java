@@ -28,8 +28,11 @@ public class Step5 {
         int numOfPartitions = properties.getNumOfPartitions();
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainDataPartitions = rig.getPartitions(properties.getTrainFile());
-        HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
+        System.out.println("Loading RerankerFeatureMap...");
+        HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
+        System.out.println("Done!\nLoading indexMap...");
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
+        System.out.println("Done!");
         HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
         int numOfAIBeamSize = properties.getNumOfAIBeamSize();
         int numOfACBeamSize = properties.getNumOfACBeamSize();

@@ -26,6 +26,7 @@ public class Properties {
     private String acModelPath;
     private String partitionPrefix;
     private String rerankerFeatureMapPath;
+    private String rerankerSeenFeaturesPath;
     private String globalReverseLabelMapPath;
     private String rerankerModelPath;
     private String outputFilePath;
@@ -54,6 +55,8 @@ public class Properties {
         this.acModelPath = modelDir + ProjectConstantPrefixes.AC_MODEL + ".ACF_"+numOfACFeatures;
         this.partitionPrefix = modelDir + ProjectConstantPrefixes.PARTITION_PREFIX;
         this.rerankerFeatureMapPath = modelDir + ProjectConstantPrefixes.RERANKER_FEATURE_MAP +
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+        this.rerankerSeenFeaturesPath = modelDir + ProjectConstantPrefixes.RERANKER_SEEN_FEATURES +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
         this.globalReverseLabelMapPath = acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP;
         this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL +
@@ -136,6 +139,10 @@ public class Properties {
 
     public String getRerankerFeatureMapPath() {
         return rerankerFeatureMapPath;
+    }
+
+    public String getNumOfRerankerSeenFeaturesPath(){
+        return rerankerSeenFeaturesPath;
     }
 
     public String getGlobalReverseLabelMapPath() {

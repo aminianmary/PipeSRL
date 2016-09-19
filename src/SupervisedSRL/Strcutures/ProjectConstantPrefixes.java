@@ -10,6 +10,7 @@ public class ProjectConstantPrefixes {
     public static final String INDEX_MAP = "/inedxMap";
     public static final String PARTITION_PREFIX = "/part_";
     public static final String RERANKER_FEATURE_MAP = "/reranker.featureMap";
+    public static final String RERANKER_SEEN_FEATURES= "/reranker.seenFeatures";
     public static final String RERANKER_INSTANCES_FILE = "/reranker.instances";
     public static final String GLOBAL_REVERSE_LABEL_MAP = "_reverseLabelMap";
     public static final String RERANKER_MODEL = "/reranker.model";

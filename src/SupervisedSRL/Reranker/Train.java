@@ -89,8 +89,7 @@ public class Train {
         }
     }
 
-    // todo this is not efficient.
     private static int numOfFeatures(Properties properties) throws Exception {
-        return ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getNumOfSeenFeatures();
+        return IO.load(properties.getNumOfRerankerSeenFeaturesPath());
     }
 }

@@ -29,6 +29,7 @@ public class Step4 {
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
         String rerankerFeatureMapFilePath = properties.getRerankerFeatureMapPath();
+        String rerankerSeenFeaturesFilePath = properties.getNumOfRerankerSeenFeaturesPath();
 
 
         assert globalReverseLabelMap.size() != 0;
@@ -78,6 +79,7 @@ public class Step4 {
             }
         }
         rerankerFeatureMap.buildRerankerFeatureMap();
-        IO.write(rerankerFeatureMap, rerankerFeatureMapFilePath);
+        IO.write(rerankerFeatureMap.getFeatureMap(), rerankerFeatureMapFilePath);
+        IO.write(rerankerFeatureMap.getNumOfSeenFeatures(), rerankerSeenFeaturesFilePath);
     }
 }
