@@ -28,6 +28,7 @@ public class Step4 {
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
+        double aiCoefficient = properties.getAiCoefficient();
         String rerankerFeatureMapFilePath = properties.getRerankerFeatureMapPath();
         String rerankerSeenFeaturesFilePath = properties.getNumOfRerankerSeenFeaturesPath();
 
@@ -54,7 +55,7 @@ public class Step4 {
                 Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
                 TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                         (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, true);
+                                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, true, aiCoefficient);
 
                 for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
                     String pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();

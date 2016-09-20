@@ -32,10 +32,12 @@ public class Properties {
     private String outputFilePath;
     private boolean useReranker;
     private ArrayList<Integer> steps;
+    private double aiCoefficient;
 
     public Properties(String trainFile, String devFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfTrainingIterations, int numOfAIBeamSize, int numOfACBeamSize,
-                      int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, boolean useReranker, String steps) {
+                      int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
+                      boolean useReranker, String steps, double aiCoefficient) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -65,6 +67,7 @@ public class Properties {
         this.outputFilePath = outputDir + ProjectConstantPrefixes.OUTPUT_FILE + "."+ reranker +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
         this.useReranker = useReranker;
+        this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
         printModelProperties();
     }
@@ -155,6 +158,10 @@ public class Properties {
 
     public String getOutputFilePath() {
         return outputFilePath;
+    }
+
+    public double getAiCoefficient() {
+        return aiCoefficient;
     }
 
     public String getPartitionTrainDataPath(int devPartIdx) {

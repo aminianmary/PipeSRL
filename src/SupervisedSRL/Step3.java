@@ -26,6 +26,7 @@ public class Step3 {
         int numOfPDFeatures = properties.getNumOfPDFeatures();
         int aiBeamSize = properties.getNumOfAIBeamSize();
         int acBeamSize = properties.getNumOfACBeamSize();
+        double aiCoefficient = properties.getAiCoefficient();
 
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
@@ -33,7 +34,8 @@ public class Step3 {
         IndexMap indexMap = IO.load(indexMapPath);
         boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
-                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData);
+                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
+                aiCoefficient);
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
@@ -49,6 +51,7 @@ public class Step3 {
         int acBeamSize = properties.getNumOfACBeamSize();
         int numOfPartitions = properties.getNumOfPartitions();
         IndexMap indexMap = IO.load(indexMapPath);
+        double aiCoefficient = properties.getAiCoefficient();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
@@ -61,7 +64,8 @@ public class Step3 {
             ArrayList<String> devSentences = IO.load(devFilePath);
             boolean isModelBuiltOnEntireTrainData = false;
             Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
-                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData);
+                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
+                    aiCoefficient);
         }
     }
 

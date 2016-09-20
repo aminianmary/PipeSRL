@@ -28,7 +28,7 @@ public class Train {
                              IndexMap indexMap,
                              int numberOfTrainingIterations,
                              int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                             int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData) throws Exception {
+                             int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData, double aiCoefficient) throws Exception {
 
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         //training PD module
@@ -37,7 +37,7 @@ public class Train {
                 pdModelDir, aiModelPath, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
         trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfTrainingIterations,
                 pdModelDir, aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData);
+                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient);
     }
 
     public static void trainAI(List<String> trainSentencesInCONLLFormat,
@@ -142,7 +142,7 @@ public class Train {
                                HashSet<String> labelSet, IndexMap indexMap,
                                int numberOfTrainingIterations,
                                String pdModelDir, String aiModelPath, String acModelPath, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                               int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData)
+                               int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData, double aiCoefficient)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
@@ -184,7 +184,7 @@ public class Train {
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
             argumentDecoder.decode(indexMap, devSentencesInCONLLFormat,
                     aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                    pdModelDir, tempOutputFile);
+                    pdModelDir, tempOutputFile, aiCoefficient);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());

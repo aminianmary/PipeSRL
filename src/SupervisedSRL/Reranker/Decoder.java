@@ -41,7 +41,7 @@ public class Decoder {
     }
 
     public void decode(ArrayList<String> testSentences, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                       int aiMaxBeamSize, int acMaxBeamSize, String modelDir, String outputFile) throws Exception {
+                       int aiMaxBeamSize, int acMaxBeamSize, String modelDir, String outputFile, double aiCoefficient) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.aiClasssifier, this.acClasssifier);
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
@@ -58,7 +58,7 @@ public class Decoder {
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(testSentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, true);
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, true, aiCoefficient);
 
             //creating the pool and making prediction
             predictions4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
@@ -66,6 +66,7 @@ public class Decoder {
         }
         IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClasssifier.getLabelMap(), outputFile);
     }
+
 
     private TreeMap<Integer, Prediction> obtainRerankerPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures, Sentence testSentence, HashMap<Integer, HashMap<Integer, Integer>> goldMap, TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen) throws Exception {
         TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();
@@ -102,6 +103,7 @@ public class Decoder {
         }
         return predictions4ThisSentence;
     }
+
 
     private HashMap<Integer, HashMap<Integer, Integer>> getGoldArgLabelMap(Sentence sentence,
                                                                            HashMap<String, Integer> reverseLabelMap) {

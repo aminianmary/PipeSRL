@@ -25,6 +25,7 @@ public class Train {
         int numOfPartitions = properties.getNumOfPartitions();
         int numOfTrainingIterations = properties.getMaxNumOfTrainingIterations();
         String rerankerModelPath = properties.getRerankerModelPath();
+        double aiCoefficient = properties.getAiCoefficient();
 
         RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(numOfFeatures(properties));
         double bestFScore = 0;
@@ -66,8 +67,10 @@ public class Train {
             String outputFile = properties.getOutputFilePath() + "_"+iter;
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 
-            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, ap, indexMap, rerankerFeatureMap, pdModelDir);
-            decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile);
+            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, ap,
+                    indexMap, rerankerFeatureMap, pdModelDir);
+            decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
+                    aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile, aiCoefficient);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());

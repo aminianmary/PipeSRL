@@ -40,6 +40,7 @@ public class Step5 {
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
+        double aiCoefficient = properties.getAiCoefficient();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("PART "+ devPartIdx);
@@ -53,14 +54,14 @@ public class Step5 {
             generateRerankerInstances4ThisPartition(trainedClassifiersOnThisPartition, trainDataPartitions[devPartIdx],
                     rerankerFeatureMap, indexMap, globalReverseLabelMap, numOfAIBeamSize, numOfACBeamSize,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, numOfGlobalFeatures,
-                    pdModelDir4Partition, rerankerInstanceFilePath);
+                    pdModelDir4Partition, rerankerInstanceFilePath, aiCoefficient);
         }
     }
 
     private static void generateRerankerInstances4ThisPartition(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
                                                                 HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
                                                                 int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                                                                int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath) throws Exception {
+                                                                int numOfGlobalFeatures, String pdModelDir, String rerankerInstancesFilePath, double aiCoefficient) throws Exception {
         Decoder decoder = new Decoder(trainedClassifier.first, trainedClassifier.second);
         String[] localClassifierLabelMap = trainedClassifier.second.getLabelMap();
         FileOutputStream fos = new FileOutputStream(rerankerInstancesFilePath);
@@ -75,7 +76,7 @@ public class Step5 {
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, true);
+                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, true, aiCoefficient);
 
             //creating the pool
             for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
