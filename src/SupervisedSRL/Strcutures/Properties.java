@@ -57,15 +57,15 @@ public class Properties {
         this.acModelPath = modelDir + ProjectConstantPrefixes.AC_MODEL + ".ACF_"+numOfACFeatures;
         this.partitionPrefix = modelDir + ProjectConstantPrefixes.PARTITION_PREFIX;
         this.rerankerFeatureMapPath = modelDir + ProjectConstantPrefixes.RERANKER_FEATURE_MAP +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.rerankerSeenFeaturesPath = modelDir + ProjectConstantPrefixes.RERANKER_SEEN_FEATURES +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.globalReverseLabelMapPath = acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP;
         this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         String reranker = (useReranker) ? "wr" : "wor";
         this.outputFilePath = outputDir + ProjectConstantPrefixes.OUTPUT_FILE + "."+ reranker +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.useReranker = useReranker;
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
@@ -236,7 +236,8 @@ public class Properties {
                 "PD Feature Size: "+ numOfPDFeatures+"\n" +
                 "Global Feature Size: "+ numOfGlobalFeatures+"\n" +
                 "Max Number of Perceptron Iterations: "+ maxNumOfTrainingIterations+"\n" +
-                "Pipeline Steps: "+ steps+"\n");
+                "AI Coefficient: "+ aiCoefficient + "\n" +
+        "Pipeline Steps: "+ steps+"\n");
         if (useReranker)
             System.out.print("Reranker USED\n****************************\n");
         else
