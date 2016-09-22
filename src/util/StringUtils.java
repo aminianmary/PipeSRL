@@ -48,4 +48,11 @@ public class StringUtils {
             coarsePOS = "VB"; //covers VB, VBD, VBG, VBN, VBP, VBZ
         return coarsePOS;
     }
+
+    public static String getPOSPrefix(String originalPOS) {
+        String prefix = "N";
+        if (originalPOS.startsWith("VB"))
+            prefix = "V";
+        return prefix;
+    }
 }
