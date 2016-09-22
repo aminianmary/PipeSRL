@@ -45,6 +45,13 @@ public class PA {
         return ams;
     }
 
+    public HashSet<Integer> getArgumentsIndices() {
+        HashSet<Integer> argIndices= new HashSet<>();
+        for (Argument a: ams)
+            argIndices.add(a.getIndex());
+        return argIndices;
+    }
+
     public HashSet<PADependencyTuple> getAllPredArgDepTupls() {
         HashSet<PADependencyTuple> predArgDepTuples = new HashSet<PADependencyTuple>();
         int pIndex = pr.getIndex();
