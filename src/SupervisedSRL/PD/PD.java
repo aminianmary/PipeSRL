@@ -37,7 +37,6 @@ public class PD {
 
                 AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfPDFeaturs);
 
-                //System.out.print("training model for predicate/pos -->"+ plem+"|"+ppos+"\n");
                 for (int i = 0; i < numberOfTrainingIterations; i++) {
                     //System.out.print("iteration:" + i + "...");
                     for (PredicateLexiconEntry ple : trainPLexicon.get(plem).get(ppos)) {
@@ -53,10 +52,10 @@ public class PD {
     }
 
     public static HashMap<Integer, String> predict(Sentence sentence, IndexMap indexMap, String modelDir, int numOfPDFeatures) throws Exception {
+        //prediction assumes predicates are given (no pred ID, just pred Disambig)
         File f1;
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceLemmas = sentence.getLemmas();
-        int[] sentencePOSTags = sentence.getPosTags();
         int[] sentenceCPOSTags = sentence.getCPosTags();
         String[] sentenceLemmas_str = sentence.getLemmas_str();
 
@@ -91,7 +90,6 @@ public class PD {
             (List<String> sentencesInCONLLFormat, IndexMap indexMap, int numOfPDFeatures) throws Exception {
         HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>> pLexicon = new HashMap<Integer, HashMap<Integer, HashSet<PredicateLexiconEntry>>>();
 
-        boolean decode = false;
         for (int senID = 0; senID < sentencesInCONLLFormat.size(); senID++) {
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap);
 
