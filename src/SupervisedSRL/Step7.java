@@ -35,7 +35,7 @@ public class Step7 {
         double aiCoefficient = properties.getAiCoefficient();
 
         if (properties.useReranker()) {
-            HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
+            HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
             RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
             decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile, aiCoefficient);

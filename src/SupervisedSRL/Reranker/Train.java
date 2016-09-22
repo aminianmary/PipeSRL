@@ -52,7 +52,7 @@ public class Train {
             }
 
             System.out.print("Making prediction on Dev data...");
-            HashMap<Object, Integer>[] rerankerFeatureMap = ((RerankerFeatureMap) IO.load(properties.getRerankerFeatureMapPath())).getFeatureMap();
+            HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
             AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
             AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
             IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
