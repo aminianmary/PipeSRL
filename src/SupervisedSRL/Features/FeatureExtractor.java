@@ -65,11 +65,17 @@ public class FeatureExtractor {
         int[] sentenceDepLabels = sentence.getDepLabels();
         int[] sentenceDepHeads = sentence.getDepHeads();
         int[] sentenceWords = sentence.getWords();
+        int[] sentenceWordsClusters = sentence.getWordClusterIds();
+        int[] sentenceLemmas = sentence.getLemmas();
+        int[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
         int[] sentencePOSTags = sentence.getPosTags();
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
 
         //predicate features
         int pw = sentenceWords[pIdx];
+        int plem = sentenceLemmas[pIdx];
+        int pwCluster = sentenceWordsClusters[pIdx];
+        int plemCluster = sentenceLemmasClusters[pIdx];
         int ppos = sentencePOSTags[pIdx];
         int pdeprel = sentenceDepLabels[pIdx];
         int pprw = sentenceWords[sentenceDepHeads[pIdx]];
@@ -79,8 +85,25 @@ public class FeatureExtractor {
         String pchildposset = getChildSet(pIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
         String pchildwset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
 
+        ArrayList<Object> pFeats= new ArrayList<>();
+        pFeats.add(pw);
+        pFeats.add(plem);
+        pFeats.add(pwCluster);
+        pFeats.add(ppos);
+        pFeats.add(plemCluster);
+        pFeats.add(pdeprel);
+        pFeats.add(pprw);
+        pFeats.add(pprpos);
+        pFeats.add(pdepsubcat);
+        pFeats.add(pchilddepset);
+        pFeats.add(pchildposset);
+        pFeats.add(pchildwset);
+
         int index = 0;
         features[index++] = pw;
+        features[index++] = plem;
+        features[index++] = pwCluster;
+        features[index++] = plemCluster;
         features[index++] = ppos;
         features[index++] = pdeprel;
         features[index++] = pprw;
@@ -89,6 +112,13 @@ public class FeatureExtractor {
         features[index++] = pchilddepset;
         features[index++] = pchildposset;
         features[index++] = pchildwset;
+
+        for (int i=0;i<pFeats.size();i++){
+            for (int j=0; j< pFeats.size(); j++){
+                if (i!= j)
+                    features[index++] =  pFeats.get(i) +" "+ pFeats.get(j);
+            }
+        }
 
         return features;
     }

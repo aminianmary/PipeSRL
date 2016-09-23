@@ -18,7 +18,7 @@ public class Pipeline {
     //predicate cluster features 3
     //argument cluster features 5
 
-    public final static int numOfPDFeatures = 9;
+    public final static int numOfPDFeatures = 144;
     public final static int numOfAIFeatures = 25 + 3 + 5 + 154;
     public final static int numOfACFeatures = 25 + 3 + 5 + 154;
     public final static int numOfGlobalFeatures = 1;
