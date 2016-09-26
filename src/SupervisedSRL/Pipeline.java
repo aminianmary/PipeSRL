@@ -31,15 +31,19 @@ public class Pipeline {
         String outputDir = args[4];
         String steps = args[5];
         int numOfPartitions = Integer.parseInt(args[6]);
-        int maxNumOfTrainingIterations = Integer.parseInt(args[7]);
-        int numOfAIBeamSize = Integer.parseInt(args[8]);
-        int numOfACBeamSize = Integer.parseInt(args[9]);
-        double aiCoefficient = Double.parseDouble(args[10]);
-        boolean reranker = Boolean.parseBoolean(args[11]);
+        int maxNumOfPDTrainingIterations = Integer.parseInt(args[7]);
+        int maxNumOfAITrainingIterations = Integer.parseInt(args[8]);
+        int maxNumOfACTrainingIterations = Integer.parseInt(args[9]);
+        int maxNumOfRerankerTrainingIterations = Integer.parseInt(args[10]);
+        int numOfAIBeamSize = Integer.parseInt(args[11]);
+        int numOfACBeamSize = Integer.parseInt(args[12]);
+        double aiCoefficient = Double.parseDouble(args[13]);
+        boolean reranker = Boolean.parseBoolean(args[14]);
 
         Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, outputDir, numOfPartitions,
-                maxNumOfTrainingIterations, numOfAIBeamSize, numOfACBeamSize,
-                numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, reranker, steps, aiCoefficient);
+                maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
+                numOfAIBeamSize, numOfACBeamSize, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
+                reranker, steps, aiCoefficient);
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);

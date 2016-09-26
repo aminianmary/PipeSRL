@@ -13,7 +13,10 @@ public class Properties {
     private String modelDir;
     private String outputDir;
     private int numOfPartitions;
-    private int maxNumOfTrainingIterations;
+    private int maxNumOfPDTrainingIterations;
+    private int maxNumOfAITrainingIterations;
+    private int maxNumOfACTrainingIterations;
+    private int maxNumOfRerankerTrainingIterations;
     private int numOfAIBeamSize;
     private int numOfACBeamSize;
     private int numOfPDFeatures;
@@ -35,8 +38,9 @@ public class Properties {
     private double aiCoefficient;
 
     public Properties(String trainFile, String devFile, String clusterFile, String modelDir, String outputDir,
-                      int numOfPartitions, int maxNumOfTrainingIterations, int numOfAIBeamSize, int numOfACBeamSize,
-                      int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
+                      int numOfPartitions, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
+                      int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
+                      int numOfAIBeamSize, int numOfACBeamSize, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
                       boolean useReranker, String steps, double aiCoefficient) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
@@ -45,7 +49,10 @@ public class Properties {
         this.modelDir = modelDir;
         this.outputDir = outputDir;
         this.numOfPartitions = numOfPartitions;
-        this.maxNumOfTrainingIterations = maxNumOfTrainingIterations;
+        this.maxNumOfPDTrainingIterations = maxNumOfPDTrainingIterations;
+        this.maxNumOfAITrainingIterations = maxNumOfAITrainingIterations;
+        this.maxNumOfACTrainingIterations = maxNumOfACTrainingIterations;
+        this.maxNumOfRerankerTrainingIterations = maxNumOfRerankerTrainingIterations;
         this.numOfAIBeamSize = numOfAIBeamSize;
         this.numOfACBeamSize = numOfACBeamSize;
         this.numOfPDFeatures = numOfPDFeatures;
@@ -96,8 +103,20 @@ public class Properties {
         return numOfPartitions;
     }
 
-    public int getMaxNumOfTrainingIterations() {
-        return maxNumOfTrainingIterations;
+    public int getMaxNumOfPDTrainingIterations() {
+        return maxNumOfPDTrainingIterations;
+    }
+
+    public int getMaxNumOfAITrainingIterations() {
+        return maxNumOfAITrainingIterations;
+    }
+
+    public int getMaxNumOfACTrainingIterations() {
+        return maxNumOfACTrainingIterations;
+    }
+
+    public int getMaxNumOfRerankerTrainingIterations() {
+        return maxNumOfRerankerTrainingIterations;
     }
 
     public int getNumOfAIBeamSize() {
@@ -235,7 +254,9 @@ public class Properties {
                 "AC Feature Size: "+ numOfACFeatures+"\n" +
                 "PD Feature Size: "+ numOfPDFeatures+"\n" +
                 "Global Feature Size: "+ numOfGlobalFeatures+"\n" +
-                "Max Number of Perceptron Iterations: "+ maxNumOfTrainingIterations+"\n" +
+                "Max Number of PD Iterations: "+ maxNumOfPDTrainingIterations+"\n" +
+                "Max Number of AI Iterations: "+ maxNumOfAITrainingIterations+"\n" +
+                "Max Number of AC Iterations: "+ maxNumOfACTrainingIterations+"\n" +
                 "AI Coefficient: "+ aiCoefficient + "\n" +
         "Pipeline Steps: "+ steps+"\n");
         if (useReranker)

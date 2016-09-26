@@ -23,7 +23,7 @@ import java.util.zip.GZIPInputStream;
 public class Train {
     public static void trainReranker(Properties properties) throws Exception {
         int numOfPartitions = properties.getNumOfPartitions();
-        int numOfTrainingIterations = properties.getMaxNumOfTrainingIterations();
+        int numOfTrainingIterations = properties.getMaxNumOfRerankerTrainingIterations();
         String rerankerModelPath = properties.getRerankerModelPath();
         double aiCoefficient = properties.getAiCoefficient();
 

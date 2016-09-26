@@ -20,7 +20,7 @@ public class Step3 {
         String pdModelDir = properties.getPdModelDir();
         String trainFilePath = properties.getTrainFile();
         String devFilePath = properties.getDevFile();
-        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
+        int maxTrainingIters = properties.getMaxNumOfPDTrainingIterations();
         int numOfPDFeatures = properties.getNumOfPDFeatures();
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
@@ -34,7 +34,7 @@ public class Step3 {
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 3.2 -- Building PD models on partitions\n>>>>>>>>>>>>>\n");
         String indexMapPath = properties.getIndexMapFilePath();
-        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
+        int maxTrainingIters = properties.getMaxNumOfPDTrainingIterations();
         int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfPartitions = properties.getNumOfPartitions();
         IndexMap indexMap = IO.load(indexMapPath);

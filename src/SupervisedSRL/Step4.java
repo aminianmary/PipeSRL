@@ -21,7 +21,8 @@ public class Step4 {
         String acModelPath = properties.getAcModelPath();
         String trainFilePath = properties.getTrainFile();
         String devFilePath = properties.getDevFile();
-        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
+        int maxAITrainingIters = properties.getMaxNumOfAITrainingIterations();
+        int maxACTrainingIters = properties.getMaxNumOfACTrainingIterations();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfPDFeatures = properties.getNumOfPDFeatures();
@@ -34,7 +35,7 @@ public class Step4 {
 
         IndexMap indexMap = IO.load(indexMapPath);
         boolean isModelBuiltOnEntireTrainData = true;
-        Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
+        Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                 numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
                 aiCoefficient);
     }
@@ -44,7 +45,8 @@ public class Step4 {
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 4.2 -- Building AI-AC models on partitions\n>>>>>>>>>>>>>\n");
         String indexMapPath = properties.getIndexMapFilePath();
-        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
+        int maxAITrainingIters = properties.getMaxNumOfAITrainingIterations();
+        int maxACTrainingIters = properties.getMaxNumOfACTrainingIterations();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfPDFeatures = properties.getNumOfPDFeatures();
@@ -64,7 +66,7 @@ public class Step4 {
             ArrayList<String> trainSentences = IO.load(trainFilePath);
             ArrayList<String> devSentences = IO.load(devFilePath);
             boolean isModelBuiltOnEntireTrainData = false;
-            Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
+            Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
                     aiCoefficient);
         }
