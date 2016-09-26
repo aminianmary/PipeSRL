@@ -4,6 +4,7 @@ import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;
 
 import java.io.File;
@@ -21,26 +22,55 @@ public class PD {
     public static int unseenPreds = 0;
     public static int totalPreds = 0;
 
-    public static void train(List<String> trainSentencesInCONLLFormat, IndexMap indexMap, int numberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
+    public static void train(List<String> trainSentencesInCONLLFormat, List<String> devSentencesInCONLLFormat,
+                             IndexMap indexMap, int maxNumberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
             throws Exception {
         //creates lexicon of all predicates in the trainJoint set
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> trainPLexicon =
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
+        HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPLexicon =
+                buildPredicateLexicon(devSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
 
         System.out.println("Training Started...");
 
         for (int plem : trainPLexicon.keySet()) {
             HashSet<String> possibleLabels = new HashSet<>(trainPLexicon.get(plem).keySet());
             AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeaturs);
+            double bestAcc = 0;
+            int noImprovement = 0;
 
-            for (int i = 0; i < numberOfTrainingIterations; i++) {
-                //System.out.print("iteration:" + i + "...");
+            for (int i = 0; i < maxNumberOfTrainingIterations; i++) {
+
                 for (String label: trainPLexicon.get(plem).keySet()) {
                     for (Object[] instance: trainPLexicon.get(plem).get(label))
                         ap.learnInstance(instance, label);
                 }
+                //making prediction on dev instances of this plem
+                int correct =0;
+                int total =0;
+                if (devPLexicon.containsKey(plem)){
+                    //seen in dev data
+                    for (String goldLabel: devPLexicon.get(plem).keySet()) {
+                        for (Object[] instance: devPLexicon.get(plem).get(goldLabel)){
+                            String prediction = ap.predict(instance);
+                            total++;
+                            if (prediction.equals(goldLabel))
+                                correct++;
+                        }
+                    }
+                    double acc = (double) correct/total;
+                    if (acc > bestAcc) {
+                        noImprovement = 0;
+                        bestAcc = acc;
+                        ap.saveModel(modelDir + "/" + plem);
+                    } else {
+                        noImprovement++;
+                        if (noImprovement > 5) {
+                            break;
+                        }
+                    }
+                }
             }
-            ap.saveModel(modelDir + "/" + plem );
         }
         System.out.println("Done!");
     }
