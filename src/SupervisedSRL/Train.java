@@ -211,7 +211,6 @@ public class Train {
     public static Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
-        boolean decode = false;
         Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
@@ -236,7 +235,6 @@ public class Train {
     public static Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
-        boolean decode = false;
         Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
 

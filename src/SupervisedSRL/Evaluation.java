@@ -19,8 +19,6 @@ import java.util.Set;
  * Created by monadiab on 7/13/16.
  */
 public class Evaluation {
-
-
     public static double evaluate(String systemOutput, ArrayList<String> goldOutputInCONLLFormat, IndexMap indexMap,
                                   HashMap<String, Integer> reverseLabelMap) throws IOException {
         DecimalFormat format = new DecimalFormat("##.00");
@@ -288,7 +286,6 @@ public class Evaluation {
         }
         return aiConfusionMatrix;
     }
-
 
     //////////// SUPPORTING FUNCTIONS /////////////////////////////////////////////////
 
