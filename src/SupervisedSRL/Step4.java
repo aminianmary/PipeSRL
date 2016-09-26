@@ -1,86 +1,73 @@
 package SupervisedSRL;
 
-import SentenceStruct.Sentence;
-import SupervisedSRL.Strcutures.*;
-import ml.AveragedPerceptron;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Properties;
 import util.IO;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeMap;
 
 /**
  * Created by Maryam Aminian on 9/9/16.
  */
 public class Step4 {
 
-    public static void buildRerankerFeatureMap(Properties properties) throws java.lang.Exception {
-
-        if (!properties.getSteps().contains(4) || !properties.useReranker())
+    public static void buildModel4EntireData(Properties properties) throws Exception {
+        if (!properties.getSteps().contains(4))
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 4 -- Building Reranker FeatureMap\n>>>>>>>>>>>>>\n");
-        IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-        HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
-        int numOfPartitions = properties.getNumOfPartitions();
-        int aiBeamSize = properties.getNumOfAIBeamSize();
-        int acBeamSize = properties.getNumOfACBeamSize();
-        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        System.out.println("\n>>>>>>>>>>>>>\nStep 4.1 -- Building AI-AC models on entire data\n>>>>>>>>>>>>>\n");
+        String indexMapPath = properties.getIndexMapFilePath();
+        String pdModelDir = properties.getPdModelDir();
+        String aiModelPath = properties.getAiModelPath();
+        String acModelPath = properties.getAcModelPath();
+        String trainFilePath = properties.getTrainFile();
+        String devFilePath = properties.getDevFile();
+        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
-        int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        int aiBeamSize = properties.getNumOfAIBeamSize();
+        int acBeamSize = properties.getNumOfACBeamSize();
         double aiCoefficient = properties.getAiCoefficient();
-        String rerankerFeatureMapFilePath = properties.getRerankerFeatureMapPath();
-        String rerankerSeenFeaturesFilePath = properties.getNumOfRerankerSeenFeaturesPath();
 
+        ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
+        ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
 
-        assert globalReverseLabelMap.size() != 0;
-        RerankerFeatureMap rerankerFeatureMap = new RerankerFeatureMap(numOfAIFeatures + numOfGlobalFeatures);
-
-        for (int devPart = 0; devPart < numOfPartitions; devPart++) {
-            System.out.println("PART "+devPart);
-
-            String aiModelPath4Partition = properties.getPartitionAIModelPath(devPart);
-            String acModelPath4Partition = properties.getPartitionACModelPath(devPart);
-            Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifiersOnThisPartition = ModelInfo.loadTrainedModels(aiModelPath4Partition, acModelPath4Partition);
-
-            Decoder decoder = new Decoder(trainedClassifiersOnThisPartition.first, trainedClassifiersOnThisPartition.second);
-            String[] localClassifierLabelMap = trainedClassifiersOnThisPartition.second.getLabelMap();
-            ArrayList<String> devSentences = IO.load(properties.getPartitionDevDataPath(devPart));
-            String pdModelDir = properties.getPartitionPdModelDir(devPart);
-
-            for (int d = 0; d < devSentences.size(); d++) {
-                if (d % 1000 == 0)
-                    System.out.println(d + "/" + devSentences.size());
-
-                Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
-                TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
-                        (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, true, aiCoefficient);
-
-                for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
-                    String pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();
-                    ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAiCandidates();
-                    ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAcCandidates();
-
-                    for (int i = 0; i < aiCandidates.size(); i++) {
-                        Pair<Double, ArrayList<Integer>> aiCandid = aiCandidates.get(i);
-                        ArrayList<Pair<Double, ArrayList<Integer>>> acCandids4thisAiCandid = acCandidates.get(i);
-
-                        for (int j = 0; j < acCandids4thisAiCandid.size(); j++) {
-                            Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
-                            rerankerFeatureMap.updateSeenFeatures4ThisPredicate(pIdx, pLabel, devSentence, aiCandid, acCandid,
-                                    numOfAIFeatures, numOfACFeatures, indexMap,
-                                    localClassifierLabelMap, globalReverseLabelMap);
-                        }
-                    }
-                    //add gold instance feature to the featureMap
-                    rerankerFeatureMap.updateSeenFeatures4GoldInstance(pIdx, devSentence, numOfAIFeatures, numOfACFeatures,
-                            indexMap, globalReverseLabelMap);
-                }
-            }
-        }
-        rerankerFeatureMap.buildRerankerFeatureMap();
-        IO.write(rerankerFeatureMap.getFeatureMap(), rerankerFeatureMapFilePath);
-        IO.write(rerankerFeatureMap.getNumOfSeenFeatures(), rerankerSeenFeaturesFilePath);
+        IndexMap indexMap = IO.load(indexMapPath);
+        boolean isModelBuiltOnEntireTrainData = true;
+        Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
+                numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
+                aiCoefficient);
     }
+
+    public static void buildModel4Partitions(Properties properties) throws Exception {
+        if (!properties.getSteps().contains(4) || !properties.useReranker())
+            return;
+        System.out.println("\n>>>>>>>>>>>>>\nStep 4.2 -- Building AI-AC models on partitions\n>>>>>>>>>>>>>\n");
+        String indexMapPath = properties.getIndexMapFilePath();
+        int maxTrainingIters = properties.getMaxNumOfTrainingIterations();
+        int numOfAIFeatures = properties.getNumOfAIFeatures();
+        int numOfACFeatures = properties.getNumOfACFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        int aiBeamSize = properties.getNumOfAIBeamSize();
+        int acBeamSize = properties.getNumOfACBeamSize();
+        int numOfPartitions = properties.getNumOfPartitions();
+        IndexMap indexMap = IO.load(indexMapPath);
+        double aiCoefficient = properties.getAiCoefficient();
+
+        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
+            System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
+            String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
+            String aiModelPath = properties.getPartitionAIModelPath(devPartIdx);
+            String acModelPath = properties.getPartitionACModelPath(devPartIdx);
+            String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
+            String devFilePath = properties.getPartitionDevDataPath(devPartIdx);
+            ArrayList<String> trainSentences = IO.load(trainFilePath);
+            ArrayList<String> devSentences = IO.load(devFilePath);
+            boolean isModelBuiltOnEntireTrainData = false;
+            Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxTrainingIters,
+                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
+                    aiCoefficient);
+        }
+    }
+
 }

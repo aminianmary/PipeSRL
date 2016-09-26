@@ -2,26 +2,46 @@ package SupervisedSRL;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Properties;
+import SupervisedSRL.Strcutures.RerankerFeatureMap;
+import ml.AveragedPerceptron;
+import ml.RerankerAveragedPerceptron;
 import util.IO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Created by Maryam Aminian on 9/12/16.
+ * Created by monadiab on 9/12/16.
  */
 public class Step8 {
 
-    public static void evaluate(Properties properties) throws Exception {
+    public static void decode(Properties properties)
+            throws Exception {
         if (!properties.getSteps().contains(8))
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 8 -- Evaluation\n>>>>>>>>>>>>>\n");
-        HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
-        String outputFile = properties.getOutputFilePath();
+        System.out.println("\n>>>>>>>>>>>>>\nStep 8 -- Decoding\n>>>>>>>>>>>>>\n");
+        AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
+        AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-        ArrayList<String> goldSentences = IO.readCoNLLFile(properties.getDevFile());
-        HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
-        reverseLabelMap.put("0", reverseLabelMap.size());
-        Evaluation.evaluate(outputFile, goldSentences, indexMap, reverseLabelMap);
+        String pdModelDir = properties.getPdModelDir();
+        ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        int numOfAIFeatures = properties.getNumOfAIFeatures();
+        int numOfACFeatures = properties.getNumOfACFeatures();
+        int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
+        int aiMaxBeamSize = properties.getNumOfAIBeamSize();
+        int acMaxBeamSize = properties.getNumOfACBeamSize();
+        String outputFile = properties.getOutputFilePath();
+        double aiCoefficient = properties.getAiCoefficient();
+
+        if (properties.useReranker()) {
+            HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
+            RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
+            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, reranker, indexMap, rerankerFeatureMap, pdModelDir);
+            decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile, aiCoefficient);
+        } else {
+            SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(aiClassifier, acClassifier);
+            decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, outputFile, aiCoefficient);
+        }
     }
 }

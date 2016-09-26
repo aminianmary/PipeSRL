@@ -32,7 +32,6 @@ public class Train {
 
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         //training PD module
-        PD.train(trainSentencesInCONLLFormat, indexMap, numberOfTrainingIterations, pdModelDir, numOfPDFeatures);
         trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfTrainingIterations,
                 pdModelDir, aiModelPath, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
         trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfTrainingIterations,

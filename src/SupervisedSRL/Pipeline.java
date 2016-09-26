@@ -43,13 +43,15 @@ public class Pipeline {
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);
-            Step3.buildModel4EntireData(properties);
-            Step3.buildModel4Partitions(properties);
-            Step4.buildRerankerFeatureMap(properties);
-            Step5.generateRerankerInstances(properties);
-            Step6.buildRerankerModel(properties);
-            Step7.decode(properties);
-            Step8.evaluate(properties);
+            Step3.buildPDModel4EntireData(properties);
+            Step3.buildPDModel4Partitions(properties);
+            Step4.buildModel4EntireData(properties);
+            Step4.buildModel4Partitions(properties);
+            Step5.buildRerankerFeatureMap(properties);
+            Step6.generateRerankerInstances(properties);
+            Step7.buildRerankerModel(properties);
+            Step8.decode(properties);
+            Step9.evaluate(properties);
         } catch (Exception e) {
             e.printStackTrace();
         }
