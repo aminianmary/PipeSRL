@@ -30,7 +30,7 @@ public class PD {
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPLexicon =
                 buildPredicateLexicon(devSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
-
+        int totalNumOfPredicatesSeenInDev = 0;
         System.out.println("Training Started...");
 
         for (int plem : trainPLexicon.keySet()) {
@@ -38,6 +38,8 @@ public class PD {
             AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeaturs);
             double bestAcc = 0;
             int noImprovement = 0;
+            int lastIter =0;
+            boolean seenInDev = false;
 
             for (int i = 0; i < maxNumberOfTrainingIterations; i++) {
 
@@ -45,14 +47,17 @@ public class PD {
                     for (Object[] instance: trainPLexicon.get(plem).get(label))
                         ap.learnInstance(instance, label);
                 }
+
+                AveragedPerceptron decodeAp = ap.calculateAvgWeights();
                 //making prediction on dev instances of this plem
                 int correct =0;
                 int total =0;
                 if (devPLexicon.containsKey(plem)){
                     //seen in dev data
+                    seenInDev = true;
                     for (String goldLabel: devPLexicon.get(plem).keySet()) {
                         for (Object[] instance: devPLexicon.get(plem).get(goldLabel)){
-                            String prediction = ap.predict(instance);
+                            String prediction = decodeAp.predict(instance);
                             total++;
                             if (prediction.equals(goldLabel))
                                 correct++;
@@ -63,15 +68,27 @@ public class PD {
                         noImprovement = 0;
                         bestAcc = acc;
                         ap.saveModel(modelDir + "/" + plem);
+                        lastIter = i;
                     } else {
                         noImprovement++;
                         if (noImprovement > 5) {
+                            lastIter = i;
                             break;
                         }
                     }
+                }else{
+                    lastIter = i;
                 }
             }
+            //ap.saveModel(modelDir + "/" + plem);
+            String seenInDevStr = "unseen in dev";
+            if (seenInDev==true) {
+                seenInDevStr = "seen in dev";
+                totalNumOfPredicatesSeenInDev++;
+            }
+           System.out.println ("training for plem: "+ plem +"-"+seenInDevStr +"-last iter: "+ lastIter + " acc: "+ bestAcc);
         }
+        System.out.println("Total Number of Predicates seen in Dev/total Number of predicates in train data: " + totalNumOfPredicatesSeenInDev +"/" + trainPLexicon.size());
         System.out.println("Done!");
     }
 
