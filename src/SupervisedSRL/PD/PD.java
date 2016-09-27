@@ -21,6 +21,7 @@ public class PD {
 
     public static int unseenPreds = 0;
     public static int totalPreds = 0;
+    public static final int maxNumOfPDIterations4UnseenPredicates = 10;
 
     public static void train(List<String> trainSentencesInCONLLFormat, List<String> devSentencesInCONLLFormat,
                              IndexMap indexMap, int maxNumberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
@@ -78,9 +79,10 @@ public class PD {
                     }
                 }else{
                     lastIter = i;
+                    if (i >= maxNumOfPDIterations4UnseenPredicates)
+                        break;
                 }
             }
-            //ap.saveModel(modelDir + "/" + plem);
             String seenInDevStr = "unseen in dev";
             if (seenInDev==true) {
                 seenInDevStr = "seen in dev";

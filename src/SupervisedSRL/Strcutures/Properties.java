@@ -35,13 +35,14 @@ public class Properties {
     private String outputFilePath;
     private boolean useReranker;
     private ArrayList<Integer> steps;
+    private String modelsToBeTrained;
     private double aiCoefficient;
 
     public Properties(String trainFile, String devFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                      boolean useReranker, String steps, double aiCoefficient) {
+                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -76,6 +77,7 @@ public class Properties {
         this.useReranker = useReranker;
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
+        this.modelsToBeTrained = modelsToBeTrained;
         printModelProperties();
     }
 
@@ -183,6 +185,10 @@ public class Properties {
         return aiCoefficient;
     }
 
+    public String getModelsToBeTrained() {
+        return modelsToBeTrained;
+    }
+
     public String getPartitionTrainDataPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstantPrefixes.PARTITION_TRAIN_DATA;
     }
@@ -258,6 +264,7 @@ public class Properties {
                 "Max Number of AI Iterations: "+ maxNumOfAITrainingIterations+"\n" +
                 "Max Number of AC Iterations: "+ maxNumOfACTrainingIterations+"\n" +
                 "AI Coefficient: "+ aiCoefficient + "\n" +
+                "Models trained: "+ modelsToBeTrained+"\n"+
         "Pipeline Steps: "+ steps+"\n");
         if (useReranker)
             System.out.print("Reranker USED\n****************************\n");

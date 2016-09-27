@@ -16,7 +16,7 @@ public class Sentence {
     int[] words;
     int[] wordClusterIds;
     int[] posTags;
-    int[] posPrefixes;
+    int[] cPosTags;
     int[] lemmas;
     int[] lemmaClusterIds;
     String[] lemmas_str;
@@ -38,8 +38,8 @@ public class Sentence {
         words[0] = indexMap.str2int("ROOT");
         posTags = new int[numTokens];
         posTags[0] = words[0];
-        posPrefixes = new int[numTokens];
-        posPrefixes[0] = words[0];
+        cPosTags = new int[numTokens];
+        cPosTags[0] = words[0];
         lemmas = new int[numTokens];
         lemmas[0] = words[0];
         lemmas_str = new String[numTokens];
@@ -64,7 +64,7 @@ public class Sentence {
             wordClusterIds[index] = indexMap.getClusterId(fields[1]);
             depLabels[index] = indexMap.str2int(fields[11]);
             posTags[index] = indexMap.str2int(fields[5]);
-            posPrefixes[index] = indexMap.str2int(util.StringUtils.getPOSPrefix(fields[5]));
+            cPosTags[index] = indexMap.str2int(util.StringUtils.getCoarsePOS(fields[5]));
             lemmas[index] = indexMap.str2int(fields[3]);
             lemmaClusterIds[index] = indexMap.getClusterId(fields[3]);
 
@@ -184,9 +184,8 @@ public class Sentence {
         return posTags;
     }
 
-
-    public int[] getPosPrefixes() {
-        return posPrefixes;
+    public int[] getcPosTags() {
+        return cPosTags;
     }
 
     public int[] getDepHeads() {

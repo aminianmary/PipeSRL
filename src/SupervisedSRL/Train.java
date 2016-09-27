@@ -28,14 +28,24 @@ public class Train {
                              IndexMap indexMap,
                              int numberOfAITrainingIterations, int numberOfACTrainingIterations,
                              int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                             int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData, double aiCoefficient) throws Exception {
+                             int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData,
+                             double aiCoefficient, String modelsToBeTrained) throws Exception {
 
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
-        trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfAITrainingIterations,
-                pdModelDir, aiModelPath, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
-        trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfACTrainingIterations,
+        if (modelsToBeTrained.contains("AI")) {
+            System.out.print("\n>>>> Training AI >>>>\n");
+            trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfAITrainingIterations,
+                    pdModelDir, aiModelPath, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
+            System.out.print("\nDone!\n");
+        }
+        if (modelsToBeTrained.contains("AC")){
+            System.out.print("\n>>>> Training AC >>>>\n");
+            trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfACTrainingIterations,
                 pdModelDir, aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
                 aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient);
+            System.out.print("\nDone!...\n");
+
+        }
     }
 
     public static void trainAI(List<String> trainSentencesInCONLLFormat,

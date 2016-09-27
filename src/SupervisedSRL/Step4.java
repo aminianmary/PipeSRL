@@ -29,6 +29,7 @@ public class Step4 {
         int aiBeamSize = properties.getNumOfAIBeamSize();
         int acBeamSize = properties.getNumOfACBeamSize();
         double aiCoefficient = properties.getAiCoefficient();
+        String modelsToBeTrained = properties.getModelsToBeTrained();
 
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
@@ -37,7 +38,7 @@ public class Step4 {
         boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                 numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                aiCoefficient);
+                aiCoefficient, modelsToBeTrained);
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
@@ -55,6 +56,7 @@ public class Step4 {
         int numOfPartitions = properties.getNumOfPartitions();
         IndexMap indexMap = IO.load(indexMapPath);
         double aiCoefficient = properties.getAiCoefficient();
+        String modelsToBeTrained = properties.getModelsToBeTrained();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
@@ -68,7 +70,7 @@ public class Step4 {
             boolean isModelBuiltOnEntireTrainData = false;
             Train.train(trainSentences, devSentences, pdModelDir, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                     numOfAIFeatures, numOfACFeatures, numOfPDFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                    aiCoefficient);
+                    aiCoefficient, modelsToBeTrained);
         }
     }
 

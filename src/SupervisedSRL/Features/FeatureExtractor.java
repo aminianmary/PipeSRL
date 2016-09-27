@@ -69,6 +69,7 @@ public class FeatureExtractor {
         int[] sentenceLemmas = sentence.getLemmas();
         int[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
         int[] sentencePOSTags = sentence.getPosTags();
+        int[] sentenceCPOSTags = sentence.getcPosTags();
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
 
         //predicate features
@@ -77,9 +78,14 @@ public class FeatureExtractor {
         int pwCluster = sentenceWordsClusters[pIdx];
         int plemCluster = sentenceLemmasClusters[pIdx];
         int ppos = sentencePOSTags[pIdx];
+        int pcPos = sentenceCPOSTags[pIdx];
         int pdeprel = sentenceDepLabels[pIdx];
         int pprw = sentenceWords[sentenceDepHeads[pIdx]];
+        int pprlem = sentenceLemmas[sentenceDepHeads[pIdx]];
+        int pprwCluster = sentenceWordsClusters[sentenceDepHeads[pIdx]];
+        int pprlemaCluster = sentenceLemmasClusters[sentenceDepHeads[pIdx]];
         int pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
+        int pprcpos = sentenceCPOSTags[sentenceDepHeads[pIdx]];
         String pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
         String pchilddepset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
         String pchildposset = getChildSet(pIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
@@ -89,11 +95,16 @@ public class FeatureExtractor {
         pFeats.add(pw);
         pFeats.add(plem);
         pFeats.add(pwCluster);
-        pFeats.add(ppos);
         pFeats.add(plemCluster);
+        pFeats.add(ppos);
+        pFeats.add(pcPos);
         pFeats.add(pdeprel);
         pFeats.add(pprw);
+        pFeats.add(pprwCluster);
+        pFeats.add(pprlem);
+        pFeats.add(pprlemaCluster);
         pFeats.add(pprpos);
+        pFeats.add(pprcpos);
         pFeats.add(pdepsubcat);
         pFeats.add(pchilddepset);
         pFeats.add(pchildposset);
@@ -105,9 +116,14 @@ public class FeatureExtractor {
         features[index++] = pwCluster;
         features[index++] = plemCluster;
         features[index++] = ppos;
+        features[index++] = pcPos;
         features[index++] = pdeprel;
         features[index++] = pprw;
+        features[index++] = pprlem;
+        features[index++] = pprwCluster;
+        features[index++] = pprlemaCluster;
         features[index++] = pprpos;
+        features[index++] = pprcpos;
         features[index++] = pdepsubcat;
         features[index++] = pchilddepset;
         features[index++] = pchildposset;

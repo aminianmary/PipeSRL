@@ -78,8 +78,8 @@ public class SentenceTest {
         int[] posTags = sentence.getPosTags();
         assert posTags[10] == map.str2int("NN");
 
-        int[] posPrefixes = sentence.getPosPrefixes();
-        assert posPrefixes[17] == map.str2int("N");
+        int[] cPOSTags = sentence.getcPosTags();
+        assert cPOSTags[17] == map.str2int("N");
 
         int[] lemmas = sentence.getLemmas();
         assert lemmas[0] == map.str2int("ROOT");

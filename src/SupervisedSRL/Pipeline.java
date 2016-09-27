@@ -18,7 +18,7 @@ public class Pipeline {
     //predicate cluster features 3
     //argument cluster features 5
 
-    public final static int numOfPDFeatures = 144;
+    public final static int numOfPDFeatures = 289;
     public final static int numOfAIFeatures = 25 + 3 + 5 + 154;
     public final static int numOfACFeatures = 25 + 3 + 5 + 154;
     public final static int numOfGlobalFeatures = 1;
@@ -30,20 +30,21 @@ public class Pipeline {
         String modelDir = args[3];
         String outputDir = args[4];
         String steps = args[5];
-        int numOfPartitions = Integer.parseInt(args[6]);
-        int maxNumOfPDTrainingIterations = Integer.parseInt(args[7]);
-        int maxNumOfAITrainingIterations = Integer.parseInt(args[8]);
-        int maxNumOfACTrainingIterations = Integer.parseInt(args[9]);
-        int maxNumOfRerankerTrainingIterations = Integer.parseInt(args[10]);
-        int numOfAIBeamSize = Integer.parseInt(args[11]);
-        int numOfACBeamSize = Integer.parseInt(args[12]);
-        double aiCoefficient = Double.parseDouble(args[13]);
-        boolean reranker = Boolean.parseBoolean(args[14]);
+        String modelsToBeTrained = args[6];
+        int numOfPartitions = Integer.parseInt(args[7]);
+        int maxNumOfPDTrainingIterations = Integer.parseInt(args[8]);
+        int maxNumOfAITrainingIterations = Integer.parseInt(args[9]);
+        int maxNumOfACTrainingIterations = Integer.parseInt(args[10]);
+        int maxNumOfRerankerTrainingIterations = Integer.parseInt(args[11]);
+        int numOfAIBeamSize = Integer.parseInt(args[12]);
+        int numOfACBeamSize = Integer.parseInt(args[13]);
+        double aiCoefficient = Double.parseDouble(args[14]);
+        boolean reranker = Boolean.parseBoolean(args[15]);
 
         Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, outputDir, numOfPartitions,
                 maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
                 numOfAIBeamSize, numOfACBeamSize, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                reranker, steps, aiCoefficient);
+                reranker, steps, modelsToBeTrained, aiCoefficient);
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);
