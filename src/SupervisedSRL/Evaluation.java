@@ -93,8 +93,9 @@ public class Evaluation {
 
             assert correctPLabel+ wrongPLabel == goldPAs.size();
         }
+        double pdAcc= (double) correctPLabel / (correctPLabel + wrongPLabel);
         System.out.println("*********************************************");
-        System.out.println("Total Predicate Disambiguation Accuracy " + format.format((double) correctPLabel / (correctPLabel + wrongPLabel)));
+        System.out.println("Total Predicate Disambiguation Accuracy " + format.format(pdAcc));
         System.out.println("Total Number of Predicate Tokens in dev data: " + PD.totalPreds);
         System.out.println("Total Number of Unseen Predicate Tokens in dev data: " + PD.unseenPreds);
         System.out.println("*********************************************");
@@ -285,6 +286,29 @@ public class Evaluation {
             }
         }
         return aiConfusionMatrix;
+    }
+
+    public static void evaluatePD (ArrayList<String> goldSentences, String pdModelDir, IndexMap indexMap,
+                                   int numOfPDFeatures) throws Exception {
+
+        int correct =0;
+        int total =0;
+
+        for (String s : goldSentences){
+            Sentence sentence = new Sentence(s, indexMap );
+            HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesInfo();
+            HashMap<Integer, String> predicatedPredicateLabelMap = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
+            assert goldPredicateLabelMap.size() == predicatedPredicateLabelMap.size();
+            total += goldPredicateLabelMap.size();
+
+            for (int pIdx: goldPredicateLabelMap.keySet()) {
+                assert predicatedPredicateLabelMap.containsKey(pIdx);
+                if (goldPredicateLabelMap.get(pIdx).equals(predicatedPredicateLabelMap.get(pIdx)))
+                    correct++;
+            }
+        }
+        double acc = (double) correct/total;
+        System.out.print("PD Accuracy (on dev data): " + acc);
     }
 
     //////////// SUPPORTING FUNCTIONS /////////////////////////////////////////////////

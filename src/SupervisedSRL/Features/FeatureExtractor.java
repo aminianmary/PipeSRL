@@ -15,7 +15,6 @@ import java.util.TreeSet;
 
 public class FeatureExtractor {
     static HashSet<String> punctuations = new HashSet<String>();
-
     static {
         punctuations.add("P");
         punctuations.add("PUNC");
@@ -129,13 +128,14 @@ public class FeatureExtractor {
         features[index++] = pchildposset;
         features[index++] = pchildwset;
 
+        /*
         for (int i=0;i<pFeats.size();i++){
             for (int j=0; j< pFeats.size(); j++){
                 if (i!= j)
                     features[index++] =  pFeats.get(i) +" "+ pFeats.get(j);
             }
         }
-
+        */
         return features;
     }
 

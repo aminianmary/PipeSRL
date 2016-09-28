@@ -2,6 +2,7 @@ package SupervisedSRL.PD;
 
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
+import SupervisedSRL.Evaluation;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
@@ -23,7 +24,7 @@ public class PD {
     public static int totalPreds = 0;
     public static final int maxNumOfPDIterations4UnseenPredicates = 10;
 
-    public static void train(List<String> trainSentencesInCONLLFormat, List<String> devSentencesInCONLLFormat,
+    public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
                              IndexMap indexMap, int maxNumberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
             throws Exception {
         //creates lexicon of all predicates in the trainJoint set
@@ -88,10 +89,11 @@ public class PD {
                 seenInDevStr = "seen in dev";
                 totalNumOfPredicatesSeenInDev++;
             }
-           System.out.println ("training for plem: "+ plem +"-"+seenInDevStr +"-last iter: "+ lastIter + " acc: "+ bestAcc);
+           //System.out.println ("training for plem: "+ plem +"-"+seenInDevStr +"-last iter: "+ lastIter + " acc: "+ bestAcc);
         }
-        System.out.println("Total Number of Predicates seen in Dev/total Number of predicates in train data: " + totalNumOfPredicatesSeenInDev +"/" + trainPLexicon.size());
+        //System.out.println("Total Number of Predicates seen in Dev/total Number of predicates in train data: " + totalNumOfPredicatesSeenInDev +"/" + trainPLexicon.size());
         System.out.println("Done!");
+        Evaluation.evaluatePD(devSentencesInCONLLFormat, modelDir, indexMap, numOfPDFeaturs);
     }
 
 
