@@ -18,7 +18,7 @@ public class Predicate {
         predicateIndex = givenIndex;
         predicateLabel = givenType;
     }
-
+    
     public int getIndex() {
         return predicateIndex;
     }
@@ -26,5 +26,4 @@ public class Predicate {
     public String getLabel() {
         return predicateLabel;
     }
-
 }
