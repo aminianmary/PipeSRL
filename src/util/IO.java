@@ -225,4 +225,26 @@ public class IO {
         dir.mkdir();
         return true;
     }
+
+    public static HashMap<Integer, HashMap<Integer, String>> getDisambiguatedPredicatesFromOutput (String output) throws IOException {
+
+        HashMap<Integer, HashMap<Integer, String>> disambiguatedPredicates = new HashMap<>();
+        ArrayList<String> sentences = readCoNLLFile(output);
+        for (int senID =0 ; senID < sentences.size(); senID++){
+            HashMap<Integer, String> disambiguatedPredicates4ThisSentence = new HashMap<>();
+            String sentence = sentences.get(senID);
+            String[] tokens = sentence.trim().split("\n");
+
+            for (int tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
+                String token = tokens[tokenIdx];
+                String[] fields = token.split("\t");
+                int index = Integer.parseInt(fields[0]);
+                String predicateLabel = (!fields[13].equals("_")) ? fields[13]: "_";
+                if (!predicateLabel.equals("_"))
+                    disambiguatedPredicates4ThisSentence.put(index, predicateLabel);
+            }
+            disambiguatedPredicates.put(senID, disambiguatedPredicates4ThisSentence);
+        }
+        return disambiguatedPredicates;
+    }
 }

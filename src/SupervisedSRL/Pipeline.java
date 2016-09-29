@@ -18,7 +18,7 @@ public class Pipeline {
     //predicate cluster features 3
     //argument cluster features 5
 
-    public final static int numOfPDFeatures = 17;//289;
+    public final static int numOfPDFeatures = 289;
     public final static int numOfAIFeatures = 25 + 3 + 5 + 154;
     public final static int numOfACFeatures = 25 + 3 + 5 + 154;
     public final static int numOfGlobalFeatures = 1;
@@ -40,11 +40,12 @@ public class Pipeline {
         int numOfACBeamSize = Integer.parseInt(args[13]);
         double aiCoefficient = Double.parseDouble(args[14]);
         boolean reranker = Boolean.parseBoolean(args[15]);
+        String BJOutput = args[16];
 
         Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, outputDir, numOfPartitions,
                 maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
                 numOfAIBeamSize, numOfACBeamSize, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                reranker, steps, modelsToBeTrained, aiCoefficient);
+                reranker, steps, modelsToBeTrained, aiCoefficient, BJOutput);
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);

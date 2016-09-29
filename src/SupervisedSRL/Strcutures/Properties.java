@@ -37,12 +37,13 @@ public class Properties {
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
+    private String BJOutput;
 
     public Properties(String trainFile, String devFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient) {
+                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient, String BJOutput) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -78,7 +79,12 @@ public class Properties {
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
         this.modelsToBeTrained = modelsToBeTrained;
+        this.BJOutput = BJOutput;
         printModelProperties();
+    }
+
+    public String getBJOutput() {
+        return BJOutput;
     }
 
     public int getNumOfGlobalFeatures() {

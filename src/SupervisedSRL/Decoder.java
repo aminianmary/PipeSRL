@@ -38,6 +38,39 @@ public class Decoder {
     ////////////////////////////////// DECODE ////////////////////////////////////////////////////////
 
     //stacked decoding
+    public void decodeUsingDisambiguatedPredicates(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
+                       int aiMaxBeamSize, int acMaxBeamSize,
+                       int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                       String pdModelDir, String outputFile, double aiCoefficient, String BJoutput) throws Exception {
+
+        DecimalFormat format = new DecimalFormat("##.00");
+
+        System.out.println("Decoding started (on dev data)...");
+        long startTime = System.currentTimeMillis();
+        boolean decode = true;
+        HashMap<Integer, HashMap<Integer, String>> disambiguatedPredicates = IO.getDisambiguatedPredicatesFromOutput(BJoutput);
+        TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
+        ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
+
+        for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
+            if (d % 1000 == 0)
+                System.out.println(d + "/" + devSentencesInCONLLFormat.size());
+
+            String devSentence = devSentencesInCONLLFormat.get(d);
+            Sentence sentence = new Sentence(devSentence, indexMap);
+            HashMap<Integer, String> disambiguatdPredicates4ThisSentence = disambiguatedPredicates.get(d);
+
+            predictions[d] = (TreeMap<Integer, Prediction>) predictUsingDismabiguatedPredicates(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
+                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, false, aiCoefficient, disambiguatdPredicates4ThisSentence);
+
+            sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
+        }
+        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClassifier.getLabelMap(), outputFile);
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
+    }
+
+
     public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
                        int aiMaxBeamSize, int acMaxBeamSize,
                        int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
@@ -87,6 +120,38 @@ public class Decoder {
             predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
         }
         return predictedPAs;
+    }
+
+
+    public Object predictUsingDismabiguatedPredicates(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
+                          int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
+                          int numOfPDFeatures, String pdModelDir, boolean use4Reranker, double aiCoefficient,
+                          HashMap<Integer, String> predictedPredicates) throws Exception {
+        assert predictedPredicates.size() == sentence.getPredicatesInfo().size();
+        //HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
+        TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
+        TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
+        for (int pIdx : predictedPredicates.keySet()) {
+            // get best k argument assignment candidates
+            String pLabel = predictedPredicates.get(pIdx);
+            HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+
+            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);
+            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
+                    pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, aiCoefficient);
+
+            if (use4Reranker)
+                predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
+            else {
+                highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
+                predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
+            }
+        }
+
+        if (use4Reranker)
+            return predictedAIACCandidates;
+        else
+            return predictedPAs;
     }
 
 

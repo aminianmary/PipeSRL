@@ -33,7 +33,7 @@ public class Step8 {
         int acMaxBeamSize = properties.getNumOfACBeamSize();
         String outputFile = properties.getOutputFilePath();
         double aiCoefficient = properties.getAiCoefficient();
-
+        String BJOutput = properties.getBJOutput();
         if (properties.useReranker()) {
             HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
             RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
@@ -41,7 +41,9 @@ public class Step8 {
             decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile, aiCoefficient);
         } else {
             SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(aiClassifier, acClassifier);
-            decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, outputFile, aiCoefficient);
+            decoder.decodeUsingDisambiguatedPredicates(indexMap, devSentences, aiMaxBeamSize,
+                    acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir,
+                    outputFile, aiCoefficient, BJOutput);
         }
     }
 }
