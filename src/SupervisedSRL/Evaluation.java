@@ -58,14 +58,15 @@ public class Evaluation {
             assert sysOutPAs.size()== goldPAs.size();
 
             for (PA goldPA : goldPAs) {
-                int goldPIdx = goldPA.getPredicateIndex();
-                String goldPLabel = goldPA.getPredicateLabel();
+                int goldPIdx = goldPA.getPredicate().getIndex();
+                String goldPLabel = goldPA.getPredicate().getPredicateGoldLabel();
 
                 for (PA sysOutPA : sysOutPAs) {
-                    int sysOutPIdx = sysOutPA.getPredicateIndex();
+                    int sysOutPIdx = sysOutPA.getPredicate().getIndex();
                     if (goldPIdx == sysOutPIdx) {
                         //same predicate index (predicate indices are supposed to be given)
-                        String sysOutPLabel = sysOutPA.getPredicateLabel();
+                        //todo double check here to make sure it should be be gold or auto
+                        String sysOutPLabel = sysOutPA.getPredicate().getPredicateGoldLabel();
 
                         if (goldPLabel.equals(sysOutPLabel)) {
                             //same predicate labels
@@ -259,8 +260,7 @@ public class Evaluation {
         ArrayList<PA> goldPAs = goldSentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
         for (PA goldPA : goldPAs) {
-            int goldPIdx = goldPA.getPredicateIndex();
-            String goldPLabel = goldPA.getPredicateLabel();
+            int goldPIdx = goldPA.getPredicate().getIndex();
             for (int sysOutPIdx : prediction.keySet()) {
                 if (goldPIdx == sysOutPIdx) {
                     HashMap<Integer, Integer> prediction4ThisPredicate = prediction.get(sysOutPIdx).getArgumentLabels();

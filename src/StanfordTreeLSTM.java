@@ -37,7 +37,7 @@ public class StanfordTreeLSTM {
             //sentence has at least one predicate-argument
             for (PA pa : pas_list) {
 
-                int predicateIndex = pa.getPredicateIndex();
+                int predicateIndex = pa.getPredicate().getIndex();
                 for (int k = 1; k < words.length; k++)
                     sentences2write.append(words[k] + " ");
                 for (int k = 1; k < depRels.length; k++)

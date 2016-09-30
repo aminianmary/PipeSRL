@@ -1,7 +1,7 @@
 package SentenceStruct;
 
 import SupervisedSRL.Strcutures.IndexMap;
-
+import SupervisedSRL.PD.PD;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
@@ -11,17 +11,17 @@ import java.util.TreeSet;
  */
 public class Sentence {
 
-    int[] depHeads;
-    int[] depLabels;
-    int[] words;
-    int[] wordClusterIds;
-    int[] posTags;
-    int[] cPosTags;
-    int[] lemmas;
-    int[] lemmaClusterIds;
-    String[] lemmas_str;
-    TreeSet<Integer>[] reverseDepHeads;
-    PAs predicateArguments;
+    private int[] depHeads;
+    private int[] depLabels;
+    private int[] words;
+    private int[] wordClusterIds;
+    private int[] posTags;
+    private int[] cPosTags;
+    private int[] lemmas;
+    private int[] lemmaClusterIds;
+    private String[] lemmas_str;
+    private TreeSet<Integer>[] reverseDepHeads;
+    private PAs predicateArguments;
 
 
     public Sentence(String sentence, IndexMap indexMap) {
@@ -75,12 +75,11 @@ public class Sentence {
             } else
                 reverseDepHeads[depHead].add(index);
 
-            //setPredicate predicate information
-            String predicate = "_";
+            String predicateGoldLabel = null;
             if (!fields[13].equals("_")) {
                 predicatesSeq++;
-                predicate = fields[13];
-                predicateArguments.setPredicate(predicatesSeq, index, predicate);
+                predicateGoldLabel = fields[13];
+                predicateArguments.setPredicate(predicatesSeq, index, predicateGoldLabel);
             }
 
             if (fields.length > 14) //we have at least one argument
@@ -135,7 +134,6 @@ public class Sentence {
         return visited;
     }
 
-
     public ArrayList<Integer> getPOSPath(int source, int target) {
         int right = 0;
         int left = 1;
@@ -174,11 +172,9 @@ public class Sentence {
         return visited;
     }
 
-
     public PAs getPredicateArguments() {
         return predicateArguments;
     }
-
 
     public int[] getPosTags() {
         return posTags;
@@ -190,10 +186,6 @@ public class Sentence {
 
     public int[] getDepHeads() {
         return depHeads;
-    }
-
-    public String[] getLemmas_str() {
-        return lemmas_str;
     }
 
     public String[] getDepHeads_as_str() {
@@ -223,6 +215,10 @@ public class Sentence {
         return lemmaClusterIds;
     }
 
+    public String[] getLemmas_str() {
+        return lemmas_str;
+    }
+
     public TreeSet<Integer>[] getReverseDepHeads() {
         return reverseDepHeads;
     }
@@ -230,8 +226,23 @@ public class Sentence {
     public HashMap<Integer, String> getPredicatesInfo() {
         HashMap<Integer, String> predicatesInfo = new HashMap<Integer, String>();
         for (PA pa : predicateArguments.getPredicateArgumentsAsArray())
-            predicatesInfo.put(pa.getPredicateIndex(), pa.getPredicateLabel());
+            predicatesInfo.put(pa.getPredicate().getIndex(), pa.getPredicate().getPredicateAutoLabel());
 
         return predicatesInfo;
     }
+
+    public ArrayList<Predicate> getPredicates () {
+        ArrayList<Predicate> predicates = new ArrayList<>();
+        for (PA pa: predicateArguments.getPredicateArgumentsAsArray())
+            predicates.add(pa.getPredicate());
+        return predicates;
+    }
+
+    public ArrayList<Integer> getPredicatesIndices() {
+        ArrayList<Integer> predicateIndices = new ArrayList<>();
+        for (PA pa: predicateArguments.getPredicateArgumentsAsArray())
+            predicateIndices.add(pa.getPredicate().getIndex());
+        return predicateIndices;
+    }
+
 }

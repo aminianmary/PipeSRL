@@ -1,6 +1,7 @@
 package SupervisedSRL.PD;
 
 import SentenceStruct.PA;
+import SentenceStruct.Predicate;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Evaluation;
 import SupervisedSRL.Features.FeatureExtractor;
@@ -27,12 +28,11 @@ public class PD {
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
                              IndexMap indexMap, int maxNumberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
             throws Exception {
-        //creates lexicon of all predicates in the trainJoint set
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> trainPLexicon =
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPLexicon =
                 buildPredicateLexicon(devSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
-        int totalNumOfPredicatesSeenInDev = 0;
+
         System.out.println("Training Started...");
 
         for (int plem : trainPLexicon.keySet()) {
@@ -40,8 +40,6 @@ public class PD {
             AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeaturs);
             double bestAcc = 0;
             int noImprovement = 0;
-            int lastIter =0;
-            boolean seenInDev = false;
 
             for (int i = 0; i < maxNumberOfTrainingIterations; i++) {
 
@@ -50,13 +48,12 @@ public class PD {
                         ap.learnInstance(instance, label);
                 }
 
-                AveragedPerceptron decodeAp = ap.calculateAvgWeights();
                 //making prediction on dev instances of this plem
+                AveragedPerceptron decodeAp = ap.calculateAvgWeights();
                 int correct =0;
                 int total =0;
                 if (devPLexicon.containsKey(plem)){
                     //seen in dev data
-                    seenInDev = true;
                     for (String goldLabel: devPLexicon.get(plem).keySet()) {
                         for (Object[] instance: devPLexicon.get(plem).get(goldLabel)){
                             String prediction = decodeAp.predict(instance);
@@ -70,28 +67,18 @@ public class PD {
                         noImprovement = 0;
                         bestAcc = acc;
                         ap.saveModel(modelDir + "/" + plem);
-                        lastIter = i;
                     } else {
                         noImprovement++;
                         if (noImprovement > 5) {
-                            lastIter = i;
                             break;
                         }
                     }
                 }else{
-                    lastIter = i;
                     if (i >= maxNumOfPDIterations4UnseenPredicates)
                         break;
                 }
             }
-            String seenInDevStr = "unseen in dev";
-            if (seenInDev==true) {
-                seenInDevStr = "seen in dev";
-                totalNumOfPredicatesSeenInDev++;
-            }
-           //System.out.println ("training for plem: "+ plem +"-"+seenInDevStr +"-last iter: "+ lastIter + " acc: "+ bestAcc);
         }
-        //System.out.println("Total Number of Predicates seen in Dev/total Number of predicates in train data: " + totalNumOfPredicatesSeenInDev +"/" + trainPLexicon.size());
         System.out.println("Done!");
         Evaluation.evaluatePD(devSentencesInCONLLFormat, modelDir, indexMap, numOfPDFeaturs);
     }
@@ -100,17 +87,16 @@ public class PD {
     public static HashMap<Integer, String> predict(Sentence sentence, IndexMap indexMap, String modelDir, int numOfPDFeatures) throws Exception {
         //prediction assumes predicates are given (no pred ID, just pred Disambig)
         File f1;
-        ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        ArrayList<Predicate> predicates = sentence.getPredicates();
         int[] sentenceLemmas = sentence.getLemmas();
         String[] sentenceLemmas_str = sentence.getLemmas_str();
 
         HashMap<Integer, String> predictions = new HashMap<Integer, String>();
-        //given gold predicate ids, we just disambiguate them
-        for (PA pa : pas) {
+        for (Predicate p: predicates) {
             totalPreds++;
-            int pIdx = pa.getPredicateIndex();
+            int pIdx = p.getIndex();
+            assert p.getPredicateGoldLabel() == null;
             int plem = sentenceLemmas[pIdx];
-            //we use coarse POS tags instead of original POS tags
             Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
             f1 = new File(modelDir + "/" + plem );
             if (f1.exists() && !f1.isDirectory()) {
@@ -137,30 +123,31 @@ public class PD {
 
         for (int senID = 0; senID < sentencesInCONLLFormat.size(); senID++) {
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap);
-
-            ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+            ArrayList<Predicate> predicates = sentence.getPredicates();
             int[] sentenceLemmas = sentence.getLemmas();
 
-            for (PA pa : pas) {
-                int pIdx = pa.getPredicateIndex();
+            for (Predicate p: predicates) {
+                int pIdx = p.getIndex();
                 int plem = sentenceLemmas[pIdx];
-                String plabel = pa.getPredicateLabel();
+                //todo this should be the only place that predicate gold label is used
+                String pGoldLabel = p.getPredicateGoldLabel();
+                assert pGoldLabel!= null;
                 Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
 
                 if (!pLexicon.containsKey(plem)) {
                     HashSet<Object[]> fvs = new HashSet<>();
                     fvs.add(pdfeats);
                     HashMap<String, HashSet<Object[]>> featureVectors = new HashMap<>();
-                    featureVectors.put(plabel, fvs);
+                    featureVectors.put(pGoldLabel, fvs);
                     pLexicon.put(plem, featureVectors);
 
                 } else{
-                    if (!pLexicon.get(plem).containsKey(plabel)){
+                    if (!pLexicon.get(plem).containsKey(pGoldLabel)){
                         HashSet<Object[]> fvs = new HashSet<>();
                         fvs.add(pdfeats);
-                        pLexicon.get(plem).put(plabel, fvs);
+                        pLexicon.get(plem).put(pGoldLabel, fvs);
                     }else{
-                        pLexicon.get(plem).get(plabel).add(pdfeats);
+                        pLexicon.get(plem).get(pGoldLabel).add(pdfeats);
                     }
                 }
             }

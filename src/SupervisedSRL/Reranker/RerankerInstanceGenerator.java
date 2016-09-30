@@ -95,7 +95,7 @@ public class RerankerInstanceGenerator {
         HashMap<Integer, HashMap<Integer, Integer>> goldArgLabelMap = new HashMap<>();
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : goldPAs) {
-            int goldPIdx = pa.getPredicateIndex();
+            int goldPIdx = pa.getPredicate().getIndex();
             ArrayList<Argument> goldArgs = pa.getArguments();
             HashMap<Integer, Integer> goldArgMap = new HashMap<Integer, Integer>();
             for (Argument arg : goldArgs)

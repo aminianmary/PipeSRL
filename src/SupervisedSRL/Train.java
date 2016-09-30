@@ -220,18 +220,18 @@ public class Train {
         ArrayList<Object[]> featVectors = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
         Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
-        ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
+        ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
 
-        for (PA pa : pas) {
-            int pIdx = pa.getPredicateIndex();
-            ArrayList<Argument> currentArgs = pa.getArguments();
+        for (PA pa : goldPAs) {
+            int goldPIdx = pa.getPredicate().getIndex();
+            ArrayList<Argument> goldArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                Object[] featVector = FeatureExtractor.extractAIFeatures(pIdx, wordIdx,
+                Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
                         sentence, numOfFeatures, indexMap, false, 0);
 
-                String label = (isArgument(wordIdx, currentArgs).equals("")) ? "0" : "1";
+                String label = (isArgument(wordIdx, goldArgs).equals("")) ? "0" : "1";
                 featVectors.add(featVector);
                 labels.add(label);
             }
@@ -247,7 +247,7 @@ public class Train {
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
         for (PA pa : pas) {
-            int pIdx = pa.getPredicateIndex();
+            int pIdx = pa.getPredicate().getIndex();
             ArrayList<Argument> currentArgs = pa.getArguments();
             //extract features for arguments (not all words)
             for (Argument arg : currentArgs) {

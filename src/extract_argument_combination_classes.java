@@ -120,7 +120,7 @@ public class extract_argument_combination_classes {
             for (PA pa : pas) {
                 String label = "";
                 boolean firstArgAfterPredicate = true;
-                int predicateIndex = pa.getPredicateIndex();
+                int predicateIndex = pa.getPredicate().getIndex();
                 int predicateHeadIndex = sen.getDepHeads()[predicateIndex];
 
                 if (predicateHeadIndex == 0) {
@@ -186,7 +186,7 @@ public class extract_argument_combination_classes {
             for (PA pa : pas) {
                 String label = "";
                 boolean firstArgAfterPredicate = true;
-                int predicateIndex = pa.getPredicateIndex();
+                int predicateIndex = pa.getPredicate().getIndex();
 
                 //make sure predicate is a verb (conll08 data contains nominal predicates from NomaBank too)
                 if (indexMap.int2str(posTags[predicateIndex]).startsWith("VB")) {
@@ -254,7 +254,7 @@ public class extract_argument_combination_classes {
             boolean seenTheMainPredicate = false;
             for (PA pa : pas) {
                 HashSet<String> label = new HashSet<String>();
-                int predicateIndex = pa.getPredicateIndex();
+                int predicateIndex = pa.getPredicate().getIndex();
                 int predicateHeadIndex = sen.getDepHeads()[predicateIndex];
 
                 if (predicateHeadIndex == 0) {
@@ -287,7 +287,7 @@ public class extract_argument_combination_classes {
         } else {
             for (PA pa : pas) {
                 HashSet<String> label = new HashSet<String>();
-                int predicateIndex = pa.getPredicateIndex();
+                int predicateIndex = pa.getPredicate().getIndex();
 
                 //make sure predicate is a verb (conll08 data contains nominal predicates from NomaBank too)
                 if (indexMap.int2str(posTags[predicateIndex]).startsWith("VB")) {

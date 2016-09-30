@@ -157,12 +157,12 @@ public class Project {
         int[] targetPOSTags = targetSent.getPosTags();
 
         for (PA pa : sourcePredicateArguments) {
-            int pIdx = pa.getPredicateIndex();
+            int pIdx = pa.getPredicate().getIndex();
             int pPOS = sourcePOSTags[pIdx];
             //just project verbal predicates to target verbs (as it's the case in German supervised data)
 
             if (indexMap.int2str(pPOS).startsWith("V")) {
-                int pIndex = pa.getPredicateIndex();
+                int pIndex = pa.getPredicate().getIndex();
                 if (sentenceAlignmentDic.containsKey(pIndex)) {
 
                     int targetPIndex = sentenceAlignmentDic.get(pIndex);
@@ -170,8 +170,11 @@ public class Project {
                     int targetPWord = targetSent.getWords()[targetPIndex];
 
                     if (indexMap.int2str(targetPPOS).contains("V")) {
-                        Predicate projectedPred = new Predicate(targetPIndex, pa.getPredicateLabel());
-                        projectedPIndices.put(targetPIndex, pa.getPredicateLabel());
+                        //todo check predicate label
+                        Predicate projectedPred = new Predicate();
+                        projectedPred.setPredicateIndex(targetPIndex);
+                        projectedPred.setPredicateAutoLabel(pa.getPredicate().getPredicateGoldLabel());
+                        projectedPIndices.put(targetPIndex, pa.getPredicate().getPredicateGoldLabel());
 
                         ArrayList<Argument> args = pa.getArguments();
                         ArrayList<Argument> projectedArgs = new ArrayList<Argument>();
@@ -259,11 +262,10 @@ public class Project {
 
         //getting tp rate for predicate (ignoring the true label/just considering index)
         for (PA projectPA : projectedTags.getPredicateArgumentsAsArray()) {
-            int projecPI = projectPA.getPredicateIndex();
-            String projectPredicateType = projectPA.getPredicateLabel();
+            int projecPI = projectPA.getPredicate().getIndex();
 
             for (PA supervisedPA : targetPAs) {
-                if (supervisedPA.getPredicateIndex() == projecPI) //&& supervisedPA.getPredicateLabel().equals(projectPredicateType))
+                if (supervisedPA.getPredicate().getIndex() == projecPI) //&& supervisedPA.getPredicateLabel().equals(projectPredicateType))
                 {
                     //found a correctly projected predicate (tp)
                     total_tp_predicat++;

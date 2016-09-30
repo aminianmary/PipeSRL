@@ -6,24 +6,37 @@ package SentenceStruct;
 public class Predicate {
 
     int predicateIndex;
-    String predicateLabel;
+    String predicateGoldLabel = null;
+    String predicateAutoLabel = null;
 
 
     public Predicate() {
         predicateIndex = -1;
-        predicateLabel = "";
+        predicateGoldLabel = null;
+        predicateAutoLabel = null;
     }
 
-    public Predicate(int givenIndex, String givenType) {
-        predicateIndex = givenIndex;
-        predicateLabel = givenType;
-    }
-    
     public int getIndex() {
         return predicateIndex;
     }
 
-    public String getLabel() {
-        return predicateLabel;
+    public String getPredicateAutoLabel() {
+        return predicateAutoLabel;
+    }
+
+    public String getPredicateGoldLabel() {
+        return predicateGoldLabel;
+    }
+
+    public void setPredicateIndex(int predicateIndex) {
+        this.predicateIndex = predicateIndex;
+    }
+
+    public void setPredicateGoldLabel(String predicateGoldLabel) {
+        this.predicateGoldLabel = predicateGoldLabel;
+    }
+
+    public void setPredicateAutoLabel(String predicateAutoLabel) {
+        this.predicateAutoLabel = predicateAutoLabel;
     }
 }

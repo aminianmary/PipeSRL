@@ -91,9 +91,9 @@ public class SentenceTest {
 
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa : pas) {
-            System.out.println(pa.getPredicateIndex() + "\t" + pa.getPredicateLabel());
-            if (pa.getPredicateIndex() == 4) {
-                assert pa.getPredicateLabel().equals("temperature.01");
+            System.out.println(pa.getPredicate().getIndex() + "\t" + pa.getPredicate().getPredicateGoldLabel());
+            if (pa.getPredicate().getIndex() == 4) {
+                assert pa.getPredicate().getPredicateGoldLabel().equals("temperature.01");
                 assert pa.getAllPredArgDepTupls().contains(new PADependencyTuple(4, 4, "A2"));
                 assert pa.obtainArgumentType(4).equals("A2");
                 assert pa.obtainArgumentType(2).equals("A1");
@@ -106,7 +106,7 @@ public class SentenceTest {
             }
             for (Argument arg : pa.getArguments()) {
                 System.out.println("arg: " + arg.getIndex() + "\t" + arg.getType());
-                if (pa.getPredicateIndex() == 16)
+                if (pa.getPredicate().getIndex() == 16)
                     assert arg.getIndex() == 17;
             }
         }

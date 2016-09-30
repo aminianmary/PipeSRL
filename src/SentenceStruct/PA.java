@@ -33,14 +33,6 @@ public class PA {
         ams.add(a);
     }
 
-    public int getPredicateIndex() {
-        return pr.getIndex();
-    }
-
-    public String getPredicateLabel() {
-        return pr.getLabel();
-    }
-
     public ArrayList<Argument> getArguments() {
         return ams;
     }
