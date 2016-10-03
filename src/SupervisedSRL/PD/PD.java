@@ -92,6 +92,8 @@ public class PD {
         HashMap<Integer, String>[] pdPredictions = new HashMap[sentencesInCONLLFormat.size()];
 
         for (int d=0; d< sentencesInCONLLFormat.size(); d++){
+            if (d%1000 ==0)
+                System.out.print(d);
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(d), indexMap);
             pdPredictions[d] =predict4ThisSentence(sentence, indexMap, modelDir, numOfPDFeatures);
         }

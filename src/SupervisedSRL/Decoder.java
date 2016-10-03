@@ -85,39 +85,6 @@ public class Decoder {
         return predictedPAs;
     }
 
-
-    public Object predictUsingDismabiguatedPredicates(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                          int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
-                          int numOfPDFeatures, String pdModelDir, boolean use4Reranker, double aiCoefficient,
-                          HashMap<Integer, String> predictedPredicates) throws Exception {
-        assert predictedPredicates.size() == sentence.getPredicatesAutoLabelMap().size();
-        //HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
-        TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
-        TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
-        for (int pIdx : predictedPredicates.keySet()) {
-            // get best k argument assignment candidates
-            String pLabel = predictedPredicates.get(pIdx);
-            HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
-
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);
-            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
-                    pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, aiCoefficient);
-
-            if (use4Reranker)
-                predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
-            else {
-                highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
-                predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
-            }
-        }
-
-        if (use4Reranker)
-            return predictedAIACCandidates;
-        else
-            return predictedPAs;
-    }
-
-
     public Object predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                           int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
                           boolean use4Reranker, double aiCoefficient, HashMap<Integer, String> pdAutoLabels) throws Exception {

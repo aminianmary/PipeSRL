@@ -64,7 +64,7 @@ public class Train {
             int aiMaxBeamSize = properties.getNumOfAIBeamSize();
             int acMaxBeamSize = properties.getNumOfACBeamSize();
             String outputFile = properties.getOutputFilePath() + "_"+iter;
-            String pdAutoLabelsPath = properties.getTrainAutoPDLabelsPath();
+            String pdAutoLabelsPath = properties.getDevAutoPDLabelsPath();
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, ap,
