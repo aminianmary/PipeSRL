@@ -37,13 +37,14 @@ public class Properties {
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
-    private String BJOutput;
+    private String trainAutoPDLabelsPath;
+    private String devAutoPDLabelsPath;
 
     public Properties(String trainFile, String devFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient, String BJOutput) {
+                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -79,12 +80,17 @@ public class Properties {
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
         this.modelsToBeTrained = modelsToBeTrained;
-        this.BJOutput = BJOutput;
+        this.trainAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.TRAIN_AUTO_PD_LABELS;
+        this.devAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.DEV_AUTO_PD_LABELS;
         printModelProperties();
     }
 
-    public String getBJOutput() {
-        return BJOutput;
+    public String getTrainAutoPDLabelsPath() {
+        return trainAutoPDLabelsPath;
+    }
+
+    public String getDevAutoPDLabelsPath() {
+        return devAutoPDLabelsPath;
     }
 
     public int getNumOfGlobalFeatures() {
@@ -222,6 +228,14 @@ public class Properties {
     public String getRerankerInstancesFilePath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstantPrefixes.RERANKER_INSTANCES_FILE +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+    }
+
+    public String getPartitionTrainPDAutoLabelsPath(int devPartIdx){
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.TRAIN_AUTO_PD_LABELS;
+    }
+
+    public String getPartitionDevPDAutoLabelsPath(int devPartIdx){
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.DEV_AUTO_PD_LABELS;
     }
 
     public String getOutputDir() {

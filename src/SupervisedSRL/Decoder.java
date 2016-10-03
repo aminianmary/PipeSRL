@@ -2,7 +2,6 @@ package SupervisedSRL;
 
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
 import util.IO;
@@ -37,50 +36,15 @@ public class Decoder {
 
     ////////////////////////////////// DECODE ////////////////////////////////////////////////////////
 
-    //stacked decoding
-    public void decodeUsingDisambiguatedPredicates(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
-                       int aiMaxBeamSize, int acMaxBeamSize,
-                       int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                       String pdModelDir, String outputFile, double aiCoefficient, String BJoutput) throws Exception {
-
-        DecimalFormat format = new DecimalFormat("##.00");
-
-        System.out.println("Decoding started (on dev data)...");
-        long startTime = System.currentTimeMillis();
-        boolean decode = true;
-        HashMap<Integer, HashMap<Integer, String>> disambiguatedPredicates = IO.getDisambiguatedPredicatesFromOutput(BJoutput);
-        TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
-        ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
-
-        for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
-            if (d % 1000 == 0)
-                System.out.println(d + "/" + devSentencesInCONLLFormat.size());
-
-            String devSentence = devSentencesInCONLLFormat.get(d);
-            Sentence sentence = new Sentence(devSentence, indexMap);
-            HashMap<Integer, String> disambiguatdPredicates4ThisSentence = disambiguatedPredicates.get(d);
-
-            predictions[d] = (TreeMap<Integer, Prediction>) predictUsingDismabiguatedPredicates(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, false, aiCoefficient, disambiguatdPredicates4ThisSentence);
-
-            sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
-        }
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClassifier.getLabelMap(), outputFile);
-        long endTime = System.currentTimeMillis();
-        System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
-    }
-
-
     public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
                        int aiMaxBeamSize, int acMaxBeamSize,
-                       int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                       String pdModelDir, String outputFile, double aiCoefficient) throws Exception {
+                       int numOfAIFeatures, int numOfACFeatures, String outputFile, double aiCoefficient,
+                       String devPDAutoLabelsPath) throws Exception {
 
+        HashMap<Integer, String>[] devPDAutoLabels = IO.load(devPDAutoLabelsPath);
         DecimalFormat format = new DecimalFormat("##.00");
-
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
-        boolean decode = true;
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
 
@@ -90,9 +54,9 @@ public class Decoder {
 
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap);
-
+            sentence.setPDAutoLabels(devPDAutoLabels[d]);
             predictions[d] = (TreeMap<Integer, Prediction>) predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                    numOfAIFeatures, numOfACFeatures, numOfPDFeatures, pdModelDir, false, aiCoefficient);
+                    numOfAIFeatures, numOfACFeatures, false, aiCoefficient, devPDAutoLabels[d]);
 
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
         }
@@ -104,14 +68,13 @@ public class Decoder {
     ////////////////////////////////// PREDICT ////////////////////////////////////////////////////////
 
     public HashMap<Integer, Prediction> predictAI(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                  int numOfFeatures, String pdModelDir, int numOfPDFeatures)
+                                                  int numOfFeatures, HashMap<Integer, String> pdAutoLabels4ThisSentence)
             throws Exception {
-        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
 
-        for (int pIdx : predictedPredicates.keySet()) {
+        for (int pIdx : pdAutoLabels4ThisSentence.keySet()) {
             // get best k argument assignment candidates
-            String pLabel = predictedPredicates.get(pIdx);
+            String pLabel = pdAutoLabels4ThisSentence.get(pIdx);
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = new ArrayList();
             HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
 
@@ -127,7 +90,7 @@ public class Decoder {
                           int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
                           int numOfPDFeatures, String pdModelDir, boolean use4Reranker, double aiCoefficient,
                           HashMap<Integer, String> predictedPredicates) throws Exception {
-        assert predictedPredicates.size() == sentence.getPredicatesInfo().size();
+        assert predictedPredicates.size() == sentence.getPredicatesAutoLabelMap().size();
         //HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
@@ -157,14 +120,13 @@ public class Decoder {
 
     public Object predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                           int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
-                          int numOfPDFeatures, String pdModelDir, boolean use4Reranker, double aiCoefficient) throws Exception {
+                          boolean use4Reranker, double aiCoefficient, HashMap<Integer, String> pdAutoLabels) throws Exception {
 
-        HashMap<Integer, String> predictedPredicates = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
-        for (int pIdx : predictedPredicates.keySet()) {
+        for (int pIdx : pdAutoLabels.keySet()) {
             // get best k argument assignment candidates
-            String pLabel = predictedPredicates.get(pIdx);
+            String pLabel = pdAutoLabels.get(pIdx);
             HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
 
             ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);

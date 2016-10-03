@@ -8,12 +8,14 @@ import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;
+import util.IO;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Maryam Aminian on 5/19/16.
@@ -84,7 +86,21 @@ public class PD {
     }
 
 
-    public static HashMap<Integer, String> predict(Sentence sentence, IndexMap indexMap, String modelDir, int numOfPDFeatures) throws Exception {
+    public static void predict (ArrayList<String> sentencesInCONLLFormat, IndexMap indexMap,
+                                                      String modelDir, int numOfPDFeatures, String path2SavePredictions)
+            throws Exception{
+        HashMap<Integer, String>[] pdPredictions = new HashMap[sentencesInCONLLFormat.size()];
+
+        for (int d=0; d< sentencesInCONLLFormat.size(); d++){
+            Sentence sentence = new Sentence(sentencesInCONLLFormat.get(d), indexMap);
+            pdPredictions[d] =predict4ThisSentence(sentence, indexMap, modelDir, numOfPDFeatures);
+        }
+        IO.write(pdPredictions, path2SavePredictions);
+    }
+
+
+    public static HashMap<Integer, String> predict4ThisSentence(Sentence sentence, IndexMap indexMap, String modelDir,
+                                                                int numOfPDFeatures) throws Exception {
         //prediction assumes predicates are given (no pred ID, just pred Disambig)
         File f1;
         ArrayList<Predicate> predicates = sentence.getPredicates();

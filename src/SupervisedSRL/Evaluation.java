@@ -290,14 +290,12 @@ public class Evaluation {
 
     public static void evaluatePD (ArrayList<String> goldSentences, String pdModelDir, IndexMap indexMap,
                                    int numOfPDFeatures) throws Exception {
-
         int correct =0;
         int total =0;
-
         for (String s : goldSentences){
             Sentence sentence = new Sentence(s, indexMap );
-            HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesInfo();
-            HashMap<Integer, String> predicatedPredicateLabelMap = PD.predict(sentence, indexMap, pdModelDir, numOfPDFeatures);
+            HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesGoldLabelMap();
+            HashMap<Integer, String> predicatedPredicateLabelMap = PD.predict4ThisSentence(sentence, indexMap, pdModelDir, numOfPDFeatures);
             assert goldPredicateLabelMap.size() == predicatedPredicateLabelMap.size();
             total += goldPredicateLabelMap.size();
 

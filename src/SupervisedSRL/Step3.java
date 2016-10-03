@@ -12,7 +12,16 @@ import java.util.concurrent.ExecutorService;
  * Created by Maryam Aminian on 9/26/16.
  */
 public class Step3 {
-    public static void buildPDModel4EntireData (Properties properties) throws Exception{
+
+    public static void trainPDModel(Properties properties) throws Exception {
+        if (!properties.getSteps().contains(3))
+            return;
+        buildPDModel4EntireTrainData(properties);
+        if (properties.useReranker())
+            buildPDModel4TrainPartitions(properties);
+    }
+
+    public static void buildPDModel4EntireTrainData(Properties properties) throws Exception{
         if (!properties.getSteps().contains(3))
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 3.1 -- Building PD models on entire data\n>>>>>>>>>>>>>\n");
@@ -29,7 +38,7 @@ public class Step3 {
         PD.train(trainSentences, devSentences, indexMap, maxTrainingIters, pdModelDir, numOfPDFeatures);
     }
 
-    public static void buildPDModel4Partitions(Properties properties) throws Exception {
+    public static void buildPDModel4TrainPartitions(Properties properties) throws Exception {
         if (!properties.getSteps().contains(3) || !properties.useReranker())
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 3.2 -- Building PD models on partitions\n>>>>>>>>>>>>>\n");
@@ -49,6 +58,5 @@ public class Step3 {
 
             PD.train(trainSentences, devSentences, indexMap, maxTrainingIters, pdModelDir, numOfPDFeatures);
         }
-
     }
 }

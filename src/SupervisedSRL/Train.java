@@ -24,25 +24,25 @@ import java.util.List;
 public class Train {
     public static void train(ArrayList<String> trainSentencesInCONLLFormat,
                              ArrayList<String> devSentencesInCONLLFormat,
-                             String pdModelDir, String aiModelPath, String acModelPath,
-                             IndexMap indexMap,
+                             String aiModelPath, String acModelPath, IndexMap indexMap,
                              int numberOfAITrainingIterations, int numberOfACTrainingIterations,
-                             int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
+                             int numOfAIFeatures, int numOfACFeatures,
                              int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData,
-                             double aiCoefficient, String modelsToBeTrained) throws Exception {
+                             double aiCoefficient, String modelsToBeTrained,
+                             String trainPDAutoLabelsPath, String devPDAutoLabelsPath) throws Exception {
 
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         if (modelsToBeTrained.contains("AI")) {
             System.out.print("\n>>>> Training AI >>>>\n");
             trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfAITrainingIterations,
-                    pdModelDir, aiModelPath, numOfAIFeatures, numOfPDFeatures, aiMaxBeamSize);
+                    aiModelPath, numOfAIFeatures, aiMaxBeamSize, trainPDAutoLabelsPath, devPDAutoLabelsPath);
             System.out.print("\nDone!\n");
         }
         if (modelsToBeTrained.contains("AC")){
             System.out.print("\n>>>> Training AC >>>>\n");
             trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfACTrainingIterations,
-                pdModelDir, aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient);
+                aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures,
+                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath, devPDAutoLabelsPath);
             System.out.print("\nDone!...\n");
 
         }
@@ -50,12 +50,13 @@ public class Train {
 
     public static void trainAI(List<String> trainSentencesInCONLLFormat,
                                List<String> devSentencesInCONLLFormat,
-                               IndexMap indexMap,
-                               int numberOfTrainingIterations,
-                               String pdModelDir, String aiModelPath, int numOfFeatures, int numOfPDFeatures, int aiMaxBeamSize)
+                               IndexMap indexMap, int numberOfTrainingIterations, String aiModelPath, int numOfFeatures,
+                               int aiMaxBeamSize, String trainPDAutoLabelsPath, String devPDAutoLabelsPath)
             throws Exception {
-        DecimalFormat format = new DecimalFormat("##.00");
+        HashMap<Integer, String>[] trainPDAutoLabels = IO.load(trainPDAutoLabelsPath);
+        HashMap<Integer, String>[] devPDAutoLabels = IO.load(devPDAutoLabelsPath);
 
+        DecimalFormat format = new DecimalFormat("##.00");
         HashSet<String> labelSet = new HashSet<String>();
         labelSet.add("1");
         labelSet.add("0");
@@ -73,9 +74,10 @@ public class Train {
             int dataSize = 0;
             int s = 0;
             ap.correct = 0;
-            for (String sentence : trainSentencesInCONLLFormat) {
 
-                Object[] instances = obtainTrainInstance4AI(sentence, indexMap, numOfFeatures);
+            for (int sID=0; sID< trainSentencesInCONLLFormat.size(); sID++) {
+                Object[] instances = obtainTrainInstance4AI(trainSentencesInCONLLFormat.get(sID), indexMap, numOfFeatures,
+                        trainPDAutoLabels[sID]);
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
@@ -109,8 +111,6 @@ public class Train {
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
             Decoder argumentDecoder = new Decoder(ap.calculateAvgWeights(), "AI");
-            boolean decode = true;
-
             //ai confusion matrix
             int[][] aiConfusionMatrix = new int[2][2];
             aiConfusionMatrix[0][0] = 0;
@@ -122,8 +122,9 @@ public class Train {
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap);
+                sentence.setPDAutoLabels(devPDAutoLabels[d]);
                 HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
-                        numOfFeatures, pdModelDir, numOfPDFeatures);
+                        numOfFeatures, devPDAutoLabels[d]);
 
                 //we do evaluation for each sentence and update confusion matrix right here
                 aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
@@ -145,15 +146,16 @@ public class Train {
         }
     }
 
-    public static void trainAC(ArrayList<String> trainSentencesInCONLLFormat,
-                               ArrayList<String> devSentencesInCONLLFormat,
-                               HashSet<String> labelSet, IndexMap indexMap,
-                               int numberOfTrainingIterations,
-                               String pdModelDir, String aiModelPath, String acModelPath, int numOfAIFeatures, int numOfACFeatures, int numOfPDFeatures,
-                               int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData, double aiCoefficient)
-            throws Exception {
-        DecimalFormat format = new DecimalFormat("##.00");
 
+    public static void trainAC(ArrayList<String> trainSentencesInCONLLFormat,
+                               ArrayList<String> devSentencesInCONLLFormat, HashSet<String> labelSet, IndexMap indexMap,
+                               int numberOfTrainingIterations, String aiModelPath, String acModelPath, int numOfAIFeatures,
+                               int numOfACFeatures, int aiMaxBeamSize, int acMaxBeamSize,
+                               boolean isModelBuiltOnEntireTrainData, double aiCoefficient,
+                               String trainPDAutoLabelsPath, String devPDAutoLabelsPath)
+            throws Exception {
+        HashMap<Integer, String>[] trainPDAutoLabels = IO.load(trainPDAutoLabelsPath);
+        DecimalFormat format = new DecimalFormat("##.00");
         //building trainJoint instances
         AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfACFeatures);
 
@@ -167,8 +169,8 @@ public class Train {
             System.out.print("iteration:" + iter + "...\n");
             int dataSize = 0;
             int s = 0;
-            for (String sentence : trainSentencesInCONLLFormat) {
-                Object[] instances = obtainTrainInstance4AC(sentence, indexMap, numOfACFeatures);
+            for (int sID=0; sID< trainSentencesInCONLLFormat.size() ; sID++) {
+                Object[] instances = obtainTrainInstance4AC(trainSentencesInCONLLFormat.get(sID), indexMap, numOfACFeatures, trainPDAutoLabels[sID]);
                 s++;
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
@@ -191,8 +193,7 @@ public class Train {
             String tempOutputFile = ProjectConstantPrefixes.TMP_DIR + "AC_dev_output_" + iter;
             Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
             argumentDecoder.decode(indexMap, devSentencesInCONLLFormat,
-                    aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, numOfPDFeatures,
-                    pdModelDir, tempOutputFile, aiCoefficient);
+                    aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, tempOutputFile, aiCoefficient, devPDAutoLabelsPath);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());
@@ -216,10 +217,13 @@ public class Train {
         }
     }
 
-    public static Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
+
+    public static Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures,
+                                                  HashMap<Integer, String> pdAutoLabels) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
+        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);  //sentence object is built with null predicate auto labels (just with the gold ones from the file)
+        sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
 
@@ -229,7 +233,7 @@ public class Train {
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
                 Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
-                        sentence, numOfFeatures, indexMap, false, 0);
+                        sentence, numOfFeatures, indexMap, false, 0); //sentence object must have pd auto labels now
 
                 String label = (isArgument(wordIdx, goldArgs).equals("")) ? "0" : "1";
                 featVectors.add(featVector);
@@ -240,10 +244,12 @@ public class Train {
         return new Object[]{featVectors, labels};
     }
 
-    public static Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures) throws Exception {
+    public static Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures,
+                                                  HashMap<Integer, String> pdAutoLabels) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
         Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
+        sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
         for (PA pa : pas) {

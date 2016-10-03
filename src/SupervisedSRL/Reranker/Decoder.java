@@ -24,28 +24,27 @@ public class Decoder {
     RerankerAveragedPerceptron reranker;
     IndexMap indexMap;
     HashMap<Object, Integer>[] rerankerFeatureMap;
-    String pdModelDir;
 
     public Decoder(AveragedPerceptron aiClasssifier, AveragedPerceptron acClasssifier, RerankerAveragedPerceptron reranker,
-                   IndexMap indexMap, HashMap<Object, Integer>[] featureMap, String pdModelDir) {
+                   IndexMap indexMap, HashMap<Object, Integer>[] featureMap) {
         this.aiClasssifier = aiClasssifier;
         this.acClasssifier = acClasssifier;
         this.reranker = reranker;
         this.indexMap = indexMap;
         this.rerankerFeatureMap = featureMap;
-        this.pdModelDir = pdModelDir;
     }
 
     private int predict(RerankerPool pool) throws Exception {
         return reranker.argmax(pool, true);
     }
 
-    public void decode(ArrayList<String> testSentences, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                       int aiMaxBeamSize, int acMaxBeamSize, String modelDir, String outputFile, double aiCoefficient) throws Exception {
+    public void decode(ArrayList<String> testSentences, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
+                       int aiMaxBeamSize, int acMaxBeamSize, String outputFile, double aiCoefficient, String pdAutoLabelsPath) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.aiClasssifier, this.acClasssifier);
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
         TreeMap<Integer, Prediction>[] predictions = new TreeMap[testSentences.size()];
+        HashMap<Integer, String>[] pdAutoLabels = IO.load(pdAutoLabelsPath);
 
         for (int senIdx = 0; senIdx < testSentences.size(); senIdx++) {
             if (senIdx%1000 ==0)
@@ -58,7 +57,7 @@ public class Decoder {
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(testSentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                            numOfAIFeatures, numOfACFeatures, numOfPDFeatures, modelDir, true, aiCoefficient);
+                            numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdAutoLabels[senIdx]);
 
             //creating the pool and making prediction
             predictions4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);

@@ -78,7 +78,7 @@ public class RerankerFeatureMap implements Serializable {
             updateSeenRerankerFeatures(acFeats, 0);
         }
 
-        String pLabel = sentence.getPredicatesInfo().get(pIdx);
+        String pLabel = sentence.getPredicatesAutoLabelMap().get(pIdx);
         ArrayList<Integer> aiAssignment = new ArrayList<Integer>();
         ArrayList<Integer> acAssignment = new ArrayList<Integer>();
         for (int arg : goldArgMap.keySet()) {

@@ -40,24 +40,22 @@ public class Pipeline {
         int numOfACBeamSize = Integer.parseInt(args[13]);
         double aiCoefficient = Double.parseDouble(args[14]);
         boolean reranker = Boolean.parseBoolean(args[15]);
-        String BJOutput = args[16];
 
         Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, outputDir, numOfPartitions,
                 maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
                 numOfAIBeamSize, numOfACBeamSize, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                reranker, steps, modelsToBeTrained, aiCoefficient, BJOutput);
+                reranker, steps, modelsToBeTrained, aiCoefficient);
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);
-            Step3.buildPDModel4EntireData(properties);
-            Step3.buildPDModel4Partitions(properties);
-            Step4.buildModel4EntireData(properties);
-            Step4.buildModel4Partitions(properties);
-            Step5.buildRerankerFeatureMap(properties);
-            Step6.generateRerankerInstances(properties);
-            Step7.buildRerankerModel(properties);
-            Step8.decode(properties);
-            Step9.evaluate(properties);
+            Step3.trainPDModel(properties);
+            Step4.predictPDLabels(properties);
+            Step5.trainAIAICModels(properties);
+            Step6.buildRerankerFeatureMap(properties);
+            Step7.generateRerankerInstances(properties);
+            Step8.trainRerankerModel(properties);
+            Step9.decode(properties);
+            Step10.evaluate(properties);
         } catch (Exception e) {
             e.printStackTrace();
         }

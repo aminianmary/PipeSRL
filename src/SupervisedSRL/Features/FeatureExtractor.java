@@ -1541,7 +1541,7 @@ public class FeatureExtractor {
             int[] sentenceWordsClusterIds = sentence.getWordClusterIds();
             int[] sentenceLemmaClusterIds = sentence.getLemmaClusterIds();
             TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
-            HashMap<Integer, String> sentencePredicatesInfo = sentence.getPredicatesInfo();
+            HashMap<Integer, String> sentencePredicatesInfo = sentence.getPredicatesAutoLabelMap();
 
             //predicate features
             pw = sentenceWords[pIdx];

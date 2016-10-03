@@ -129,7 +129,7 @@ public class RerankerInstanceGenerator {
             addToRerankerFeats(rerankerFeatureVector, aiFeats, 0, rerankerFeatureMap, false, numOfAIFeats);
             addToRerankerFeats(rerankerFeatureVector, acFeats, numOfAIFeats, rerankerFeatureMap, false, numOfAIFeats);
         }
-        String pLabel = sentence.getPredicatesInfo().get(pIdx);
+        String pLabel = sentence.getPredicatesAutoLabelMap().get(pIdx);
         ArrayList<Integer> aiAssignment = new ArrayList<>();
         ArrayList<Integer> acAssignment = new ArrayList<>();
         for (int arg : goldMap.keySet()) {

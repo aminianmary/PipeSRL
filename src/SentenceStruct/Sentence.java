@@ -223,10 +223,18 @@ public class Sentence {
         return reverseDepHeads;
     }
 
-    public HashMap<Integer, String> getPredicatesInfo() {
+    public HashMap<Integer, String> getPredicatesAutoLabelMap() {
         HashMap<Integer, String> predicatesInfo = new HashMap<Integer, String>();
         for (PA pa : predicateArguments.getPredicateArgumentsAsArray())
             predicatesInfo.put(pa.getPredicate().getIndex(), pa.getPredicate().getPredicateAutoLabel());
+
+        return predicatesInfo;
+    }
+
+    public HashMap<Integer, String> getPredicatesGoldLabelMap() {
+        HashMap<Integer, String> predicatesInfo = new HashMap<Integer, String>();
+        for (PA pa : predicateArguments.getPredicateArgumentsAsArray())
+            predicatesInfo.put(pa.getPredicate().getIndex(), pa.getPredicate().getPredicateGoldLabel());
 
         return predicatesInfo;
     }
@@ -245,4 +253,12 @@ public class Sentence {
         return predicateIndices;
     }
 
+    public void setPDAutoLabels (HashMap<Integer, String> pdAutoLabels){
+        assert pdAutoLabels.size() == predicateArguments.getPredicateArgumentsAsArray().size();
+        for (PA pa: predicateArguments.getPredicateArgumentsAsArray()){
+            int pIdx = pa.getPredicate().getIndex();
+            assert pdAutoLabels.containsKey(pIdx);
+            pa.getPredicate().setPredicateAutoLabel(pdAutoLabels.get(pIdx));
+        }
+    }
 }

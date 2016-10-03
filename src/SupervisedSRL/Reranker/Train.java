@@ -33,6 +33,7 @@ public class Train {
 
         for (int iter = 0; iter < numOfTrainingIterations; iter++) {
             System.out.println("Iteration " + iter + "\n>>>>>>>>>>>\n");
+
             for (int devPart = 0; devPart < numOfPartitions; devPart++) {
                 System.out.println("Loading/learning train instances for dev part " + devPart + "\n");
                 FileInputStream fis = new FileInputStream(properties.getRerankerInstancesFilePath(devPart));
@@ -56,21 +57,20 @@ public class Train {
             AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
             AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
             IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-            String pdModelDir = properties.getPdModelDir();
             ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
-            int numOfPDFeatures = properties.getNumOfPDFeatures();
             int numOfAIFeatures = properties.getNumOfAIFeatures();
             int numOfACFeatures = properties.getNumOfACFeatures();
             int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
             int aiMaxBeamSize = properties.getNumOfAIBeamSize();
             int acMaxBeamSize = properties.getNumOfACBeamSize();
             String outputFile = properties.getOutputFilePath() + "_"+iter;
+            String pdAutoLabelsPath = properties.getTrainAutoPDLabelsPath();
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, ap,
-                    indexMap, rerankerFeatureMap, pdModelDir);
-            decoder.decode(devSentences, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    aiMaxBeamSize, acMaxBeamSize, pdModelDir, outputFile, aiCoefficient);
+                    indexMap, rerankerFeatureMap);
+            decoder.decode(devSentences, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
+                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdAutoLabelsPath);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());

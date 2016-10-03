@@ -17,5 +17,7 @@ public class ProjectConstantPrefixes {
     public static final String OUTPUT_FILE = "/system.out";
     public static final String PARTITION_TRAIN_DATA = "/train";
     public static final String PARTITION_DEV_DATA = "/dev";
+    public static final String TRAIN_AUTO_PD_LABELS = "/train.autoPLabels";
+    public static final String DEV_AUTO_PD_LABELS = "/dev.autoPLabels";
 
 }
