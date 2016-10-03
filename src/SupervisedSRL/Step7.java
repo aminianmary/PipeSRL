@@ -70,6 +70,7 @@ public class Step7 {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentences.size());
             Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
+            devSentence.setPDAutoLabels(pdAutoLabels[d]);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = RerankerInstanceGenerator.getGoldArgLabelMap(devSentence, globalReverseLabelMap);
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =

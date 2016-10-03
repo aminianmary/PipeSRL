@@ -25,7 +25,6 @@ public class Step9 {
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
         String pdAutoLabelsPath = properties.getDevAutoPDLabelsPath();
         ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
-        int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();

@@ -56,8 +56,11 @@ public class Step4 {
             String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
             String devFilePath = properties.getPartitionDevDataPath(devPartIdx);
             String devPDAutoLabelsPath = properties.getPartitionDevPDAutoLabelsPath(devPartIdx);
+            String trainPDAutoLabelsPath = properties.getPartitionTrainPDAutoLabelsPath(devPartIdx);
             ArrayList<String> trainSentences = IO.load(trainFilePath);
             ArrayList<String> devSentences = IO.load(devFilePath);
+
+            PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
             PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
         }
     }

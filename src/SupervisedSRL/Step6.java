@@ -51,6 +51,7 @@ public class Step6 {
                     System.out.println(d + "/" + devSentences.size());
 
                 Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
+                devSentence.setPDAutoLabels(devPDAutoLabels[d]);
                 TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                         (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
                                 numOfAIFeatures, numOfACFeatures, true, aiCoefficient, devPDAutoLabels[d]);
