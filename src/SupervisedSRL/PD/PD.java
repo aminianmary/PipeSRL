@@ -82,10 +82,6 @@ public class PD {
             }
         }
         System.out.println("Done!");
-        System.out.println("\nMaking predictions on dev data: ");
-        Evaluation.evaluatePD(devSentencesInCONLLFormat, modelDir, indexMap, numOfPDFeaturs);
-        System.out.println("\nMaking predictions on train data: ");
-        Evaluation.evaluatePD(trainSentencesInCONLLFormat, modelDir, indexMap, numOfPDFeaturs);
     }
 
 
@@ -93,13 +89,28 @@ public class PD {
                                                       String modelDir, int numOfPDFeatures, String path2SavePredictions)
             throws Exception{
         HashMap<Integer, String>[] pdPredictions = new HashMap[sentencesInCONLLFormat.size()];
+        int total =0;
+        int correct=0;
 
         for (int d=0; d< sentencesInCONLLFormat.size(); d++){
             if (d%1000 ==0)
-                System.out.print(d);
+                System.out.print(d+"...");
+
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(d), indexMap);
+            HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesGoldLabelMap();
             pdPredictions[d] =predict4ThisSentence(sentence, indexMap, modelDir, numOfPDFeatures);
+            assert goldPredicateLabelMap.size() == pdPredictions[d].size();
+            total += goldPredicateLabelMap.size();
+
+            for (int pIdx: goldPredicateLabelMap.keySet()) {
+                assert pdPredictions[d].containsKey(pIdx);
+                if (goldPredicateLabelMap.get(pIdx).equals(pdPredictions[d].get(pIdx)))
+                    correct++;
+            }
         }
+        System.out.print(sentencesInCONLLFormat.size()+"\n");
+        double acc = (double) correct/total;
+        System.out.print("PD Accuracy: " + acc);
         IO.write(pdPredictions, path2SavePredictions);
     }
 

@@ -36,7 +36,9 @@ public class Step4 {
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
         IndexMap indexMap = IO.load(indexMapPath);
 
+        System.out.print("\nMaking predictions on train data...\n");
         PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
+        System.out.print("\nMaking predictions on dev data...\n");
         PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
     }
 
@@ -60,7 +62,9 @@ public class Step4 {
             ArrayList<String> trainSentences = IO.load(trainFilePath);
             ArrayList<String> devSentences = IO.load(devFilePath);
 
+            System.out.print("\nMaking predictions on train data...\n");
             PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
+            System.out.print("\nMaking predictions on dev data...\n");
             PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
         }
     }
