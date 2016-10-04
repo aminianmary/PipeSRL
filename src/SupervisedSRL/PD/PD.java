@@ -82,7 +82,10 @@ public class PD {
             }
         }
         System.out.println("Done!");
+        System.out.println("\nMaking predictions on dev data: ");
         Evaluation.evaluatePD(devSentencesInCONLLFormat, modelDir, indexMap, numOfPDFeaturs);
+        System.out.println("\nMaking predictions on train data: ");
+        Evaluation.evaluatePD(trainSentencesInCONLLFormat, modelDir, indexMap, numOfPDFeaturs);
     }
 
 
