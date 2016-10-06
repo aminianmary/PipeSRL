@@ -1,7 +1,7 @@
 package SentenceStruct;
 
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.PD.PD;
+import java.lang.Object;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
@@ -96,80 +96,93 @@ public class Sentence {
         }
     }
 
-    public ArrayList<Integer> getDepPath(int source, int target) {
-        int right = 0;
-        int left = 1;
-        ArrayList<Integer> visited = new ArrayList<Integer>();
+    public ArrayList<Integer> getDepPath(int predIndex, int argIndex) {
+        Object[] pathInfo = getPath(predIndex, argIndex);
+        ArrayList<Integer> pathDepLabels = (ArrayList<Integer>) pathInfo[1];
+        ArrayList<Integer> pathDirections = (ArrayList<Integer>) pathInfo[3];
+        ArrayList<Integer> depPath= new ArrayList<>();
 
-        if (source != target) {
-            if (reverseDepHeads[source] != null) {
-                //source has some children
-                for (int child : reverseDepHeads[source]) {
-                    if (child == target) {
-                        if (child > source) {
-                            visited.add(depLabels[child] << 1 | right);
-                        } else {
-                            visited.add(depLabels[child] << 1 | left);
-                        }
-                        break;
-                    } else {
-                        if (child > source) {
-                            visited.add(depLabels[child] << 1 | right);
-                        } else {
-                            visited.add(depLabels[child] << 1 | left);
-                        }
-                        ArrayList<Integer> visitedFromThisChild = getDepPath(child, target);
-                        if (visitedFromThisChild.size() != 0) {
-                            visited.addAll(visitedFromThisChild);
-                            break;
-                        } else
-                            visited.clear();
-                    }
-                }
-            } else {
-                //source does not have any children + we have not still met the target --> there is no path between source and target
-                visited.clear();
-            }
-        }
-        return visited;
+        for (int i=0; i< pathDepLabels.size(); i++)
+            if (pathDepLabels.get(i) != -1)
+                depPath.add(pathDepLabels.get(i) << 1 | pathDirections.get(i));
+        return depPath;
     }
 
-    public ArrayList<Integer> getPOSPath(int source, int target) {
-        int right = 0;
-        int left = 1;
-        ArrayList<Integer> visited = new ArrayList<Integer>();
+    public ArrayList<Integer> getPOSPath(int predIndex, int argIndex){
+        Object[] pathInfo = getPath(predIndex, argIndex);
+        ArrayList<Integer> pathPOSTags = (ArrayList<Integer>) pathInfo[2];
+        ArrayList<Integer> pathDirections = (ArrayList<Integer>) pathInfo[3];
+        int commonIndex = findCommonIndex((ArrayList<Integer>) pathInfo[1]);
+        assert commonIndex!= -1;
+        ArrayList<Integer> posPath= new ArrayList<>();
 
-        if (source != target) {
-            if (reverseDepHeads[source] != null) {
-                //source has some children
-                for (int child : reverseDepHeads[source]) {
-                    if (child == target) {
-                        if (child > source) {
-                            visited.add(right);
-                        } else {
-                            visited.add(left);
-                        }
-                        break;
-                    } else {
-                        if (child > source) {
-                            visited.add(posTags[child] << 1 | right);
-                        } else {
-                            visited.add(posTags[child] << 1 | left);
-                        }
-                        ArrayList<Integer> visitedFromThisChild = getPOSPath(child, target);
-                        if (visitedFromThisChild.size() != 0) {
-                            visited.addAll(visitedFromThisChild);
-                            break;
-                        } else
-                            visited.clear();
-                    }
-                }
-            } else {
-                //source does not have any children + we have not still met the target --> there is no path between source and target
-                visited.clear();
+        for (int i=0; i< commonIndex; i++)
+            posPath.add(pathPOSTags.get(i) << 1 | pathDirections.get(i));
+        for (int j= commonIndex ; j< pathPOSTags.size()-1 ; j++)
+            posPath.add(pathPOSTags.get(j) << 1 | pathDirections.get(j+1));
+        posPath.add(pathPOSTags.get(pathPOSTags.size()-1));
+
+        return posPath;
+    }
+
+    public Object[] getPath(int predIndex, int argIndex){
+        int up =0;
+        int down =1;
+        ArrayList<Integer> predPath=pathToRoot(predIndex);
+        ArrayList<Integer> argPath=pathToRoot(argIndex);
+
+        ArrayList<Integer> finalPathWordIndices=new ArrayList<>();
+        ArrayList<Integer> finalPathDepLabels=new ArrayList<>();
+        ArrayList<Integer> finalPathPOS=new ArrayList<>();
+        ArrayList<Integer> finalPathDirections=new ArrayList<>();
+
+
+        int commonIndex=0;
+        int min=(predPath.size()<argPath.size()?predPath.size():argPath.size());
+        for(int i=0;i<min;++i) {
+            if(predPath.get(i)==argPath.get(i)){ //Always true at root (ie first index)
+                commonIndex=i;
             }
         }
-        return visited;
+        for(int j=predPath.size()-1;j>=commonIndex;--j){
+            int wordIdx= predPath.get(j);
+            finalPathWordIndices.add(wordIdx);
+            if (j==commonIndex)
+                finalPathDepLabels.add(-1);
+            else
+                finalPathDepLabels.add(depLabels[wordIdx]);
+            finalPathPOS.add(posTags[wordIdx]);
+            finalPathDirections.add(down);
+        }
+        for(int j=commonIndex+1;j<argPath.size();++j){
+            int wordIdx= argPath.get(j);
+            finalPathWordIndices.add(wordIdx);
+            finalPathDepLabels.add(depLabels[wordIdx]);
+            finalPathPOS.add(posTags[wordIdx]);
+            finalPathDirections.add(up);
+        }
+        return new Object[]{finalPathWordIndices, finalPathDepLabels, finalPathPOS, finalPathDirections};
+    }
+
+    public  ArrayList<Integer> pathToRoot(int wordIndex){
+        ArrayList<Integer> path;
+        if(wordIndex == 0){
+            //Root element
+            path=new ArrayList<Integer>();
+            path.add(wordIndex);
+            return path;
+        }
+        path=pathToRoot(depHeads[wordIndex]);
+        path.add(wordIndex);
+        return path;
+    }
+
+    public Integer findCommonIndex (ArrayList<Integer> pathDepLabels)
+    {
+        for (int i=0; i< pathDepLabels.size(); i++)
+            if (pathDepLabels.get(i) ==-1)
+                return i;
+        return -1;
     }
 
     public PAs getPredicateArguments() {

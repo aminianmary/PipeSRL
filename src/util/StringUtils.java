@@ -8,17 +8,13 @@ import java.util.Collection;
  */
 public class StringUtils {
 
-    // todo
     public static String convertPathArrayIntoString(ArrayList<Integer> depPathArray) {
-        // todo StringBuilder
-        //StringBuilder depPath= new StringBuilder();
         String depPath = "";
         for (int dep : depPathArray) {
             //depPath.append(dep);
             //depPath.append("\t");
             depPath += dep + "\t";
         }
-        //todo find .replaceAll("\t","_") in all occurrences and remove them!
         return depPath.trim();
     }
 

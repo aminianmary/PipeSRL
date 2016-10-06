@@ -1550,7 +1550,6 @@ public class FeatureExtractor {
             plem = sentenceLemmas[pIdx];
             plem_cluster = sentenceLemmaClusterIds[pIdx];
             pSense = sentencePredicatesInfo.get(pIdx);
-            assert pSense!= null;
             pdeprel = sentenceDepLabels[pIdx];
             pprw = sentenceWords[sentenceDepHeads[pIdx]];
             pprw_cluster = sentenceWordsClusterIds[sentenceDepHeads[pIdx]];
