@@ -14,10 +14,12 @@ public class ProjectConstantPrefixes {
     public static final String RERANKER_INSTANCES_FILE = "/reranker.instances";
     public static final String GLOBAL_REVERSE_LABEL_MAP = "_reverseLabelMap";
     public static final String RERANKER_MODEL = "/reranker.model";
-    public static final String OUTPUT_FILE = "/system.out";
+    public static final String OUTPUT_FILE_DEV = "/system.out.dev.";
+    public static final String OUTPUT_FILE_TEST = "/system.out.test.";
     public static final String PARTITION_TRAIN_DATA = "/train";
     public static final String PARTITION_DEV_DATA = "/dev";
     public static final String TRAIN_AUTO_PD_LABELS = "/train.autoPLabels";
     public static final String DEV_AUTO_PD_LABELS = "/dev.autoPLabels";
+    public static final String TEST_AUTO_PD_LABELS = "/test.autoPLabels";
 
 }

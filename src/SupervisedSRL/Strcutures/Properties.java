@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public class Properties {
     private String trainFile;
     private String devFile;
+    private String testFile;
     private String clusterFile;
     private String modelDir;
     private String outputDir;
@@ -32,15 +33,18 @@ public class Properties {
     private String rerankerSeenFeaturesPath;
     private String globalReverseLabelMapPath;
     private String rerankerModelPath;
-    private String outputFilePath;
+    private String outputFilePathDev;
+    private String outputFilePathTest;
     private boolean useReranker;
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
     private String trainAutoPDLabelsPath;
     private String devAutoPDLabelsPath;
+    private String testAutoPDLabelsPath;
 
-    public Properties(String trainFile, String devFile, String clusterFile, String modelDir, String outputDir,
+
+    public Properties(String trainFile, String devFile, String testFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
@@ -48,6 +52,7 @@ public class Properties {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
+        this.testFile = testFile;
         this.clusterFile = clusterFile;
         this.modelDir = modelDir;
         this.outputDir = outputDir;
@@ -74,7 +79,9 @@ public class Properties {
         this.rerankerModelPath = modelDir + ProjectConstantPrefixes.RERANKER_MODEL +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         String reranker = (useReranker) ? "wr" : "wor";
-        this.outputFilePath = outputDir + ProjectConstantPrefixes.OUTPUT_FILE + "."+ reranker +
+        this.outputFilePathDev = outputDir + ProjectConstantPrefixes.OUTPUT_FILE_DEV + "."+ reranker +
+                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
+        this.outputFilePathTest = outputDir + ProjectConstantPrefixes.OUTPUT_FILE_TEST + "."+ reranker +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.useReranker = useReranker;
         this.aiCoefficient = aiCoefficient;
@@ -82,6 +89,7 @@ public class Properties {
         this.modelsToBeTrained = modelsToBeTrained;
         this.trainAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.TRAIN_AUTO_PD_LABELS;
         this.devAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.DEV_AUTO_PD_LABELS;
+        this.testAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.TEST_AUTO_PD_LABELS;
         printModelProperties();
     }
 
@@ -91,6 +99,10 @@ public class Properties {
 
     public String getDevAutoPDLabelsPath() {
         return devAutoPDLabelsPath;
+    }
+
+    public String getTestAutoPDLabelsPath() {
+        return testAutoPDLabelsPath;
     }
 
     public int getNumOfGlobalFeatures() {
@@ -103,6 +115,10 @@ public class Properties {
 
     public String getDevFile() {
         return devFile;
+    }
+
+    public String getTestFile() {
+        return testFile;
     }
 
     public String getClusterFile() {
@@ -189,8 +205,12 @@ public class Properties {
         return rerankerModelPath;
     }
 
-    public String getOutputFilePath() {
-        return outputFilePath;
+    public String getOutputFilePathDev() {
+        return outputFilePathDev;
+    }
+
+    public String getOutputFilePathTest() {
+        return outputFilePathTest;
     }
 
     public double getAiCoefficient() {
@@ -262,6 +282,7 @@ public class Properties {
         System.out.print("\n************** MODEL PROPERTIES **************\n" +
                 "Train File Path : "+ trainFile +"\n" +
                 "Dev File Path: " + devFile +"\n" +
+                "Test File Path: "+ testFile +"\n" +
                 "Cluster File Path: "+ clusterFile+"\n" +
                 "Model Directory: "+ modelDir+"\n" +
                 "Output Directory: "+ outputDir+"\n" +
@@ -272,7 +293,8 @@ public class Properties {
                 "Reranker FeatureMap Path: "+ rerankerFeatureMapPath+"\n" +
                 "Global Reverse LabeMap Path: "+ globalReverseLabelMapPath+"\n" +
                 "Reranker Model Path: "+ rerankerModelPath+"\n" +
-                "Output File Path: "+ outputFilePath+"\n" +
+                "Dev Output File Path: "+ outputFilePathDev+"\n" +
+                "Test Output File Path: "+ outputFilePathTest+"\n" +
                 "Number of Partitions: "+ numOfPartitions+"\n" +
                 "AI Beam Size: "+ numOfAIBeamSize+"\n" +
                 "AC Beam Size: "+ numOfACBeamSize+"\n" +

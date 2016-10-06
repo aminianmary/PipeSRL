@@ -29,17 +29,22 @@ public class Step4 {
         String pdModelDir = properties.getPdModelDir();
         String trainFilePath = properties.getTrainFile();
         String devFilePath = properties.getDevFile();
+        String testFilePath = properties.getTestFile();
         String trainPDAutoLabelsPath = properties.getTrainAutoPDLabelsPath();
         String devPDAutoLabelsPath = properties.getDevAutoPDLabelsPath();
+        String testPDAutoLabelsPath = properties.getTestAutoPDLabelsPath();
         int numOfPDFeatures = properties.getNumOfPDFeatures();
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
+        ArrayList<String> testSentences = IO.readCoNLLFile(testFilePath);
         IndexMap indexMap = IO.load(indexMapPath);
 
         System.out.print("\nMaking predictions on train data...\n");
         PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
         System.out.print("\nMaking predictions on dev data...\n");
         PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+        System.out.print("\nMaking predictions on test data...\n");
+        PD.predict(testSentences, indexMap, pdModelDir, numOfPDFeatures, testPDAutoLabelsPath);
     }
 
     public static void predictPDLabels4Partitions (Properties properties) throws Exception

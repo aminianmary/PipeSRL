@@ -26,22 +26,23 @@ public class Pipeline {
     public static void main(String[] args) {
         String trainFile = args[0];
         String devFile = args[1];
-        String clusterFile = args[2];
-        String modelDir = args[3];
-        String outputDir = args[4];
-        String steps = args[5];
-        String modelsToBeTrained = args[6];
-        int numOfPartitions = Integer.parseInt(args[7]);
-        int maxNumOfPDTrainingIterations = Integer.parseInt(args[8]);
-        int maxNumOfAITrainingIterations = Integer.parseInt(args[9]);
-        int maxNumOfACTrainingIterations = Integer.parseInt(args[10]);
-        int maxNumOfRerankerTrainingIterations = Integer.parseInt(args[11]);
-        int numOfAIBeamSize = Integer.parseInt(args[12]);
-        int numOfACBeamSize = Integer.parseInt(args[13]);
-        double aiCoefficient = Double.parseDouble(args[14]);
-        boolean reranker = Boolean.parseBoolean(args[15]);
+        String testFile = args[2];
+        String clusterFile = args[3];
+        String modelDir = args[4];
+        String outputDir = args[5];
+        String steps = args[6];
+        String modelsToBeTrained = args[7];
+        int numOfPartitions = Integer.parseInt(args[8]);
+        int maxNumOfPDTrainingIterations = Integer.parseInt(args[9]);
+        int maxNumOfAITrainingIterations = Integer.parseInt(args[10]);
+        int maxNumOfACTrainingIterations = Integer.parseInt(args[11]);
+        int maxNumOfRerankerTrainingIterations = Integer.parseInt(args[12]);
+        int numOfAIBeamSize = Integer.parseInt(args[13]);
+        int numOfACBeamSize = Integer.parseInt(args[14]);
+        double aiCoefficient = Double.parseDouble(args[15]);
+        boolean reranker = Boolean.parseBoolean(args[16]);
 
-        Properties properties = new Properties(trainFile, devFile, clusterFile, modelDir, outputDir, numOfPartitions,
+        Properties properties = new Properties(trainFile, devFile, testFile, clusterFile, modelDir, outputDir, numOfPartitions,
                 maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
                 numOfAIBeamSize, numOfACBeamSize, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
                 reranker, steps, modelsToBeTrained, aiCoefficient);

@@ -63,7 +63,7 @@ public class Train {
             int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
             int aiMaxBeamSize = properties.getNumOfAIBeamSize();
             int acMaxBeamSize = properties.getNumOfACBeamSize();
-            String outputFile = properties.getOutputFilePath() + "_"+iter;
+            String outputFile = properties.getOutputFilePathDev() + "_"+iter;
             String pdAutoLabelsPath = properties.getDevAutoPDLabelsPath();
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 

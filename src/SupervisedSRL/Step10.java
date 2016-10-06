@@ -17,11 +17,18 @@ public class Step10 {
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 10 -- Evaluation\n>>>>>>>>>>>>>\n");
         HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
-        String outputFile = properties.getOutputFilePath();
+        String devOutputFile = properties.getOutputFilePathDev();
+        String testOutputFile = properties.getOutputFilePathTest();
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-        ArrayList<String> goldSentences = IO.readCoNLLFile(properties.getDevFile());
+        ArrayList<String> devGoldSentences = IO.readCoNLLFile(properties.getDevFile());
+        ArrayList<String> testGoldSentences = IO.readCoNLLFile(properties.getTestFile());
         HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
         reverseLabelMap.put("0", reverseLabelMap.size());
-        Evaluation.evaluate(outputFile, goldSentences, indexMap, reverseLabelMap);
+
+        System.out.println("Evaluating dev output >>>>>>\n");
+        Evaluation.evaluate(devOutputFile, devGoldSentences, indexMap, reverseLabelMap);
+
+        System.out.println("Evaluating test output >>>>>>\n");
+        Evaluation.evaluate(testOutputFile, testGoldSentences, indexMap, reverseLabelMap);
     }
 }
