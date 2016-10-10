@@ -109,7 +109,7 @@ public class PD {
             }
         }
         System.out.print(sentencesInCONLLFormat.size()+"\n");
-        double acc = (double) correct/total;
+        double acc = ((double) correct/total) *100;
         System.out.print("PD Accuracy: " + acc);
         IO.write(pdPredictions, path2SavePredictions);
     }
@@ -127,7 +127,6 @@ public class PD {
         for (Predicate p: predicates) {
             totalPreds++;
             int pIdx = p.getIndex();
-            assert p.getPredicateGoldLabel() == null;
             int plem = sentenceLemmas[pIdx];
             Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
             f1 = new File(modelDir + "/" + plem );
@@ -139,15 +138,20 @@ public class PD {
             } else {
                 //unseen predicate --> assign lemma.01 (default sense) as predicate label instead of null
                 unseenPreds++;
-                if (plem != indexMap.unknownIdx)
+                if (plem != indexMap.unknownIdx) {
                     predictions.put(pIdx, indexMap.int2str(plem) + ".01"); //seen pLem
-                else
+                    if (indexMap.int2str(plem).equals("null"))
+                        System.out.print("Hi I'm null");
+                }
+                else {
                     predictions.put(pIdx, sentenceLemmas_str[pIdx] + ".01"); //unseen pLem
+                    if (sentenceLemmas_str[pIdx].equals("null"))
+                        System.out.print("Hi I'm null");
+                }
             }
         }
         return predictions;
     }
-
 
     public static HashMap<Integer, HashMap<String, HashSet<Object[]>>> buildPredicateLexicon
             (List<String> sentencesInCONLLFormat, IndexMap indexMap, int numOfPDFeatures) throws Exception {

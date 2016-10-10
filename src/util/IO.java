@@ -226,9 +226,9 @@ public class IO {
         return true;
     }
 
-    public static HashMap<Integer, HashMap<Integer, String>> getDisambiguatedPredicatesFromOutput (String output) throws IOException {
+    public static HashMap<Integer, String>[] getDisambiguatedPredicatesFromOutput (String output, int numOfSentences) throws IOException {
 
-        HashMap<Integer, HashMap<Integer, String>> disambiguatedPredicates = new HashMap<>();
+        HashMap<Integer, String>[] disambiguatedPredicates = new HashMap[numOfSentences];
         ArrayList<String> sentences = readCoNLLFile(output);
         for (int senID =0 ; senID < sentences.size(); senID++){
             HashMap<Integer, String> disambiguatedPredicates4ThisSentence = new HashMap<>();
@@ -239,11 +239,11 @@ public class IO {
                 String token = tokens[tokenIdx];
                 String[] fields = token.split("\t");
                 int index = Integer.parseInt(fields[0]);
-                String predicateLabel = (!fields[13].equals("_")) ? fields[13]: "_";
+                String predicateLabel = fields[13];
                 if (!predicateLabel.equals("_"))
                     disambiguatedPredicates4ThisSentence.put(index, predicateLabel);
             }
-            disambiguatedPredicates.put(senID, disambiguatedPredicates4ThisSentence);
+            disambiguatedPredicates[senID] = disambiguatedPredicates4ThisSentence;
         }
         return disambiguatedPredicates;
     }

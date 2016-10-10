@@ -51,6 +51,7 @@ public class Decoder {
                 System.out.println(senIdx+"/"+ testSentences.size());
 
             Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
+            testSentence.setPDAutoLabels(pdAutoLabels[senIdx]);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(testSentences.get(senIdx)));
             TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();

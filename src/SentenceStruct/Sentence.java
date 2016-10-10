@@ -1,6 +1,7 @@
 package SentenceStruct;
 
 import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Pair;
 import java.lang.Object;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +67,7 @@ public class Sentence {
             posTags[index] = indexMap.str2int(fields[5]);
             cPosTags[index] = indexMap.str2int(util.StringUtils.getCoarsePOS(fields[5]));
             lemmas[index] = indexMap.str2int(fields[3]);
+            lemmas_str[index] = fields[3];
             lemmaClusterIds[index] = indexMap.getClusterId(fields[3]);
 
             if (reverseDepHeads[depHead] == null) {

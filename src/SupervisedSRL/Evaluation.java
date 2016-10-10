@@ -65,7 +65,6 @@ public class Evaluation {
                     int sysOutPIdx = sysOutPA.getPredicate().getIndex();
                     if (goldPIdx == sysOutPIdx) {
                         //same predicate index (predicate indices are supposed to be given)
-                        //todo double check here to make sure it should be be gold or auto
                         String sysOutPLabel = sysOutPA.getPredicate().getPredicateGoldLabel();
 
                         if (goldPLabel.equals(sysOutPLabel)) {
@@ -94,7 +93,7 @@ public class Evaluation {
 
             assert correctPLabel+ wrongPLabel == goldPAs.size();
         }
-        double pdAcc= (double) correctPLabel / (correctPLabel + wrongPLabel);
+        double pdAcc= (double) correctPLabel / (correctPLabel + wrongPLabel) *100;
         System.out.println("*********************************************");
         System.out.println("Total Predicate Disambiguation Accuracy " + format.format(pdAcc));
         System.out.println("Total Number of Predicate Tokens in dev data: " + PD.totalPreds);
@@ -288,25 +287,81 @@ public class Evaluation {
         return aiConfusionMatrix;
     }
 
-    public static void evaluatePD (ArrayList<String> goldSentences, String pdModelDir, IndexMap indexMap,
-                                   int numOfPDFeatures) throws Exception {
+    public static void evaluatePD (ArrayList<String> trainSentences, ArrayList<String> goldEvalSentences,
+                                   HashMap<Integer, String>[] pdPredictionsOnEvalData, IndexMap indexMap, int numOfPDFeatures)
+            throws Exception {
+        DecimalFormat format = new DecimalFormat("##.00");
+        int seenLemm_seenSense_correct =0;
+        int seenLemm_unseenSense_correct =0;
+        int unseenLemma_correct =0;
+
+        int seenLemm_seenSense_total =0;
+        int seenLemm_unseenSense_total =0;
+        int unseenLemma_total =0;
+
         int correct =0;
         int total =0;
-        for (String s : goldSentences){
-            Sentence sentence = new Sentence(s, indexMap );
+
+        HashMap<Integer, HashMap<String, HashSet<Object[]>>> trainPredicateLexicon =
+                PD.buildPredicateLexicon(trainSentences, indexMap, numOfPDFeatures);
+
+        for (int senID =0 ; senID < goldEvalSentences.size() ; senID++){
+            Sentence sentence = new Sentence(goldEvalSentences.get(senID), indexMap );
+            int[] sentenceLemmas = sentence.getLemmas();
+            String[] sentenceLemmaStr = sentence.getLemmas_str();
             HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesGoldLabelMap();
-            HashMap<Integer, String> predicatedPredicateLabelMap = PD.predict4ThisSentence(sentence, indexMap, pdModelDir, numOfPDFeatures);
+            HashMap<Integer, String> predicatedPredicateLabelMap = pdPredictionsOnEvalData[senID];
             assert goldPredicateLabelMap.size() == predicatedPredicateLabelMap.size();
             total += goldPredicateLabelMap.size();
 
             for (int pIdx: goldPredicateLabelMap.keySet()) {
-                assert predicatedPredicateLabelMap.containsKey(pIdx);
-                if (goldPredicateLabelMap.get(pIdx).equals(predicatedPredicateLabelMap.get(pIdx)))
+                int predicateLemma = sentenceLemmas[pIdx];
+                String goldPredicateLabel = goldPredicateLabelMap.get(pIdx);
+                String predictedPredicateLabel =predicatedPredicateLabelMap.get(pIdx);
+
+                if (goldPredicateLabel.equals(predictedPredicateLabel))
                     correct++;
+
+                if (trainPredicateLexicon.containsKey(predicateLemma)){
+                    //seen lemma
+                    if (trainPredicateLexicon.get(predicateLemma).containsKey(goldPredicateLabel))
+                    {
+                        //seen sense
+                        seenLemm_seenSense_total++;
+                        if (goldPredicateLabel.equals(predictedPredicateLabel))
+                            seenLemm_seenSense_correct++;
+                    }else{
+                        //unseen sense
+                        seenLemm_unseenSense_total++;
+                        System.out.println("**SEEN LEMMA-UNSEEN SENSE** Predicate Lemma: ("+ predicateLemma+")"+
+                                indexMap.int2str(predicateLemma) + " gold label: "+ goldPredicateLabel+" predicted label: "+
+                                predictedPredicateLabel);
+                        System.out.println ("SEEN SENSES IN THE TRAIN DATA: "+ trainPredicateLexicon.get(predicateLemma).keySet());
+                        if (goldPredicateLabel.equals(predictedPredicateLabel)) {
+                            seenLemm_unseenSense_correct++;
+                            System.out.println("!!!!!!");
+                        }
+                    }
+                }else{
+                    //unseen lemma
+                    unseenLemma_total++;
+                    System.out.println("**UNSEEN LEMMA** Sentence: Predicate Lemma: ("+ predicateLemma+")"+
+                    indexMap.int2str(predicateLemma) +"-"+ sentenceLemmaStr[pIdx] +" gold label: "+ goldPredicateLabel+" predicted label: "+ predictedPredicateLabel);
+                    if (goldPredicateLabel.equals(predictedPredicateLabel))
+                        unseenLemma_correct++;
+                }
             }
         }
-        double acc = (double) correct/total;
-        System.out.print("PD Accuracy (on dev data): " + acc);
+
+        double seenLemma_seenSense_acc = ((double) seenLemm_seenSense_correct/seenLemm_seenSense_total) * 100;
+        double seenLemma_unseenSense_acc = ((double) seenLemm_unseenSense_correct/seenLemm_unseenSense_total) * 100;
+        double unseenLemma_acc = ((double) unseenLemma_correct/unseenLemma_total) * 100;
+        double total_acc = ((double) correct/total) * 100;
+
+        System.out.print("\nPD Accuracy on seenLemma_seenSense: " + seenLemm_seenSense_correct + "/" + seenLemm_seenSense_total + "= " + format.format(seenLemma_seenSense_acc)+"\n");
+        System.out.print("\nPD Accuracy on seenLemma_unseenSense: " + seenLemm_unseenSense_correct + "/" + seenLemm_unseenSense_total +"= " + format.format(seenLemma_unseenSense_acc)+"\n");
+        System.out.print("\nPD Accuracy on unseenLemma: " + unseenLemma_correct +"/" + unseenLemma_total +"= " + format.format(unseenLemma_acc)+"\n");
+        System.out.print("\nPD Accuracy: " + correct +"/"+total +"= "+format.format(total_acc)+"\n");
     }
 
     //////////// SUPPORTING FUNCTIONS /////////////////////////////////////////////////
