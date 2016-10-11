@@ -39,8 +39,8 @@ public class Step4 {
         ArrayList<String> testSentences = IO.readCoNLLFile(testFilePath);
         IndexMap indexMap = IO.load(indexMapPath);
 
-        //System.out.print("\nMaking predictions on train data...\n");
-        //PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
+        System.out.print("\nMaking predictions on train data...\n");
+        PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
         System.out.print("\nMaking predictions on dev data...\n");
         PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
         System.out.print("\nMaking predictions on test data...\n");

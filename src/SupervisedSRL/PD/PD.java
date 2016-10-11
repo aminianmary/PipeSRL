@@ -34,28 +34,33 @@ public class PD {
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPLexicon =
                 buildPredicateLexicon(devSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
-
+        int numOfSavedModelFiles =0;
         System.out.println("Training Started...");
+        System.out.println("trainPLexicon num of lemmas: " + trainPLexicon.size());
+
 
         for (int plem : trainPLexicon.keySet()) {
             HashSet<String> possibleLabels = new HashSet<>(trainPLexicon.get(plem).keySet());
             AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeaturs);
             double bestAcc = 0;
             int noImprovement = 0;
+            boolean savedModel4ThisLemma = false;
 
             for (int i = 0; i < maxNumberOfTrainingIterations; i++) {
 
                 for (String label: trainPLexicon.get(plem).keySet()) {
-                    for (Object[] instance: trainPLexicon.get(plem).get(label))
+                    for (Object[] instance: trainPLexicon.get(plem).get(label)) {
                         ap.learnInstance(instance, label);
+                    }
                 }
 
                 //making prediction on dev instances of this plem
-                AveragedPerceptron decodeAp = ap.calculateAvgWeights();
-                int correct =0;
-                int total =0;
                 if (devPLexicon.containsKey(plem)){
                     //seen in dev data
+                    AveragedPerceptron decodeAp = ap.calculateAvgWeights();
+                    int correct =0;
+                    int total =0;
+
                     for (String goldLabel: devPLexicon.get(plem).keySet()) {
                         for (Object[] instance: devPLexicon.get(plem).get(goldLabel)){
                             String prediction = decodeAp.predict(instance);
@@ -69,21 +74,33 @@ public class PD {
                         noImprovement = 0;
                         bestAcc = acc;
                         ap.saveModel(modelDir + "/" + plem);
+                        savedModel4ThisLemma = true;
                     } else {
-                        noImprovement++;
-                        if (noImprovement > 5) {
-                            break;
+                        if (bestAcc == 0) {
+                            ap.saveModel(modelDir + "/" + plem);
+                            savedModel4ThisLemma = true;
+                        }
+                        else {
+                            noImprovement++;
+                            if (noImprovement > 5) {
+                                break;
+                            }
                         }
                     }
                 }else{
-                    if (i >= maxNumOfPDIterations4UnseenPredicates)
+                    if (i >= maxNumOfPDIterations4UnseenPredicates) {
+                        ap.saveModel(modelDir + "/" + plem);
+                        savedModel4ThisLemma = true;
                         break;
+                    }
                 }
             }
+            if (savedModel4ThisLemma == true)
+                numOfSavedModelFiles++;
         }
+        System.out.println("Number of saved models for lemmas in the train data " + numOfSavedModelFiles);
         System.out.println("Done!");
     }
-
 
     public static void predict (ArrayList<String> sentencesInCONLLFormat, IndexMap indexMap,
                                                       String modelDir, int numOfPDFeatures, String path2SavePredictions)

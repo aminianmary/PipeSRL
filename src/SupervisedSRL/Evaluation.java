@@ -287,7 +287,7 @@ public class Evaluation {
         return aiConfusionMatrix;
     }
 
-    public static void evaluatePD (ArrayList<String> trainSentences, ArrayList<String> goldEvalSentences,
+    public static void evaluatePD (ArrayList<String> trainSentences,ArrayList<String> devSentences, ArrayList<String> goldEvalSentences,
                                    HashMap<Integer, String>[] pdPredictionsOnEvalData, IndexMap indexMap, int numOfPDFeatures)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
@@ -304,6 +304,9 @@ public class Evaluation {
 
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> trainPredicateLexicon =
                 PD.buildPredicateLexicon(trainSentences, indexMap, numOfPDFeatures);
+
+        HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPredicateLexicon =
+                PD.buildPredicateLexicon(devSentences, indexMap, numOfPDFeatures);
 
         for (int senID =0 ; senID < goldEvalSentences.size() ; senID++){
             Sentence sentence = new Sentence(goldEvalSentences.get(senID), indexMap );
@@ -330,23 +333,24 @@ public class Evaluation {
                         seenLemm_seenSense_total++;
                         if (goldPredicateLabel.equals(predictedPredicateLabel))
                             seenLemm_seenSense_correct++;
+                        System.out.print("SEEN LEMMA-SEEN SENSE\tLemma index:\t"+predicateLemma+"\tLemma:\t"+
+                                indexMap.int2str(predicateLemma)+"\tGold label:\t"+goldPredicateLabel+
+                                "\tAutomatic label:\t"+predictedPredicateLabel+"\tSeen labels in train:\t"+trainPredicateLexicon.get(predicateLemma).keySet()+"\t");
+                        if (devPredicateLexicon.containsKey(predicateLemma)) {
+                            System.out.print("Seen in dev with labels:\t" + devPredicateLexicon.get(predicateLemma).keySet() +"\n");
+                        }
+                        else
+                            System.out.print("Not seen in dev data");
                     }else{
                         //unseen sense
                         seenLemm_unseenSense_total++;
-                        System.out.println("**SEEN LEMMA-UNSEEN SENSE** Predicate Lemma: ("+ predicateLemma+")"+
-                                indexMap.int2str(predicateLemma) + " gold label: "+ goldPredicateLabel+" predicted label: "+
-                                predictedPredicateLabel);
-                        System.out.println ("SEEN SENSES IN THE TRAIN DATA: "+ trainPredicateLexicon.get(predicateLemma).keySet());
                         if (goldPredicateLabel.equals(predictedPredicateLabel)) {
                             seenLemm_unseenSense_correct++;
-                            System.out.println("!!!!!!");
                         }
                     }
                 }else{
                     //unseen lemma
                     unseenLemma_total++;
-                    System.out.println("**UNSEEN LEMMA** Sentence: Predicate Lemma: ("+ predicateLemma+")"+
-                    indexMap.int2str(predicateLemma) +"-"+ sentenceLemmaStr[pIdx] +" gold label: "+ goldPredicateLabel+" predicted label: "+ predictedPredicateLabel);
                     if (goldPredicateLabel.equals(predictedPredicateLabel))
                         unseenLemma_correct++;
                 }
@@ -362,6 +366,7 @@ public class Evaluation {
         System.out.print("\nPD Accuracy on seenLemma_unseenSense: " + seenLemm_unseenSense_correct + "/" + seenLemm_unseenSense_total +"= " + format.format(seenLemma_unseenSense_acc)+"\n");
         System.out.print("\nPD Accuracy on unseenLemma: " + unseenLemma_correct +"/" + unseenLemma_total +"= " + format.format(unseenLemma_acc)+"\n");
         System.out.print("\nPD Accuracy: " + correct +"/"+total +"= "+format.format(total_acc)+"\n");
+
     }
 
     //////////// SUPPORTING FUNCTIONS /////////////////////////////////////////////////
@@ -405,4 +410,5 @@ public class Evaluation {
 
         return newConfusionMatrix;
     }
+
 }
