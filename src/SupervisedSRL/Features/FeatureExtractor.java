@@ -64,7 +64,8 @@ public class FeatureExtractor {
         int[] sentenceDepLabels = sentence.getDepLabels();
         int[] sentenceDepHeads = sentence.getDepHeads();
         int[] sentenceWords = sentence.getWords();
-        int[] sentenceWordsClusters = sentence.getWordClusterIds();
+        int[] sentenceWordsFullClusters = sentence.getWordFullClusterIds();
+        int[] sentenceWords4Clusters = sentence.getWord4ClusterIds();
         int[] sentenceLemmas = sentence.getLemmas();
         int[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
         int[] sentencePOSTags = sentence.getPosTags();
@@ -74,14 +75,16 @@ public class FeatureExtractor {
         //predicate features
         int pw = sentenceWords[pIdx];
         int plem = sentenceLemmas[pIdx];
-        int pwCluster = sentenceWordsClusters[pIdx];
+        int pwFullCluster = sentenceWordsFullClusters[pIdx];
+        int pw4Clsuter = sentenceWords4Clusters[pIdx];
         int plemCluster = sentenceLemmasClusters[pIdx];
         int ppos = sentencePOSTags[pIdx];
         int pcPos = sentenceCPOSTags[pIdx];
         int pdeprel = sentenceDepLabels[pIdx];
         int pprw = sentenceWords[sentenceDepHeads[pIdx]];
         int pprlem = sentenceLemmas[sentenceDepHeads[pIdx]];
-        int pprwCluster = sentenceWordsClusters[sentenceDepHeads[pIdx]];
+        int pprwFullCluster = sentenceWordsFullClusters[sentenceDepHeads[pIdx]];
+        int pprw4Cluster = sentenceWords4Clusters[sentenceDepHeads[pIdx]];
         int pprlemaCluster = sentenceLemmasClusters[sentenceDepHeads[pIdx]];
         int pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
         int pprcpos = sentenceCPOSTags[sentenceDepHeads[pIdx]];
@@ -93,13 +96,15 @@ public class FeatureExtractor {
         ArrayList<Object> pFeats= new ArrayList<>();
         pFeats.add(pw);
         pFeats.add(plem);
-        pFeats.add(pwCluster);
+        pFeats.add(pwFullCluster);
+        pFeats.add(pw4Clsuter);
         pFeats.add(plemCluster);
         pFeats.add(ppos);
         pFeats.add(pcPos);
         pFeats.add(pdeprel);
         pFeats.add(pprw);
-        pFeats.add(pprwCluster);
+        pFeats.add(pprwFullCluster);
+        pFeats.add(pprw4Cluster);
         pFeats.add(pprlem);
         pFeats.add(pprlemaCluster);
         pFeats.add(pprpos);
@@ -112,14 +117,16 @@ public class FeatureExtractor {
         int index = 0;
         features[index++] = pw;
         features[index++] = plem;
-        features[index++] = pwCluster;
+        features[index++] = pwFullCluster;
+        features[index++] = pw4Clsuter;
         features[index++] = plemCluster;
         features[index++] = ppos;
         features[index++] = pcPos;
         features[index++] = pdeprel;
         features[index++] = pprw;
         features[index++] = pprlem;
-        features[index++] = pprwCluster;
+        features[index++] = pprwFullCluster;
+        features[index++] = pprw4Cluster;
         features[index++] = pprlemaCluster;
         features[index++] = pprpos;
         features[index++] = pprcpos;
@@ -279,6 +286,7 @@ public class FeatureExtractor {
         return IndexMap.nullIdx;
     }
 
+
     private static Object[] addAllPredicateFeatures(BaseFeatureFields baseFeatureFields, Object[] currentFeatures,
                                                     int length, boolean extractGlobalFeatures, int label) {
         int index = length;
@@ -294,9 +302,11 @@ public class FeatureExtractor {
         currentFeatures[index++] = (extractGlobalFeatures) ? label + " " + baseFeatureFields.pchildposset : baseFeatureFields.pchildposset;
         currentFeatures[index++] = (extractGlobalFeatures) ? label + " " + baseFeatureFields.pchildwset : baseFeatureFields.pchildwset;
         //word cluster features
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pw_cluster) << 6 | label : baseFeatureFields.pw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pwFullCluster) << 6 | label : baseFeatureFields.pwFullCluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pw4cluster) << 6 | label : baseFeatureFields.pw4cluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.plem_cluster) << 6 | label : baseFeatureFields.plem_cluster;
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pprw_cluster) << 6 | label : baseFeatureFields.pprw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pprw_fullCluster) << 6 | label : baseFeatureFields.pprw_fullCluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pprw_4cluster) << 6 | label : baseFeatureFields.pprw_4cluster;
 
         return new Object[]{currentFeatures, index};
     }
@@ -319,7 +329,8 @@ public class FeatureExtractor {
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightsiblingw << 6) | label : baseFeatureFields.rightsiblingw;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightsiblingpos << 6) | label : baseFeatureFields.rightsiblingpos;
         //word cluster features
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.aw_cluster << 6) | label : baseFeatureFields.aw_cluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.aw_fullCluster << 6) | label : baseFeatureFields.aw_fullCluster;
+        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.aw_4cluster << 6) | label : baseFeatureFields.aw_4cluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftw_cluster << 6) | label : baseFeatureFields.leftw_cluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightw_cluster << 6) | label : baseFeatureFields.rightw_cluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftsiblingw_cluster << 6) | label : baseFeatureFields.leftsiblingw_cluster;
@@ -342,6 +353,11 @@ public class FeatureExtractor {
         String pchilddepset = (extractGlobalFeatures) ? label + " " + label + " " + baseFeatureFields.getPchilddepset() : baseFeatureFields.getPchilddepset();
         String pchildposset = (extractGlobalFeatures) ? label + " " + baseFeatureFields.getPchildposset() : baseFeatureFields.getPchildposset();
         String pchildwset = (extractGlobalFeatures) ? label + " " + baseFeatureFields.getPchildwset() : baseFeatureFields.getPchildwset();
+        //cluster features
+        int pw_fullCluster = (extractGlobalFeatures) ? (baseFeatureFields.getPwFullCluster() << 6) | label : baseFeatureFields.getPwFullCluster();
+        int pw_4Cluster = (extractGlobalFeatures) ? (baseFeatureFields.getPw4cluster() << 6) | label : baseFeatureFields.getPw4cluster();
+        int pprw_fullCluster = (extractGlobalFeatures) ? (baseFeatureFields.getPprw_fullCluster() << 6) | label : baseFeatureFields.getPprw_fullCluster();
+        int pprw_4Cluster = (extractGlobalFeatures) ? (baseFeatureFields.getPprw_4cluster() << 6) | label : baseFeatureFields.getPprw_4cluster();
 
         int aw = baseFeatureFields.getAw();
         int apos = baseFeatureFields.getApos();
@@ -357,6 +373,9 @@ public class FeatureExtractor {
         int leftsiblingpos = baseFeatureFields.getLeftsiblingpos();
         int rightsiblingw = baseFeatureFields.getRightsiblingw();
         int rightsiblingpos = baseFeatureFields.getRightsiblingpos();
+        //cluster features
+        int aw_fullCluster = baseFeatureFields.getAw_fullCluster();
+        int aw_4Cluster = baseFeatureFields.getAw_4cluster();
 
 
         // pw + argument features
@@ -388,6 +407,22 @@ public class FeatureExtractor {
         features[index++] = pw_rightsiblingw;
         long pw_rightsiblingpos = (pw << 10) | rightsiblingpos;
         features[index++] = pw_rightsiblingpos;
+        long pw_fullCluster_aw_fullCluster = (pw_fullCluster << 6) | aw_fullCluster;
+        features[index++] = pw_fullCluster_aw_fullCluster;
+        long pw_4Cluster_aw_4Cluster = (pw_4Cluster << 6) | aw_4Cluster;
+        features[index++] = pw_4Cluster_aw_4Cluster;
+        long pw_fullCluster_apos = (pw_fullCluster << 10) | apos;
+        features[index++] = pw_fullCluster_apos;
+        long pw_4Cluster_apos = (pw_4Cluster << 10) | apos;
+        features[index++] = pw_4Cluster_apos;
+        long pw_fullCluster_adeprel = (pw_fullCluster << 10) | adeprel;
+        features[index++] = pw_fullCluster_adeprel;
+        long pw_4Cluster_adeprel = (pw_4Cluster << 10) | adeprel;
+        features[index++] = pw_4Cluster_adeprel;
+        long pw_fullCluster_position = (pw_fullCluster << 2) | position;
+        features[index++] = pw_fullCluster_position;
+        long pw_4Cluster_position = (pw_4Cluster << 2) | position;
+        features[index++] = pw_4Cluster_position;
 
         //ppos + argument features
         long aw_ppos = (aw << 10) | ppos;
@@ -480,6 +515,7 @@ public class FeatureExtractor {
         long plem_rightsiblingpos = (plem << 10) | rightsiblingpos;
         features[index++] = plem_rightsiblingpos;
 
+        //psense + argument features
         String psense_aw = pSense + " " + aw;
         features[index++] = psense_aw;
         String psense_apos = pSense + " " + apos;
@@ -508,6 +544,10 @@ public class FeatureExtractor {
         features[index++] = psense_rightsiblingw;
         String psense_rightsiblingpos = pSense + " " + rightsiblingpos;
         features[index++] = psense_rightsiblingpos;
+        String psense_aw_fullCluster = pSense + " " + aw_fullCluster;
+        features[index++] = psense_aw_fullCluster;
+        String psense_aw_4Cluster = pSense + " " + aw_4Cluster;
+        features[index++] = psense_aw_4Cluster;
 
         //pprw  + argument features
         long aw_pprw = (aw << 20) | pprw;
@@ -538,6 +578,10 @@ public class FeatureExtractor {
         features[index++] = rightsiblingw_pprw;
         long pprw_rightsiblingpos = (pprw << 10) | rightsiblingpos;
         features[index++] = pprw_rightsiblingpos;
+        long aw_pprw_fullCluster = (aw << 26) | pprw_fullCluster;
+        features[index++] = aw_pprw_fullCluster;
+        long aw_pprw_4Cluster = (aw << 26) | pprw_4Cluster;
+        features[index++] = aw_pprw_4Cluster;
 
         //pprpos + argument features
         long aw_pprpos = (aw << 10) | pprpos;
@@ -569,6 +613,7 @@ public class FeatureExtractor {
         long pprpos_rightsiblingpos = (pprpos << 10) | rightsiblingpos;
         features[index++] = pprpos_rightsiblingpos;
 
+        //pchilddepset + argument features
         String pchilddepset_aw = pchilddepset + " " + aw;
         features[index++] = pchilddepset_aw;
         String pchilddepset_apos = pchilddepset + " " + apos;
@@ -598,6 +643,7 @@ public class FeatureExtractor {
         String pchilddepset_rightsiblingpos = pchilddepset + " " + rightsiblingpos;
         features[index++] = pchilddepset_rightsiblingpos;
 
+        //pdepsubcat + argument features
         String pdepsubcat_aw = pdepsubcat + " " + aw;
         features[index++] = pdepsubcat_aw;
         String pdepsubcat_apos = pdepsubcat + " " + apos;
@@ -627,6 +673,7 @@ public class FeatureExtractor {
         String pdepsubcat_rightsiblingpos = pdepsubcat + " " + rightsiblingpos;
         features[index++] = pdepsubcat_rightsiblingpos;
 
+        //pchildposset + argument features
         String pchildposset_aw = pchildposset + " " + aw;
         features[index++] = pchildposset_aw;
         String pchildposset_apos = pchildposset + " " + apos;
@@ -655,7 +702,6 @@ public class FeatureExtractor {
         features[index++] = pchildposset_rightsiblingw;
         String pchildposset_rightsiblingpos = pchildposset + " " + rightsiblingpos;
         features[index++] = pchildposset_rightsiblingpos;
-
 
         //pchildwset + argument features
         String pchildwset_aw = pchildwset + " " + aw;
@@ -1384,10 +1430,13 @@ public class FeatureExtractor {
         private int leftsiblingpos;
 
         //word cluster features
-        private int pw_cluster;
+        private int pwFullCluster;
+        private int pw4cluster;
         private int plem_cluster;
-        private int pprw_cluster;
-        private int aw_cluster;
+        private int pprw_fullCluster;
+        private int pprw_4cluster;
+        private int aw_fullCluster;
+        private int aw_4cluster;
         private int leftw_cluster;
         private int rightw_cluster;
         private int rightsiblingw_cluster;
@@ -1500,20 +1549,20 @@ public class FeatureExtractor {
             return leftsiblingpos;
         }
 
-        public int getPw_cluster() {
-            return pw_cluster;
+        public int getPwFullCluster() {
+            return pwFullCluster;
         }
 
         public int getPlem_cluster() {
             return plem_cluster;
         }
 
-        public int getAw_cluster() {
-            return aw_cluster;
+        public int getAw_fullCluster() {
+            return aw_fullCluster;
         }
 
-        public int getPprw_cluster() {
-            return pprw_cluster;
+        public int getPprw_fullCluster() {
+            return pprw_fullCluster;
         }
 
         public int getLeftw_cluster() {
@@ -1532,27 +1581,42 @@ public class FeatureExtractor {
             return leftsiblingw_cluster;
         }
 
+        public int getPw4cluster() {
+            return pw4cluster;
+        }
+
+        public int getPprw_4cluster() {
+            return pprw_4cluster;
+        }
+
+        public int getAw_4cluster() {
+            return aw_4cluster;
+        }
+
         public BaseFeatureFields invoke() throws Exception {
             int[] sentenceDepLabels = sentence.getDepLabels();
             int[] sentenceDepHeads = sentence.getDepHeads();
             int[] sentenceWords = sentence.getWords();
             int[] sentencePOSTags = sentence.getPosTags();
             int[] sentenceLemmas = sentence.getLemmas();
-            int[] sentenceWordsClusterIds = sentence.getWordClusterIds();
+            int[] sentenceWordsFullClusterIds = sentence.getWordFullClusterIds();
+            int[] sentenceWords4ClusterIds = sentence.getWord4ClusterIds();
             int[] sentenceLemmaClusterIds = sentence.getLemmaClusterIds();
             TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
             HashMap<Integer, String> sentencePredicatesInfo = sentence.getPredicatesAutoLabelMap();
 
             //predicate features
             pw = sentenceWords[pIdx];
-            pw_cluster = sentenceWordsClusterIds[pIdx];
+            pwFullCluster = sentenceWordsFullClusterIds[pIdx];
+            pw4cluster = sentenceWords4ClusterIds[pIdx];
             ppos = sentencePOSTags[pIdx];
             plem = sentenceLemmas[pIdx];
             plem_cluster = sentenceLemmaClusterIds[pIdx];
             pSense = sentencePredicatesInfo.get(pIdx);
             pdeprel = sentenceDepLabels[pIdx];
             pprw = sentenceWords[sentenceDepHeads[pIdx]];
-            pprw_cluster = sentenceWordsClusterIds[sentenceDepHeads[pIdx]];
+            pprw_fullCluster = sentenceWordsFullClusterIds[sentenceDepHeads[pIdx]];
+            pprw_4cluster = sentenceWords4ClusterIds[sentenceDepHeads[pIdx]];
             pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
             pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
             pchilddepset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
@@ -1567,7 +1631,8 @@ public class FeatureExtractor {
 
             //argument features
             aw = sentenceWords[aIdx];
-            aw_cluster = sentenceWordsClusterIds[aIdx];
+            aw_fullCluster = sentenceWordsFullClusterIds[aIdx];
+            aw_4cluster = sentenceWords4ClusterIds[aIdx];
             apos = sentencePOSTags[aIdx];
             adeprel = sentenceDepLabels[aIdx];
 
@@ -1582,16 +1647,16 @@ public class FeatureExtractor {
                 position = 1; //before
 
             leftw = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[leftMostDependentIndex];
-            leftw_cluster = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[leftMostDependentIndex];
+            leftw_cluster = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[leftMostDependentIndex];
             leftpos = leftMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[leftMostDependentIndex];
             rightw = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[rightMostDependentIndex];
-            rightw_cluster = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[rightMostDependentIndex];
+            rightw_cluster = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[rightMostDependentIndex];
             rightpos = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightMostDependentIndex];
             rightsiblingw = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[rightSiblingIndex];
-            rightsiblingw_cluster = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[rightSiblingIndex];
+            rightsiblingw_cluster = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[rightSiblingIndex];
             rightsiblingpos = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightSiblingIndex];
             leftsiblingw = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[lefSiblingIndex];
-            leftsiblingw_cluster = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsClusterIds[lefSiblingIndex];
+            leftsiblingw_cluster = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[lefSiblingIndex];
             leftsiblingpos = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[lefSiblingIndex];
             return this;
         }

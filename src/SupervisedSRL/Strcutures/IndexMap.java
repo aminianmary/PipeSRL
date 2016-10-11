@@ -21,7 +21,8 @@ public class IndexMap implements Serializable {
     private HashMap<String, Integer> string2intMap;
     private String[] int2stringMap;
     //Note clusterMap can not be a HashMap <int, int> as some of the words in the cluster file are not seen in IndexMap
-    private HashMap<String, Integer> wordClusterMap;
+    private HashMap<String, Integer> wordFullClusterMap;
+    private HashMap<Integer, Integer> fullCluster2Cluster4Map;
 
     public IndexMap(String trainFilePath, String clusterFilePath) throws IOException {
         string2intMap = new HashMap<>();
@@ -58,8 +59,9 @@ public class IndexMap implements Serializable {
             int2stringMap[string2intMap.get(str)] = str;
 
         //building clusterMap
-        HashMap<String, Integer> wordClusterMap = buildWordClusterMap(clusterFilePath);
-        this.wordClusterMap = wordClusterMap;
+        Pair<HashMap<String, Integer>, HashMap<Integer, Integer>> clusterMaps = buildWordClusterMap(clusterFilePath);
+        this.wordFullClusterMap = clusterMaps.first;
+        this.fullCluster2Cluster4Map = clusterMaps.second;
     }
 
     private Object[] buildIndividualSets(ArrayList<String> trainSentences) {
@@ -126,32 +128,52 @@ public class IndexMap implements Serializable {
         return int2stringMap[i];
     }
 
-    private HashMap<String, Integer> buildWordClusterMap(String clusterFilePath) throws IOException {
+    private Pair buildWordClusterMap(String clusterFilePath) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(clusterFilePath)));
         String line2read = "";
-        HashMap<String, Integer> wordClusterMap = new HashMap<>();
-        HashMap<String, Integer> clusterIDMap = new HashMap<>();
+        HashMap<String, Integer> wordFullClusterIDMap = new HashMap<>();
+        HashMap<Integer, Integer> fullClusterID2Cluster4IDMap = new HashMap<>();
+        HashMap<String, Integer> fullClusterIDMap = new HashMap<>();
+        HashMap<String, Integer> cluster4IDMap = new HashMap<>();
 
         while ((line2read = reader.readLine()) != null) {
             if (line2read.equals(""))
                 continue;
             String[] splitLine = line2read.split("\t");
-            String clusterBitString = splitLine[0];
-            if (!clusterIDMap.containsKey(clusterBitString))
-                clusterIDMap.put(clusterBitString, clusterIDMap.size());
-            int clusterID = clusterIDMap.get(clusterBitString);
+            String fullClusterBitString = splitLine[0];
+            String cluster4BitString = fullClusterBitString.substring(0, Math.min(4, fullClusterBitString.length()));
+
+            if (!fullClusterIDMap.containsKey(fullClusterBitString))
+                fullClusterIDMap.put(fullClusterBitString, fullClusterIDMap.size());
+            int fullClusterID = fullClusterIDMap.get(fullClusterBitString);
+
+            if (!cluster4IDMap.containsKey(cluster4BitString))
+                cluster4IDMap.put(cluster4BitString, cluster4IDMap.size());
+            int cluster4ID = cluster4IDMap.get(cluster4BitString);
+
             String word = splitLine[1];
-            wordClusterMap.put(word, clusterID);
+            wordFullClusterIDMap.put(word, fullClusterID);
+            if (!fullClusterID2Cluster4IDMap.containsKey(fullClusterID))
+                fullClusterID2Cluster4IDMap.put(fullClusterID, cluster4ID);
         }
-        return wordClusterMap;
+        return new Pair<>(wordFullClusterIDMap, fullClusterID2Cluster4IDMap);
     }
 
-    public int getClusterId(String str) {
+    public int getFullClusterId(String str) {
         String word = str;
         int cluster = unknownClusterIdx;
-        if (wordClusterMap.containsKey(word))
-            cluster = wordClusterMap.get(word);
+        if (wordFullClusterMap.containsKey(word))
+            cluster = wordFullClusterMap.get(word);
         return cluster;
+    }
+
+    public int get4ClusterId(String str){
+        String word = str;
+        int fullClusterID = getFullClusterId(word);
+        if (fullClusterID == unknownClusterIdx)
+            return unknownClusterIdx;
+        else
+            return fullCluster2Cluster4Map.get(fullClusterID);
     }
 
 }

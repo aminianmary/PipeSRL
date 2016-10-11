@@ -1,7 +1,7 @@
 package SentenceStruct;
 
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.Pair;
+
 import java.lang.Object;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,9 +15,10 @@ public class Sentence {
     private int[] depHeads;
     private int[] depLabels;
     private int[] words;
-    private int[] wordClusterIds;
+    private int[] wordFullClusterIds;
     private int[] posTags;
     private int[] cPosTags;
+    private int[] word4ClusterIds;
     private int[] lemmas;
     private int[] lemmaClusterIds;
     private String[] lemmas_str;
@@ -45,8 +46,10 @@ public class Sentence {
         lemmas[0] = words[0];
         lemmas_str = new String[numTokens];
         lemmas_str[0] = "ROOT";
-        wordClusterIds = new int[numTokens];
-        wordClusterIds[0] = IndexMap.ROOTClusterIdx;
+        wordFullClusterIds = new int[numTokens];
+        wordFullClusterIds[0] = IndexMap.ROOTClusterIdx;
+        word4ClusterIds = new int[numTokens];
+        word4ClusterIds[0] = IndexMap.ROOTClusterIdx;
         lemmaClusterIds = new int[numTokens];
         lemmaClusterIds[0] = IndexMap.ROOTClusterIdx;
 
@@ -62,13 +65,14 @@ public class Sentence {
             depHeads[index] = depHead;
 
             words[index] = indexMap.str2int(fields[1]);
-            wordClusterIds[index] = indexMap.getClusterId(fields[1]);
+            wordFullClusterIds[index] = indexMap.getFullClusterId(fields[1]);
+            word4ClusterIds[index] = indexMap.get4ClusterId(fields[1]);
             depLabels[index] = indexMap.str2int(fields[11]);
             posTags[index] = indexMap.str2int(fields[5]);
             cPosTags[index] = indexMap.str2int(util.StringUtils.getCoarsePOS(fields[5]));
             lemmas[index] = indexMap.str2int(fields[3]);
             lemmas_str[index] = fields[3];
-            lemmaClusterIds[index] = indexMap.getClusterId(fields[3]);
+            lemmaClusterIds[index] = indexMap.getFullClusterId(fields[3]);
 
             if (reverseDepHeads[depHead] == null) {
                 TreeSet<Integer> children = new TreeSet<Integer>();
@@ -222,8 +226,12 @@ public class Sentence {
         return lemmas;
     }
 
-    public int[] getWordClusterIds() {
-        return wordClusterIds;
+    public int[] getWordFullClusterIds() {
+        return wordFullClusterIds;
+    }
+
+    public int[] getWord4ClusterIds() {
+        return word4ClusterIds;
     }
 
     public int[] getLemmaClusterIds() {
