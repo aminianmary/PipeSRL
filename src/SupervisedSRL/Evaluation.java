@@ -180,8 +180,8 @@ public class Evaluation {
         int total_ai_predictions = aiTP + aiFP;
 
         System.out.println("Total AI prediction " + total_ai_predictions);
-        System.out.println("AI Precision: " + format.format((double) aiTP / (aiTP + aiFP)));
-        System.out.println("AI Recall: " + format.format((double) aiTP / (aiTP + aiFN)));
+        System.out.println("AI Precision: " + format.format((double) aiTP / (aiTP + aiFP)* 100));
+        System.out.println("AI Recall: " + format.format((double) aiTP / (aiTP + aiFN) * 100));
         System.out.println("*********************************************");
 
         String[] labelMap = new String[reverseLabelMap.size()];
@@ -242,12 +242,12 @@ public class Evaluation {
         int aiFN = aiConfusionMatrix[0][1];
         int total_ai_predictions = aiTP + aiFP;
 
-        double precision = (double) aiTP / (aiTP + aiFP);
-        double recall = (double) aiTP / (aiTP + aiFN);
+        double precision = ((double) aiTP / (aiTP + aiFP) ) * 100;
+        double recall = ((double) aiTP / (aiTP + aiFN)) *100;
         System.out.println("Total AI prediction " + total_ai_predictions);
         System.out.println("AI Precision: " + format.format(precision));
         System.out.println("AI Recall: " + format.format(recall));
-        double fscore = (2 * precision * recall) / (precision + recall);
+        double fscore = (2 * precision * recall) / (precision + recall) * 100;
         System.out.println("AI F1-score: " + format.format(fscore));
         System.out.println("*********************************************");
         return fscore;
