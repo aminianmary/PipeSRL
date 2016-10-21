@@ -1,85 +1,76 @@
 package SupervisedSRL;
 
-import SentenceStruct.Sentence;
-import SupervisedSRL.Strcutures.*;
-import ml.AveragedPerceptron;
+import SupervisedSRL.PD.PD;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Properties;
 import util.IO;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeMap;
 
 /**
- * Created by Maryam Aminian on 9/9/16.
+ * Created by Maryam Aminian on 10/3/16.
  */
 public class Step6 {
 
-    public static void buildRerankerFeatureMap(Properties properties) throws java.lang.Exception {
+    public static void predictPDLabels (Properties properties) throws Exception{
+        if (!properties.getSteps().contains(6))
+            return;
+        predictPDLabels4EntireData(properties);
+        if (properties.useReranker())
+            predictPDLabels4Partitions(properties);
+    }
 
+    public static void predictPDLabels4EntireData (Properties properties) throws Exception
+    {
+        if (!properties.getSteps().contains(6))
+            return;
+        System.out.println("\n>>>>>>>>>>>>>\nStep 6.1 -- Predicting Predicate Labels of Train/dev data (used later as features)\n>>>>>>>>>>>>>\n");
+        String indexMapPath = properties.getIndexMapFilePath();
+        String pdModelDir = properties.getPdModelDir();
+        String trainFilePath = properties.getTrainFile();
+        String devFilePath = properties.getDevFile();
+        String testFilePath = properties.getTestFile();
+        String trainPDAutoLabelsPath = properties.getTrainPDLabelsPath();
+        String devPDAutoLabelsPath = properties.getDevPDLabelsPath();
+        String testPDAutoLabelsPath = properties.getTestPDLabelsPath();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
+        ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
+        ArrayList<String> testSentences = IO.readCoNLLFile(testFilePath);
+        IndexMap indexMap = IO.load(indexMapPath);
+
+        System.out.print("\nMaking predictions on train data...\n");
+        PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
+        System.out.print("\nMaking predictions on dev data...\n");
+        PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+        System.out.print("\nMaking predictions on test data...\n");
+        PD.predict(testSentences, indexMap, pdModelDir, numOfPDFeatures, testPDAutoLabelsPath);
+    }
+
+    public static void predictPDLabels4Partitions (Properties properties) throws Exception
+    {
         if (!properties.getSteps().contains(6) || !properties.useReranker())
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 6 -- Building Reranker FeatureMap\n>>>>>>>>>>>>>\n");
-        IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-        HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
+        System.out.println("\n>>>>>>>>>>>>>\nStep 6.2 -- Predicting Predicate Labels of Train/dev data partitions\n>>>>>>>>>>>>>\n");
+        String indexMapPath = properties.getIndexMapFilePath();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfPartitions = properties.getNumOfPartitions();
-        int aiBeamSize = properties.getNumOfAIBeamSize();
-        int acBeamSize = properties.getNumOfACBeamSize();
-        int numOfAIFeatures = properties.getNumOfAIFeatures();
-        int numOfACFeatures = properties.getNumOfACFeatures();
-        int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
-        double aiCoefficient = properties.getAiCoefficient();
-        String rerankerFeatureMapFilePath = properties.getRerankerFeatureMapPath();
-        String rerankerSeenFeaturesFilePath = properties.getNumOfRerankerSeenFeaturesPath();
+        IndexMap indexMap = IO.load(indexMapPath);
 
-        assert globalReverseLabelMap.size() != 0;
-        RerankerFeatureMap rerankerFeatureMap = new RerankerFeatureMap(numOfAIFeatures + numOfGlobalFeatures);
+        for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
+            System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
+            String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
+            String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
+            String devFilePath = properties.getPartitionDevDataPath(devPartIdx);
+            String devPDAutoLabelsPath = properties.getPartitionDevPDAutoLabelsPath(devPartIdx);
+            String trainPDAutoLabelsPath = properties.getPartitionTrainPDAutoLabelsPath(devPartIdx);
+            ArrayList<String> trainSentences = IO.load(trainFilePath);
+            ArrayList<String> devSentences = IO.load(devFilePath);
 
-        for (int devPart = 0; devPart < numOfPartitions; devPart++) {
-            System.out.println("PART "+devPart);
-
-            String aiModelPath4Partition = properties.getPartitionAIModelPath(devPart);
-            String acModelPath4Partition = properties.getPartitionACModelPath(devPart);
-            String devPDAutoLabelsPath = properties.getPartitionDevPDAutoLabelsPath(devPart);
-            Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifiersOnThisPartition = ModelInfo.loadTrainedModels(aiModelPath4Partition, acModelPath4Partition);
-            HashMap<Integer, String>[] devPDAutoLabels = IO.load(devPDAutoLabelsPath);
-            Decoder decoder = new Decoder(trainedClassifiersOnThisPartition.first, trainedClassifiersOnThisPartition.second);
-            String[] localClassifierLabelMap = trainedClassifiersOnThisPartition.second.getLabelMap();
-            ArrayList<String> devSentences = IO.load(properties.getPartitionDevDataPath(devPart));
-
-            for (int d = 0; d < devSentences.size(); d++) {
-                if (d % 1000 == 0)
-                    System.out.println(d + "/" + devSentences.size());
-
-                Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
-                devSentence.setPDAutoLabels(devPDAutoLabels[d]);
-                TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
-                        (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                                numOfAIFeatures, numOfACFeatures, true, aiCoefficient, devPDAutoLabels[d]);
-
-                for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
-                    String pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();
-                    ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAiCandidates();
-                    ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = predictedAIACCandidates4thisSen.get(pIdx).getAcCandidates();
-
-                    for (int i = 0; i < aiCandidates.size(); i++) {
-                        Pair<Double, ArrayList<Integer>> aiCandid = aiCandidates.get(i);
-                        ArrayList<Pair<Double, ArrayList<Integer>>> acCandids4thisAiCandid = acCandidates.get(i);
-
-                        for (int j = 0; j < acCandids4thisAiCandid.size(); j++) {
-                            Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
-                            rerankerFeatureMap.updateSeenFeatures4ThisPredicate(pIdx, pLabel, devSentence, aiCandid, acCandid,
-                                    numOfAIFeatures, numOfACFeatures, indexMap,
-                                    localClassifierLabelMap, globalReverseLabelMap);
-                        }
-                    }
-                    //add gold instance feature to the featureMap
-                    rerankerFeatureMap.updateSeenFeatures4GoldInstance(pIdx, devSentence, numOfAIFeatures, numOfACFeatures,
-                            indexMap, globalReverseLabelMap);
-                }
-            }
+            System.out.print("\nMaking predictions on train data...\n");
+            PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
+            System.out.print("\nMaking predictions on dev data...\n");
+            PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
         }
-        rerankerFeatureMap.buildRerankerFeatureMap();
-        IO.write(rerankerFeatureMap.getFeatureMap(), rerankerFeatureMapFilePath);
-        IO.write(rerankerFeatureMap.getNumOfSeenFeatures(), rerankerSeenFeaturesFilePath);
     }
 }

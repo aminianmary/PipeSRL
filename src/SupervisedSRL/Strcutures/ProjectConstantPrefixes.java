@@ -21,5 +21,9 @@ public class ProjectConstantPrefixes {
     public static final String TRAIN_AUTO_PD_LABELS = "/train.autoPLabels";
     public static final String DEV_AUTO_PD_LABELS = "/dev.autoPLabels";
     public static final String TEST_AUTO_PD_LABELS = "/test.autoPLabels";
+    public static final String TRAIN_PI_LABELS = "/train.PILabels";
+    public static final String DEV_PI_LABELS = "/dev.PIabels";
+    public static final String TEST_PI_LABELS = "/test.PILabels";
+    public static final String PI_MODEL = "/PI.model";
 
 }

@@ -20,11 +20,13 @@ public class Properties {
     private int maxNumOfRerankerTrainingIterations;
     private int numOfAIBeamSize;
     private int numOfACBeamSize;
+    private int numOfPIFeatures;
     private int numOfPDFeatures;
     private int numOfAIFeatures;
     private int numOfACFeatures;
     private int numOfGlobalFeatures;
     private String indexMapFilePath;
+    private String piModelPath;
     private String pdModelDir;
     private String aiModelPath;
     private String acModelPath;
@@ -39,15 +41,18 @@ public class Properties {
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
-    private String trainAutoPDLabelsPath;
-    private String devAutoPDLabelsPath;
-    private String testAutoPDLabelsPath;
+    private String trainPDLabelsPath;
+    private String devPDLabelsPath;
+    private String testPDLabelsPath;
+    private String trainPILabelsPath;
+    private String devPILabelsPath;
+    private String testPILabelsPath;
 
 
     public Properties(String trainFile, String devFile, String testFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
-                      int numOfAIBeamSize, int numOfACBeamSize, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
+                      int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
                       boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
@@ -63,11 +68,13 @@ public class Properties {
         this.maxNumOfRerankerTrainingIterations = maxNumOfRerankerTrainingIterations;
         this.numOfAIBeamSize = numOfAIBeamSize;
         this.numOfACBeamSize = numOfACBeamSize;
+        this.numOfPIFeatures = numOfPIFeatures;
         this.numOfPDFeatures = numOfPDFeatures;
         this.numOfAIFeatures = numOfAIFeatures;
         this.numOfACFeatures = numOfACFeatures;
         this.indexMapFilePath = modelDir + ProjectConstantPrefixes.INDEX_MAP;
         this.pdModelDir = modelDir;
+        this.piModelPath = modelDir + ProjectConstantPrefixes.PI_MODEL;
         this.aiModelPath = modelDir + ProjectConstantPrefixes.AI_MODEL +".AIF_"+numOfAIFeatures;
         this.acModelPath = modelDir + ProjectConstantPrefixes.AC_MODEL + ".ACF_"+numOfACFeatures;
         this.partitionPrefix = modelDir + ProjectConstantPrefixes.PARTITION_PREFIX;
@@ -87,22 +94,25 @@ public class Properties {
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
         this.modelsToBeTrained = modelsToBeTrained;
-        this.trainAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.TRAIN_AUTO_PD_LABELS;
-        this.devAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.DEV_AUTO_PD_LABELS;
-        this.testAutoPDLabelsPath = modelDir + ProjectConstantPrefixes.TEST_AUTO_PD_LABELS;
+        this.trainPDLabelsPath = modelDir + ProjectConstantPrefixes.TRAIN_AUTO_PD_LABELS;
+        this.devPDLabelsPath = modelDir + ProjectConstantPrefixes.DEV_AUTO_PD_LABELS;
+        this.testPDLabelsPath = modelDir + ProjectConstantPrefixes.TEST_AUTO_PD_LABELS;
+        this.trainPILabelsPath = modelDir + ProjectConstantPrefixes.TRAIN_PI_LABELS;
+        this.devPILabelsPath = modelDir + ProjectConstantPrefixes.DEV_PI_LABELS;
+        this.testPILabelsPath = modelDir + ProjectConstantPrefixes.TEST_PI_LABELS;
         printModelProperties();
     }
 
-    public String getTrainAutoPDLabelsPath() {
-        return trainAutoPDLabelsPath;
+    public String getTrainPDLabelsPath() {
+        return trainPDLabelsPath;
     }
 
-    public String getDevAutoPDLabelsPath() {
-        return devAutoPDLabelsPath;
+    public String getDevPDLabelsPath() {
+        return devPDLabelsPath;
     }
 
-    public String getTestAutoPDLabelsPath() {
-        return testAutoPDLabelsPath;
+    public String getTestPDLabelsPath() {
+        return testPDLabelsPath;
     }
 
     public int getNumOfGlobalFeatures() {
@@ -221,6 +231,26 @@ public class Properties {
         return modelsToBeTrained;
     }
 
+    public String getTrainPILabelsPath() {
+        return trainPILabelsPath;
+    }
+
+    public String getDevPILabelsPath() {
+        return devPILabelsPath;
+    }
+
+    public String getTestPILabelsPath() {
+        return testPILabelsPath;
+    }
+
+    public String getPiModelPath() {
+        return piModelPath;
+    }
+
+    public int getNumOfPIFeatures() {
+        return numOfPIFeatures;
+    }
+
     public String getPartitionTrainDataPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstantPrefixes.PARTITION_TRAIN_DATA;
     }
@@ -235,6 +265,10 @@ public class Properties {
 
     public String getPartitionPdModelDir(int devPartIdx) {
         return partitionPrefix + devPartIdx;
+    }
+
+    public String getPartitionPiModelPath(int devPartIdx) {
+        return partitionPrefix + devPartIdx +  ProjectConstantPrefixes.PI_MODEL;
     }
 
     public String getPartitionAIModelPath(int devPartIdx) {
@@ -256,6 +290,14 @@ public class Properties {
 
     public String getPartitionDevPDAutoLabelsPath(int devPartIdx){
         return partitionPrefix + devPartIdx + ProjectConstantPrefixes.DEV_AUTO_PD_LABELS;
+    }
+
+    public String getPartitionTrainPILabelsPath(int devPartIdx){
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.TRAIN_PI_LABELS;
+    }
+
+    public String getPartitionDevPILabelsPath(int devPartIdx){
+        return partitionPrefix + devPartIdx + ProjectConstantPrefixes.DEV_PI_LABELS;
     }
 
     public String getOutputDir() {

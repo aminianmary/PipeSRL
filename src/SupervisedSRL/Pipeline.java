@@ -45,19 +45,21 @@ public class Pipeline {
 
         Properties properties = new Properties(trainFile, devFile, testFile, clusterFile, modelDir, outputDir, numOfPartitions,
                 maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
-                numOfAIBeamSize, numOfACBeamSize, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
+                numOfAIBeamSize, numOfACBeamSize, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
                 reranker, steps, modelsToBeTrained, aiCoefficient);
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);
-            Step3.trainPDModel(properties);
-            Step4.predictPDLabels(properties);
-            Step5.trainAIAICModels(properties);
-            Step6.buildRerankerFeatureMap(properties);
-            Step7.generateRerankerInstances(properties);
-            Step8.trainRerankerModel(properties);
-            Step9.decode(properties);
-            Step10.evaluate(properties);
+            Step3.trainPIModel(properties);
+            Step4.predictPILabels(properties);
+            Step5.trainPDModel(properties);
+            Step6.predictPDLabels(properties);
+            Step7.trainAIAICModels(properties);
+            Step8.buildRerankerFeatureMap(properties);
+            Step9.generateRerankerInstances(properties);
+            Step10.trainRerankerModel(properties);
+            Step11.decode(properties);
+            Step12.evaluate(properties);
         } catch (Exception e) {
             e.printStackTrace();
         }

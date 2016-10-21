@@ -1,6 +1,6 @@
 package SupervisedSRL;
 
-import SupervisedSRL.PD.PD;
+import SupervisedSRL.PI.PI;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Properties;
 import util.IO;
@@ -8,69 +8,68 @@ import util.IO;
 import java.util.ArrayList;
 
 /**
- * Created by Maryam Aminian on 10/3/16.
+ * Created by Maryam Aminian on 10/21/16.
  */
 public class Step4 {
-
-    public static void predictPDLabels (Properties properties) throws Exception{
+    public static void predictPILabels (Properties properties) throws Exception{
         if (!properties.getSteps().contains(4))
             return;
-        predictPDLabels4EntireData(properties);
+        predictPILabels4EntireData(properties);
         if (properties.useReranker())
-            predictPDLabels4Partitions(properties);
+            predictPILabels4Partitions(properties);
     }
 
-    public static void predictPDLabels4EntireData (Properties properties) throws Exception
+    public static void predictPILabels4EntireData (Properties properties) throws Exception
     {
         if (!properties.getSteps().contains(4))
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 4.1 -- Predicting Predicate Labels of Train/dev data (used later as features)\n>>>>>>>>>>>>>\n");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 4.1 -- Predicting Predicate of Train/dev data\n>>>>>>>>>>>>>\n");
         String indexMapPath = properties.getIndexMapFilePath();
-        String pdModelDir = properties.getPdModelDir();
+        String piModelPath = properties.getPiModelPath();
         String trainFilePath = properties.getTrainFile();
         String devFilePath = properties.getDevFile();
         String testFilePath = properties.getTestFile();
-        String trainPDAutoLabelsPath = properties.getTrainAutoPDLabelsPath();
-        String devPDAutoLabelsPath = properties.getDevAutoPDLabelsPath();
-        String testPDAutoLabelsPath = properties.getTestAutoPDLabelsPath();
-        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        String trainPILabelsPath = properties.getTrainPILabelsPath();
+        String devPILabelsPath = properties.getDevPILabelsPath();
+        String testPILabelsPath = properties.getTestPILabelsPath();
+        int numOfPIFeatures = properties.getNumOfPIFeatures();
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
         ArrayList<String> testSentences = IO.readCoNLLFile(testFilePath);
         IndexMap indexMap = IO.load(indexMapPath);
 
         System.out.print("\nMaking predictions on train data...\n");
-        PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
+        PI.predict(trainSentences, indexMap, piModelPath, numOfPIFeatures, trainPILabelsPath);
         System.out.print("\nMaking predictions on dev data...\n");
-        PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+        PI.predict(devSentences, indexMap, piModelPath, numOfPIFeatures, devPILabelsPath);
         System.out.print("\nMaking predictions on test data...\n");
-        PD.predict(testSentences, indexMap, pdModelDir, numOfPDFeatures, testPDAutoLabelsPath);
+        PI.predict(testSentences, indexMap, piModelPath, numOfPIFeatures, testPILabelsPath);
     }
 
-    public static void predictPDLabels4Partitions (Properties properties) throws Exception
+    public static void predictPILabels4Partitions (Properties properties) throws Exception
     {
         if (!properties.getSteps().contains(4) || !properties.useReranker())
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 4.2 -- Predicting Predicate Labels of Train/dev data partitions\n>>>>>>>>>>>>>\n");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 4.2 -- Predicting Predicate of Train/dev data partitions\n>>>>>>>>>>>>>\n");
         String indexMapPath = properties.getIndexMapFilePath();
-        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        int numOfPIFeatures = properties.getNumOfPIFeatures();
         int numOfPartitions = properties.getNumOfPartitions();
         IndexMap indexMap = IO.load(indexMapPath);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
-            String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
+            String piModelPath = properties.getPartitionPiModelPath(devPartIdx);
             String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
             String devFilePath = properties.getPartitionDevDataPath(devPartIdx);
-            String devPDAutoLabelsPath = properties.getPartitionDevPDAutoLabelsPath(devPartIdx);
-            String trainPDAutoLabelsPath = properties.getPartitionTrainPDAutoLabelsPath(devPartIdx);
+            String devPILabels = properties.getPartitionDevPILabelsPath(devPartIdx);
+            String trainPILabels = properties.getPartitionTrainPILabelsPath(devPartIdx);
             ArrayList<String> trainSentences = IO.load(trainFilePath);
             ArrayList<String> devSentences = IO.load(devFilePath);
 
             System.out.print("\nMaking predictions on train data...\n");
-            PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
+            PI.predict(trainSentences, indexMap, piModelPath, numOfPIFeatures, trainPILabels);
             System.out.print("\nMaking predictions on dev data...\n");
-            PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+            PI.predict(devSentences, indexMap, piModelPath, numOfPIFeatures, devPILabels);
         }
     }
 }

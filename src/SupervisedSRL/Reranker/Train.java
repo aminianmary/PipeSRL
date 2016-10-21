@@ -2,9 +2,7 @@ package SupervisedSRL.Reranker;
 
 import SupervisedSRL.Evaluation;
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Properties;
-import SupervisedSRL.Strcutures.RerankerFeatureMap;
 import ml.AveragedPerceptron;
 import ml.RerankerAveragedPerceptron;
 import util.IO;
@@ -64,7 +62,7 @@ public class Train {
             int aiMaxBeamSize = properties.getNumOfAIBeamSize();
             int acMaxBeamSize = properties.getNumOfACBeamSize();
             String outputFile = properties.getOutputFilePathDev() + "_"+iter;
-            String pdAutoLabelsPath = properties.getDevAutoPDLabelsPath();
+            String pdAutoLabelsPath = properties.getDevPDLabelsPath();
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, ap,
