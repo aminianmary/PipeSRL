@@ -28,12 +28,12 @@ public class PD {
     public static final int maxNumOfPDIterations4UnseenPredicates = 10;
 
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
-                             IndexMap indexMap, int maxNumberOfTrainingIterations, String modelDir, int numOfPDFeaturs)
+                             IndexMap indexMap, int maxNumberOfTrainingIterations, String modelDir, int numOfPDFeatures)
             throws Exception {
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> trainPLexicon =
-                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
+                buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeatures);
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPLexicon =
-                buildPredicateLexicon(devSentencesInCONLLFormat, indexMap, numOfPDFeaturs);
+                buildPredicateLexicon(devSentencesInCONLLFormat, indexMap, numOfPDFeatures);
         int numOfSavedModelFiles =0;
         System.out.println("Training Started...");
         System.out.println("trainPLexicon num of lemmas: " + trainPLexicon.size());
@@ -41,7 +41,7 @@ public class PD {
 
         for (int plem : trainPLexicon.keySet()) {
             HashSet<String> possibleLabels = new HashSet<>(trainPLexicon.get(plem).keySet());
-            AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeaturs);
+            AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeatures);
             double bestAcc = 0;
             int noImprovement = 0;
             boolean savedModel4ThisLemma = false;
