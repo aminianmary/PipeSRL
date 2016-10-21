@@ -58,6 +58,93 @@ public class FeatureExtractor {
         punctuations.add("?");
     }
 
+    public static Object[] extractPIFeatures(int wordIdx, Sentence sentence, int length, IndexMap indexMap) throws Exception {
+        Object[] features = new Object[length];
+        int[] sentenceDepLabels = sentence.getDepLabels();
+        int[] sentenceDepHeads = sentence.getDepHeads();
+        int[] sentenceWords = sentence.getWords();
+        int[] sentenceWordsFullClusters = sentence.getWordFullClusterIds();
+        int[] sentenceWords4Clusters = sentence.getWord4ClusterIds();
+        int[] sentenceLemmas = sentence.getLemmas();
+        int[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
+        int[] sentencePOSTags = sentence.getPosTags();
+        int[] sentenceCPOSTags = sentence.getcPosTags();
+        TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
+
+        //word features
+        int w = sentenceWords[wordIdx];
+        int lem = sentenceLemmas[wordIdx];
+        int wFullCluster = sentenceWordsFullClusters[wordIdx];
+        int w4Clsuter = sentenceWords4Clusters[wordIdx];
+        int lemCluster = sentenceLemmasClusters[wordIdx];
+        int pos = sentencePOSTags[wordIdx];
+        int cPos = sentenceCPOSTags[wordIdx];
+        int deprel = sentenceDepLabels[wordIdx];
+        int prw = sentenceWords[sentenceDepHeads[wordIdx]];
+        int prlem = sentenceLemmas[sentenceDepHeads[wordIdx]];
+        int prwFullCluster = sentenceWordsFullClusters[sentenceDepHeads[wordIdx]];
+        int prw4Cluster = sentenceWords4Clusters[sentenceDepHeads[wordIdx]];
+        int prlemaCluster = sentenceLemmasClusters[sentenceDepHeads[wordIdx]];
+        int prpos = sentencePOSTags[sentenceDepHeads[wordIdx]];
+        int prcpos = sentenceCPOSTags[sentenceDepHeads[wordIdx]];
+        String depsubcat = getDepSubCat(wordIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
+        String childdepset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
+        String childposset = getChildSet(wordIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
+        String childwset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
+
+        ArrayList<Object> feats= new ArrayList<>();
+        feats.add(w);
+        feats.add(lem);
+        feats.add(wFullCluster);
+        feats.add(w4Clsuter);
+        feats.add(lemCluster);
+        feats.add(pos);
+        feats.add(cPos);
+        feats.add(deprel);
+        feats.add(prw);
+        feats.add(prwFullCluster);
+        feats.add(prw4Cluster);
+        feats.add(prlem);
+        feats.add(prlemaCluster);
+        feats.add(prpos);
+        feats.add(prcpos);
+        feats.add(depsubcat);
+        feats.add(childdepset);
+        feats.add(childposset);
+        feats.add(childwset);
+
+        int index = 0;
+        features[index++] = w;
+        features[index++] = lem;
+        features[index++] = wFullCluster;
+        features[index++] = w4Clsuter;
+        features[index++] = lemCluster;
+        features[index++] = pos;
+        features[index++] = cPos;
+        features[index++] = deprel;
+        features[index++] = prw;
+        features[index++] = prlem;
+        features[index++] = prwFullCluster;
+        features[index++] = prw4Cluster;
+        features[index++] = prlemaCluster;
+        features[index++] = prpos;
+        features[index++] = prcpos;
+        features[index++] = depsubcat;
+        features[index++] = childdepset;
+        features[index++] = childposset;
+        features[index++] = childwset;
+
+        for (int i=0;i<feats.size();i++){
+            for (int j=0; j< feats.size(); j++){
+                if (i!= j)
+                    features[index++] =  feats.get(i) +" "+ feats.get(j);
+            }
+        }
+
+        return features;
+    }
+
+
     public static Object[] extractPDFeatures(int pIdx, Sentence sentence, int length, IndexMap indexMap)
             throws Exception {
         Object[] features = new Object[length];

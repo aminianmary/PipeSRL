@@ -34,7 +34,7 @@ public class PI {
                 ArrayList<Integer> predicateIndices = sentence.getPredicatesIndices();
 
                 for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
-                    Object[] featureVector = FeatureExtractor.extractPIFeatures();
+                    Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
                     String label = (predicateIndices.contains(wordIdx)) ? "1" : "0";
                     ap.learnInstance(featureVector, label);
                 }
@@ -50,7 +50,7 @@ public class PI {
 
                 for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
                     total++;
-                    Object[] featureVector = FeatureExtractor.extractPIFeatures();
+                    Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
                     String goldLabel = (predicateIndices.contains(wordIdx)) ? "1" : "0";
                     String prediction = decodeAp.predict(featureVector);
                     if (goldLabel.equals(prediction))
@@ -75,7 +75,7 @@ public class PI {
     }
 
     public static void predict (ArrayList<String> evalSentencesInCONLLFormat, IndexMap indexMap,
-                                String PIModelPath, String path2SavePredictions) throws Exception {
+                                String PIModelPath, int numOfPIFeatures, String path2SavePredictions) throws Exception {
         HashSet<Integer>[] PIPredictions = new HashSet[evalSentencesInCONLLFormat.size()];
         AveragedPerceptron classifier = IO.load(PIModelPath);
 
@@ -84,7 +84,7 @@ public class PI {
             Sentence sentence = new Sentence(evalSentencesInCONLLFormat.get(senIdx), indexMap);
 
             for (int wordIdx =0; wordIdx< sentence.getLength(); wordIdx++){
-                Object[] featureVector = FeatureExtractor.extractPIFeatures();
+                Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
                 String prediction = classifier.predict(featureVector);
                 if (prediction.equals("1"))
                     prediction4ThisSentence.add(wordIdx);
