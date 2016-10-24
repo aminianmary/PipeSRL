@@ -8,8 +8,8 @@ import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
 import util.IO;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.io.FileOutputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,46 +36,52 @@ public class Step9 {
         HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
         int numOfAIBeamSize = properties.getNumOfAIBeamSize();
         int numOfACBeamSize = properties.getNumOfACBeamSize();
+        int numOfPIFeatures = properties.getNumOfPIFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
         double aiCoefficient = properties.getAiCoefficient();
+        String pdModelDir = properties.getPdModelDir();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("PART "+ devPartIdx);
             String rerankerInstanceFilePath = properties.getRerankerInstancesFilePath(devPartIdx);
-            String pdAutoLabelsPath = properties.getPartitionDevPDAutoLabelsPath(devPartIdx);
             String aiModelPath4Partition = properties.getPartitionAIModelPath(devPartIdx);
             String acModelPath4Partition = properties.getPartitionACModelPath(devPartIdx);
-            Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifiersOnThisPartition = ModelInfo.loadTrainedModels(aiModelPath4Partition, acModelPath4Partition);
+            String piModelPath4Partition = properties.getPartitionPiModelPath(devPartIdx);
+            AveragedPerceptron aiClassifier = IO.load(aiModelPath4Partition);
+            AveragedPerceptron acClassifier = IO.load(acModelPath4Partition);
+            AveragedPerceptron piClassifier = IO.load(piModelPath4Partition);
 
-            generateRerankerInstances4ThisPartition(trainedClassifiersOnThisPartition, trainDataPartitions[devPartIdx],
+            generateRerankerInstances4ThisPartition(piClassifier, aiClassifier, acClassifier, trainDataPartitions[devPartIdx],
                     rerankerFeatureMap, indexMap, globalReverseLabelMap, numOfAIBeamSize, numOfACBeamSize,
-                    numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    rerankerInstanceFilePath, aiCoefficient, pdAutoLabelsPath);
+                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
+                    rerankerInstanceFilePath, aiCoefficient, pdModelDir);
         }
     }
 
-    private static void generateRerankerInstances4ThisPartition(Pair<AveragedPerceptron, AveragedPerceptron> trainedClassifier, ArrayList<String> devSentences,
-                                                                HashMap<Object, Integer>[] rerankerFeatureMap, IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
-                                                                int aiBeamSize, int acBeamSize, int numOfAIFeatures, int numOfACFeatures,
-                                                                int numOfGlobalFeatures, String rerankerInstancesFilePath, double aiCoefficient, String pdAutoLabelsPath) throws Exception {
-        Decoder decoder = new Decoder(trainedClassifier.first, trainedClassifier.second);
-        String[] localClassifierLabelMap = trainedClassifier.second.getLabelMap();
+    private static void generateRerankerInstances4ThisPartition(AveragedPerceptron piClassifier, AveragedPerceptron aiClassifier,
+            AveragedPerceptron acClassifier, ArrayList<String> devSentences, HashMap<Object, Integer>[] rerankerFeatureMap,
+                                                                IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
+                                                                int aiBeamSize, int acBeamSize, int numOfPIFeatures,
+                                                                int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
+                                                                int numOfGlobalFeatures, String rerankerInstancesFilePath,
+                                                                double aiCoefficient, String pdModelDir) throws Exception {
+        Decoder decoder = new Decoder(piClassifier, aiClassifier, acClassifier);
+        String[] localClassifierLabelMap = acClassifier.getLabelMap();
         FileOutputStream fos = new FileOutputStream(rerankerInstancesFilePath);
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutputStream writer = new ObjectOutputStream(gz);
-        HashMap<Integer, String>[] pdAutoLabels = IO.load(pdAutoLabelsPath);
         for (int d = 0; d < devSentences.size(); d++) {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentences.size());
             Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
-            devSentence.setPDAutoLabels(pdAutoLabels[d]);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = RerankerInstanceGenerator.getGoldArgLabelMap(devSentence, globalReverseLabelMap);
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                            numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdAutoLabels[d]);
+                            numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir);
 
             //creating the pool
             for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {

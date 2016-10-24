@@ -285,5 +285,12 @@ public class Sentence {
         }
     }
 
+    public void setPDAutoLabels4ThisPredicate (int pIdx, String pdLabel){
+        for (PA pa: predicateArguments.getPredicateArgumentsAsArray()){
+            if (pa.getPredicate().getIndex()==pIdx)
+                pa.getPredicate().setPredicateAutoLabel(pdLabel);
+        }
+    }
+
     public int getLength (){return words.length;}
 }

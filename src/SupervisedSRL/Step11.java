@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Created by monadiab on 9/12/16.
+ * Created by Maryam Aminian on 9/12/16.
  */
 public class Step11 {
 
@@ -21,11 +21,13 @@ public class Step11 {
         System.out.println("\n>>>>>>>>>>>>>\nStep 9 -- Decoding\n>>>>>>>>>>>>>\n");
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
+        AveragedPerceptron piClassifier = AveragedPerceptron.loadModel(properties.getPiModelPath());
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-        String pdAutoLabelsPathDev = properties.getDevPDLabelsPath();
-        String pdAutoLabelsPathTest = properties.getTestPDLabelsPath();
+        String pdModelDir = properties.getPdModelDir();
         ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
         ArrayList<String> testSentences = IO.readCoNLLFile(properties.getTestFile());
+        int numOfPIFeatures = properties.getNumOfPIFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
@@ -34,27 +36,28 @@ public class Step11 {
         String devOutputFile = properties.getOutputFilePathDev();
         String testOutputFile = properties.getOutputFilePathTest();
         double aiCoefficient = properties.getAiCoefficient();
+
         if (properties.useReranker()) {
             HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
             RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
-            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier,
+            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(piClassifier, aiClassifier, acClassifier,
                     reranker, indexMap, rerankerFeatureMap);
             System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
-            decoder.decode(devSentences,numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
-                    devOutputFile, aiCoefficient, pdAutoLabelsPathDev);
+            decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
+                    devOutputFile, aiCoefficient, pdModelDir);
 
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
-            decoder.decode(testSentences,numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
-                    testOutputFile, aiCoefficient, pdAutoLabelsPathTest);
+            decoder.decode(testSentences, numOfPIFeatures, numOfPDFeatures,numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
+                    testOutputFile, aiCoefficient, pdModelDir);
         } else {
-            SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(aiClassifier, acClassifier);
+            SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(piClassifier, aiClassifier, acClassifier);
             System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
-            decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures,numOfACFeatures,
-                    devOutputFile,aiCoefficient, pdAutoLabelsPathDev);
+            decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
+                    numOfAIFeatures,numOfACFeatures, devOutputFile,aiCoefficient, pdModelDir);
 
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
-            decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures,numOfACFeatures,
-                    testOutputFile,aiCoefficient, pdAutoLabelsPathTest);
+            decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
+                    numOfAIFeatures,numOfACFeatures, testOutputFile,aiCoefficient, pdModelDir);
         }
     }
 }

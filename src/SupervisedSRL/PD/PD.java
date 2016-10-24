@@ -157,13 +157,9 @@ public class PD {
                 unseenPreds++;
                 if (plem != indexMap.unknownIdx) {
                     predictions.put(pIdx, indexMap.int2str(plem) + ".01"); //seen pLem
-                    if (indexMap.int2str(plem).equals("null"))
-                        System.out.print("Hi I'm null");
                 }
                 else {
                     predictions.put(pIdx, sentenceLemmas_str[pIdx] + ".01"); //unseen pLem
-                    if (sentenceLemmas_str[pIdx].equals("null"))
-                        System.out.print("Hi I'm null");
                 }
             }
         }

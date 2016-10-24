@@ -6,17 +6,16 @@ import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
 import util.IO;
 
+import java.io.File;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Created by Maryam Aminian on 5/24/16.
  */
 public class Decoder {
 
+    AveragedPerceptron piClassifier; //predicate identification (binary classifier)
     AveragedPerceptron aiClassifier; //argument identification (binary classifier)
     AveragedPerceptron acClassifier; //argument classification (multi-class classifier)
 
@@ -29,7 +28,8 @@ public class Decoder {
         }
     }
 
-    public Decoder(AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier) {
+    public Decoder(AveragedPerceptron piClassifier, AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier) {
+        this.piClassifier = piClassifier;
         this.aiClassifier = aiClassifier;
         this.acClassifier = acClassifier;
     }
@@ -37,11 +37,10 @@ public class Decoder {
     ////////////////////////////////// DECODE ////////////////////////////////////////////////////////
 
     public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
-                       int aiMaxBeamSize, int acMaxBeamSize,
+                       int aiMaxBeamSize, int acMaxBeamSize, int numOfPIFeatures, int numOfPDFeatures,
                        int numOfAIFeatures, int numOfACFeatures, String outputFile, double aiCoefficient,
-                       String devPDAutoLabelsPath) throws Exception {
+                       String pdModelDir) throws Exception {
 
-        HashMap<Integer, String>[] devPDAutoLabels = IO.load(devPDAutoLabelsPath);
         DecimalFormat format = new DecimalFormat("##.00");
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
@@ -54,9 +53,8 @@ public class Decoder {
 
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap);
-            sentence.setPDAutoLabels(devPDAutoLabels[d]);
             predictions[d] = (TreeMap<Integer, Prediction>) predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                    numOfAIFeatures, numOfACFeatures, false, aiCoefficient, devPDAutoLabels[d]);
+                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, false, aiCoefficient, pdModelDir);
 
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
         }
@@ -86,25 +84,51 @@ public class Decoder {
     }
 
     public Object predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                          int acMaxBeamSize, int numOfAIFeatures, int numOfACFeatures,
-                          boolean use4Reranker, double aiCoefficient, HashMap<Integer, String> pdAutoLabels) throws Exception {
+                          int acMaxBeamSize, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
+                          boolean use4Reranker, double aiCoefficient, String pdModelDir) throws Exception {
 
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
-        for (int pIdx : pdAutoLabels.keySet()) {
-            // get best k argument assignment candidates
-            String pLabel = pdAutoLabels.get(pIdx);
-            HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+        int[] sentenceLemmas = sentence.getLemmas();
+        String[] sentenceLemmas_str = sentence.getLemmas_str();
 
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);
-            ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
-                    pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, aiCoefficient);
+        for (int wordIdx = 0; wordIdx < sentence.getLength(); wordIdx++) {
+            Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
+            String piPrediction = piClassifier.predict(featureVector);
 
-            if (use4Reranker)
-                predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
-            else {
-                highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
-                predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
+            if (piPrediction.equals("1")) {
+                //identified as a predicate
+                int pIdx = wordIdx;
+                int plem = sentenceLemmas[pIdx];
+                String pLabel = "";
+
+                Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
+                File f1 = new File(pdModelDir + "/" + plem);
+                if (f1.exists() && !f1.isDirectory()) {
+                    //seen predicates
+                    AveragedPerceptron classifier = AveragedPerceptron.loadModel(pdModelDir + "/" + plem);
+                    pLabel = classifier.predict(pdfeats);
+                } else {
+                    if (plem != indexMap.unknownIdx) {
+                        pLabel = indexMap.int2str(plem) + ".01"; //seen pLem
+                    } else {
+                        pLabel = sentenceLemmas_str[pIdx] + ".01"; //unseen pLem
+                    }
+                }
+
+                //having pd label, set pSense in the sentence
+                sentence.setPDAutoLabels4ThisPredicate(pIdx, pLabel);
+                HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+                ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);
+                ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
+                        pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, aiCoefficient);
+
+                if (use4Reranker)
+                    predictedAIACCandidates.put(pIdx, new Prediction4Reranker(pLabel, aiCandidates, acCandidates));
+                else {
+                    highestScorePrediction = getHighestScorePredication(aiCandidates, acCandidates);
+                    predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
+                }
             }
         }
 
@@ -112,6 +136,7 @@ public class Decoder {
             return predictedAIACCandidates;
         else
             return predictedPAs;
+
     }
 
     ////////////////////////////////// GET BEST CANDIDATES ///////////////////////////////////////////////
