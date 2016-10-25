@@ -14,6 +14,7 @@ public class Properties {
     private String modelDir;
     private String outputDir;
     private int numOfPartitions;
+    private int maxNumOfPITrainingIterations;
     private int maxNumOfPDTrainingIterations;
     private int maxNumOfAITrainingIterations;
     private int maxNumOfACTrainingIterations;
@@ -50,7 +51,7 @@ public class Properties {
 
 
     public Properties(String trainFile, String devFile, String testFile, String clusterFile, String modelDir, String outputDir,
-                      int numOfPartitions, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
+                      int numOfPartitions, int maxNumOfPITrainingIterations, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
                       boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient) {
@@ -62,6 +63,7 @@ public class Properties {
         this.modelDir = modelDir;
         this.outputDir = outputDir;
         this.numOfPartitions = numOfPartitions;
+        this.maxNumOfPITrainingIterations = maxNumOfPITrainingIterations;
         this.maxNumOfPDTrainingIterations = maxNumOfPDTrainingIterations;
         this.maxNumOfAITrainingIterations = maxNumOfAITrainingIterations;
         this.maxNumOfACTrainingIterations = maxNumOfACTrainingIterations;
@@ -141,6 +143,10 @@ public class Properties {
 
     public int getNumOfPartitions() {
         return numOfPartitions;
+    }
+
+    public int getMaxNumOfPITrainingIterations() {
+        return maxNumOfPITrainingIterations;
     }
 
     public int getMaxNumOfPDTrainingIterations() {
@@ -340,10 +346,12 @@ public class Properties {
                 "Number of Partitions: "+ numOfPartitions+"\n" +
                 "AI Beam Size: "+ numOfAIBeamSize+"\n" +
                 "AC Beam Size: "+ numOfACBeamSize+"\n" +
+                "PI Feature Size: "+ numOfPIFeatures+"\n" +
+                "PD Feature Size: "+ numOfPDFeatures+"\n" +
                 "AI Feature Size: "+ numOfAIFeatures+"\n" +
                 "AC Feature Size: "+ numOfACFeatures+"\n" +
-                "PD Feature Size: "+ numOfPDFeatures+"\n" +
                 "Global Feature Size: "+ numOfGlobalFeatures+"\n" +
+                "Max Number of PI Iterations: "+ maxNumOfPITrainingIterations+"\n" +
                 "Max Number of PD Iterations: "+ maxNumOfPDTrainingIterations+"\n" +
                 "Max Number of AI Iterations: "+ maxNumOfAITrainingIterations+"\n" +
                 "Max Number of AC Iterations: "+ maxNumOfACTrainingIterations+"\n" +

@@ -27,37 +27,39 @@ public class PI {
         int noImprovement = 0;
 
         for (int iter = 0; iter < maxNumberOfTrainingIterations; iter++) {
-            System.out.print("iteration:" + iter + "...\n");
+            System.out.print("iteration:" + iter + "\t");
 
             for (int sIdx = 0; sIdx < trainSentencesInCONLLFormat.size(); sIdx++) {
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sIdx), indexMap);
-                ArrayList<Integer> predicateIndices = sentence.getPredicatesIndices();
+                ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
                 for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
                     Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                    String label = (predicateIndices.contains(wordIdx)) ? "1" : "0";
+                    String label = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
                     ap.learnInstance(featureVector, label);
                 }
             }
-            //making prediction on dev data
+
+            //making prediction on dev data using the model trained in this iter
             AveragedPerceptron decodeAp = ap.calculateAvgWeights();
             int correct = 0;
             int total = 0;
 
             for (int sIdx = 0; sIdx < devSentencesInCONLLFormat.size(); sIdx++) {
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(sIdx), indexMap);
-                ArrayList<Integer> predicateIndices = sentence.getPredicatesIndices();
+                ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
                 for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
                     total++;
                     Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                    String goldLabel = (predicateIndices.contains(wordIdx)) ? "1" : "0";
+                    String goldLabel = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
                     String prediction = decodeAp.predict(featureVector);
                     if (goldLabel.equals(prediction))
                         correct++;
                 }
             }
             double acc = (double) correct / total;
+            System.out.print("Accuracy: "+ acc +"\n");
             if (acc > bestAcc) {
                 noImprovement = 0;
                 bestAcc = acc;

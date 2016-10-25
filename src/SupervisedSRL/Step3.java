@@ -29,7 +29,7 @@ public class Step3 {
         String PIModelPath = properties.getPiModelPath();
         String trainFilePath = properties.getTrainFile();
         String devFilePath = properties.getDevFile();
-        int maxTrainingIters = properties.getMaxNumOfPDTrainingIterations();
+        int maxTrainingIters = properties.getMaxNumOfPITrainingIterations();
         int numOfPIFeatures = properties.getNumOfPIFeatures();
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);

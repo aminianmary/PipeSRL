@@ -24,14 +24,17 @@ public class Step7 {
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 7.1 -- Building AI-AC models on entire data\n>>>>>>>>>>>>>\n");
         String indexMapPath = properties.getIndexMapFilePath();
+        String piModelPath = properties.getPiModelPath();
         String aiModelPath = properties.getAiModelPath();
         String acModelPath = properties.getAcModelPath();
         String trainFilePath = properties.getTrainFile();
         String devFilePath = properties.getDevFile();
         String trainPDAutoLabelsPath = properties.getTrainPDLabelsPath();
-        String devPDAutoLabelsPath = properties.getDevPDLabelsPath();
+        String pdModelDir = properties.getPdModelDir();
         int maxAITrainingIters = properties.getMaxNumOfAITrainingIterations();
         int maxACTrainingIters = properties.getMaxNumOfACTrainingIterations();
+        int numOfPIFeatures = properties.getNumOfPIFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int aiBeamSize = properties.getNumOfAIBeamSize();
@@ -44,9 +47,9 @@ public class Step7 {
 
         IndexMap indexMap = IO.load(indexMapPath);
         boolean isModelBuiltOnEntireTrainData = true;
-        Train.train(trainSentences, devSentences, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
-                numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, devPDAutoLabelsPath);
+        Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
+                numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
+                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir);
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
@@ -56,6 +59,8 @@ public class Step7 {
         String indexMapPath = properties.getIndexMapFilePath();
         int maxAITrainingIters = properties.getMaxNumOfAITrainingIterations();
         int maxACTrainingIters = properties.getMaxNumOfACTrainingIterations();
+        int numOfPIFeatures = properties.getNumOfPIFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
         int aiBeamSize = properties.getNumOfAIBeamSize();
@@ -67,19 +72,20 @@ public class Step7 {
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
+            String piModelPath = properties.getPartitionPiModelPath(devPartIdx);
             String aiModelPath = properties.getPartitionAIModelPath(devPartIdx);
             String acModelPath = properties.getPartitionACModelPath(devPartIdx);
             String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
             String devFilePath = properties.getPartitionDevDataPath(devPartIdx);
+            String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
             ArrayList<String> trainSentences = IO.load(trainFilePath);
             ArrayList<String> devSentences = IO.load(devFilePath);
             boolean isModelBuiltOnEntireTrainData = false;
             String trainPDAutoLabelsPath = properties.getPartitionTrainPDAutoLabelsPath(devPartIdx);
-            String devPDAutoLabelsPath = properties.getPartitionDevPDAutoLabelsPath(devPartIdx);
 
-            Train.train(trainSentences, devSentences, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
-                    numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, devPDAutoLabelsPath);
+            Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
+                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
+                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir);
         }
     }
 

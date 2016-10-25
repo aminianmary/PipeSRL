@@ -19,8 +19,8 @@ public class Decoder {
     AveragedPerceptron aiClassifier; //argument identification (binary classifier)
     AveragedPerceptron acClassifier; //argument classification (multi-class classifier)
 
-    public Decoder(AveragedPerceptron classifier, String state) {
-
+    public Decoder(AveragedPerceptron piClassifier, AveragedPerceptron classifier, String state) {
+        this.piClassifier = piClassifier;
         if (state.equals("AI")) {
             this.aiClassifier = classifier;
         } else if (state.equals("AC") || state.equals("joint")) {
@@ -66,19 +66,48 @@ public class Decoder {
     ////////////////////////////////// PREDICT ////////////////////////////////////////////////////////
 
     public HashMap<Integer, Prediction> predictAI(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
-                                                  int numOfFeatures, HashMap<Integer, String> pdAutoLabels4ThisSentence)
+                                                  int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures,
+                                                 String pdModelDir)
             throws Exception {
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
+        int[] sentenceLemmas = sentence.getLemmas();
+        String[] sentenceLemmas_str = sentence.getLemmas_str();
 
-        for (int pIdx : pdAutoLabels4ThisSentence.keySet()) {
-            // get best k argument assignment candidates
-            String pLabel = pdAutoLabels4ThisSentence.get(pIdx);
-            ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = new ArrayList();
-            HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+        for (int wordIdx = 0; wordIdx < sentence.getLength(); wordIdx++) {
+            Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
+            String piPrediction = piClassifier.predict(featureVector);
 
-            aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfFeatures);
-            highestScorePrediction = getHighestScorePredication(aiCandidates);
-            predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
+            if (piPrediction.equals("1")) {
+                //identified as a predicate
+                int pIdx = wordIdx;
+                int plem = sentenceLemmas[pIdx];
+                String pLabel = "";
+
+                Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
+                File f1 = new File(pdModelDir + "/" + plem);
+                if (f1.exists() && !f1.isDirectory()) {
+                    //seen predicates
+                    AveragedPerceptron classifier = AveragedPerceptron.loadModel(pdModelDir + "/" + plem);
+                    pLabel = classifier.predict(pdfeats);
+                } else {
+                    if (plem != indexMap.unknownIdx) {
+                        pLabel = indexMap.int2str(plem) + ".01"; //seen pLem
+                    } else {
+                        pLabel = sentenceLemmas_str[pIdx] + ".01"; //unseen pLem
+                    }
+                }
+
+                //having pd label, set pSense in the sentence
+                sentence.setPDAutoLabels4ThisPredicate(pIdx, pLabel);
+
+
+                ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = new ArrayList();
+                HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+
+                aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);
+                highestScorePrediction = getHighestScorePredication(aiCandidates);
+                predictedPAs.put(pIdx, new Prediction(pLabel, highestScorePrediction));
+            }
         }
         return predictedPAs;
     }

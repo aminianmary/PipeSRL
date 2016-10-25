@@ -52,23 +52,26 @@ public class Train {
 
             System.out.print("Making prediction on Dev data...");
             HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
+            AveragedPerceptron piClassifier = AveragedPerceptron.loadModel(properties.getPiModelPath());
             AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
             AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
             IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
             ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
+            int numOfPIFeatures = properties.getNumOfPIFeatures();
+            int numOfPDFeatures = properties.getNumOfPDFeatures();
             int numOfAIFeatures = properties.getNumOfAIFeatures();
             int numOfACFeatures = properties.getNumOfACFeatures();
             int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
             int aiMaxBeamSize = properties.getNumOfAIBeamSize();
             int acMaxBeamSize = properties.getNumOfACBeamSize();
             String outputFile = properties.getOutputFilePathDev() + "_"+iter;
-            String pdAutoLabelsPath = properties.getDevPDLabelsPath();
+            String pdModelDir = properties.getPdModelDir();
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 
-            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(aiClassifier, acClassifier, ap,
-                    indexMap, rerankerFeatureMap);
-            decoder.decode(devSentences, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdAutoLabelsPath);
+            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(piClassifier, aiClassifier,
+                    acClassifier, ap, indexMap, rerankerFeatureMap);
+            decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
+                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdModelDir);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());

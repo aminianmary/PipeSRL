@@ -23,26 +23,26 @@ import java.util.List;
  */
 public class Train {
     public static void train(ArrayList<String> trainSentencesInCONLLFormat,
-                             ArrayList<String> devSentencesInCONLLFormat,
+                             ArrayList<String> devSentencesInCONLLFormat, String piModelPath,
                              String aiModelPath, String acModelPath, IndexMap indexMap,
                              int numberOfAITrainingIterations, int numberOfACTrainingIterations,
-                             int numOfAIFeatures, int numOfACFeatures,
+                             int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
                              int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData,
                              double aiCoefficient, String modelsToBeTrained,
-                             String trainPDAutoLabelsPath, String devPDAutoLabelsPath) throws Exception {
+                             String trainPDAutoLabelsPath, String pdModelDir) throws Exception {
 
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         if (modelsToBeTrained.contains("AI")) {
             System.out.print("\n>>>> Training AI >>>>\n");
             trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfAITrainingIterations,
-                    aiModelPath, numOfAIFeatures, aiMaxBeamSize, trainPDAutoLabelsPath, devPDAutoLabelsPath);
+                    piModelPath, aiModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, aiMaxBeamSize, trainPDAutoLabelsPath, pdModelDir);
             System.out.print("\nDone!\n");
         }
         if (modelsToBeTrained.contains("AC")){
             System.out.print("\n>>>> Training AC >>>>\n");
             trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfACTrainingIterations,
-                aiModelPath, acModelPath, numOfAIFeatures, numOfACFeatures,
-                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath, devPDAutoLabelsPath);
+                piModelPath, aiModelPath, acModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures,
+                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath, pdModelDir);
             System.out.print("\nDone!...\n");
 
         }
@@ -50,17 +50,17 @@ public class Train {
 
     public static void trainAI(List<String> trainSentencesInCONLLFormat,
                                List<String> devSentencesInCONLLFormat,
-                               IndexMap indexMap, int numberOfTrainingIterations, String aiModelPath, int numOfFeatures,
-                               int aiMaxBeamSize, String trainPDAutoLabelsPath, String devPDAutoLabelsPath)
+                               IndexMap indexMap, int numberOfTrainingIterations, String piModelPath, String aiModelPath,
+                               int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures,
+                               int aiMaxBeamSize, String trainPDAutoLabelsPath, String pdModelDir)
             throws Exception {
         HashMap<Integer, String>[] trainPDAutoLabels = IO.load(trainPDAutoLabelsPath);
-        HashMap<Integer, String>[] devPDAutoLabels = IO.load(devPDAutoLabelsPath);
 
         DecimalFormat format = new DecimalFormat("##.00");
         HashSet<String> labelSet = new HashSet<String>();
         labelSet.add("1");
         labelSet.add("0");
-        AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfFeatures);
+        AveragedPerceptron ap = new AveragedPerceptron(labelSet, numOfAIFeatures);
 
         //training averaged perceptron
         long startTime = 0;
@@ -76,7 +76,7 @@ public class Train {
             ap.correct = 0;
 
             for (int sID=0; sID< trainSentencesInCONLLFormat.size(); sID++) {
-                Object[] instances = obtainTrainInstance4AI(trainSentencesInCONLLFormat.get(sID), indexMap, numOfFeatures,
+                Object[] instances = obtainTrainInstance4AI(trainSentencesInCONLLFormat.get(sID), indexMap, numOfAIFeatures,
                         trainPDAutoLabels[sID]);
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
@@ -110,7 +110,7 @@ public class Train {
             //making prediction over dev sentences
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
-            Decoder argumentDecoder = new Decoder(ap.calculateAvgWeights(), "AI");
+            Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(piModelPath), ap.calculateAvgWeights(), "AI");
             //ai confusion matrix
             int[][] aiConfusionMatrix = new int[2][2];
             aiConfusionMatrix[0][0] = 0;
@@ -122,9 +122,8 @@ public class Train {
             for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
 
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap);
-                sentence.setPDAutoLabels(devPDAutoLabels[d]);
                 HashMap<Integer, Prediction> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
-                        numOfFeatures, devPDAutoLabels[d]);
+                        numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, pdModelDir);
 
                 //we do evaluation for each sentence and update confusion matrix right here
                 aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
@@ -149,10 +148,11 @@ public class Train {
 
     public static void trainAC(ArrayList<String> trainSentencesInCONLLFormat,
                                ArrayList<String> devSentencesInCONLLFormat, HashSet<String> labelSet, IndexMap indexMap,
-                               int numberOfTrainingIterations, String aiModelPath, String acModelPath, int numOfAIFeatures,
-                               int numOfACFeatures, int aiMaxBeamSize, int acMaxBeamSize,
+                               int numberOfTrainingIterations, String piModelPath, String aiModelPath, String acModelPath,
+                               int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures,int numOfACFeatures,
+                               int aiMaxBeamSize, int acMaxBeamSize,
                                boolean isModelBuiltOnEntireTrainData, double aiCoefficient,
-                               String trainPDAutoLabelsPath, String devPDAutoLabelsPath)
+                               String trainPDAutoLabelsPath, String pdModelDir)
             throws Exception {
         HashMap<Integer, String>[] trainPDAutoLabels = IO.load(trainPDAutoLabelsPath);
         DecimalFormat format = new DecimalFormat("##.00");
@@ -191,9 +191,11 @@ public class Train {
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
             String tempOutputFile = ProjectConstantPrefixes.TMP_DIR + "AC_dev_output_" + iter;
-            Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
-            argumentDecoder.decode(indexMap, devSentencesInCONLLFormat,
-                    aiMaxBeamSize, acMaxBeamSize, numOfAIFeatures, numOfACFeatures, tempOutputFile, aiCoefficient, devPDAutoLabelsPath);
+            Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(piModelPath),
+                    AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
+
+            argumentDecoder.decode(indexMap, devSentencesInCONLLFormat, aiMaxBeamSize, acMaxBeamSize,
+                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, tempOutputFile, aiCoefficient, pdModelDir);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());

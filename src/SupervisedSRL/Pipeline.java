@@ -34,24 +34,24 @@ public class Pipeline {
         String steps = args[6];
         String modelsToBeTrained = args[7];
         int numOfPartitions = Integer.parseInt(args[8]);
-        int maxNumOfPDTrainingIterations = Integer.parseInt(args[9]);
-        int maxNumOfAITrainingIterations = Integer.parseInt(args[10]);
-        int maxNumOfACTrainingIterations = Integer.parseInt(args[11]);
-        int maxNumOfRerankerTrainingIterations = Integer.parseInt(args[12]);
-        int numOfAIBeamSize = Integer.parseInt(args[13]);
-        int numOfACBeamSize = Integer.parseInt(args[14]);
-        double aiCoefficient = Double.parseDouble(args[15]);
-        boolean reranker = Boolean.parseBoolean(args[16]);
+        int maxNumOfPITrainingIterations = Integer.parseInt(args[9]);
+        int maxNumOfPDTrainingIterations = Integer.parseInt(args[10]);
+        int maxNumOfAITrainingIterations = Integer.parseInt(args[11]);
+        int maxNumOfACTrainingIterations = Integer.parseInt(args[12]);
+        int maxNumOfRerankerTrainingIterations = Integer.parseInt(args[13]);
+        int numOfAIBeamSize = Integer.parseInt(args[14]);
+        int numOfACBeamSize = Integer.parseInt(args[15]);
+        double aiCoefficient = Double.parseDouble(args[16]);
+        boolean reranker = Boolean.parseBoolean(args[17]);
 
         Properties properties = new Properties(trainFile, devFile, testFile, clusterFile, modelDir, outputDir, numOfPartitions,
-                maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
+                maxNumOfPITrainingIterations, maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
                 numOfAIBeamSize, numOfACBeamSize, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
                 reranker, steps, modelsToBeTrained, aiCoefficient);
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);
             Step3.trainPIModel(properties);
-            Step4.predictPILabels(properties);
             Step5.trainPDModel(properties);
             Step6.predictPDLabels(properties);
             Step7.trainAIAICModels(properties);

@@ -32,7 +32,6 @@ public class Step8 {
         double aiCoefficient = properties.getAiCoefficient();
         String rerankerFeatureMapFilePath = properties.getRerankerFeatureMapPath();
         String rerankerSeenFeaturesFilePath = properties.getNumOfRerankerSeenFeaturesPath();
-        String pdModelDir = properties.getPdModelDir();
 
         assert globalReverseLabelMap.size() != 0;
         RerankerFeatureMap rerankerFeatureMap = new RerankerFeatureMap(numOfAIFeatures + numOfGlobalFeatures);
@@ -43,6 +42,7 @@ public class Step8 {
             String aiModelPath4Partition = properties.getPartitionAIModelPath(devPart);
             String acModelPath4Partition = properties.getPartitionACModelPath(devPart);
             String piModelPath4Partition = properties.getPartitionPiModelPath(devPart);
+            String pdModelDir4Partition = properties.getPartitionPdModelDir(devPart);
             AveragedPerceptron aiClassifier = IO.load(aiModelPath4Partition);
             AveragedPerceptron acClassifier = IO.load(acModelPath4Partition);
             AveragedPerceptron piClassifier = IO.load(piModelPath4Partition);
@@ -57,7 +57,7 @@ public class Step8 {
                 Sentence devSentence = new Sentence(devSentences.get(d), indexMap);
                 TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                         (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                                numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir);
+                                numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir4Partition);
 
                 for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
                     String pLabel = predictedAIACCandidates4thisSen.get(pIdx).getPredicateLabel();

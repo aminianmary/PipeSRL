@@ -42,7 +42,6 @@ public class Step9 {
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
         double aiCoefficient = properties.getAiCoefficient();
-        String pdModelDir = properties.getPdModelDir();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("PART "+ devPartIdx);
@@ -50,6 +49,7 @@ public class Step9 {
             String aiModelPath4Partition = properties.getPartitionAIModelPath(devPartIdx);
             String acModelPath4Partition = properties.getPartitionACModelPath(devPartIdx);
             String piModelPath4Partition = properties.getPartitionPiModelPath(devPartIdx);
+            String pdModelDir4Partition = properties.getPartitionPdModelDir(devPartIdx);
             AveragedPerceptron aiClassifier = IO.load(aiModelPath4Partition);
             AveragedPerceptron acClassifier = IO.load(acModelPath4Partition);
             AveragedPerceptron piClassifier = IO.load(piModelPath4Partition);
@@ -57,7 +57,7 @@ public class Step9 {
             generateRerankerInstances4ThisPartition(piClassifier, aiClassifier, acClassifier, trainDataPartitions[devPartIdx],
                     rerankerFeatureMap, indexMap, globalReverseLabelMap, numOfAIBeamSize, numOfACBeamSize,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    rerankerInstanceFilePath, aiCoefficient, pdModelDir);
+                    rerankerInstanceFilePath, aiCoefficient, pdModelDir4Partition);
         }
     }
 
