@@ -91,7 +91,8 @@ public class FeatureExtractor {
         String childdepset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
         String childposset = getChildSet(wordIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
         String childwset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
-        
+
+        /*
         ArrayList<Object> feats= new ArrayList<>();
         feats.add(w);
         feats.add(lem);
@@ -112,35 +113,38 @@ public class FeatureExtractor {
         feats.add(childdepset);
         feats.add(childposset);
         feats.add(childwset);
+        */
 
         int index = 0;
         features[index++] = w;
         features[index++] = lem;
-        features[index++] = wFullCluster;
-        features[index++] = w4Clsuter;
-        features[index++] = lemCluster;
-        features[index++] = pos;
-        features[index++] = cPos;
+        //features[index++] = wFullCluster;
+        //features[index++] = w4Clsuter;
+        //features[index++] = lemCluster;
+        //features[index++] = pos;
+        //features[index++] = cPos;
         features[index++] = deprel;
         features[index++] = prw;
-        features[index++] = prlem;
-        features[index++] = prwFullCluster;
-        features[index++] = prw4Cluster;
-        features[index++] = prlemaCluster;
+        //features[index++] = prlem;
+        //features[index++] = prwFullCluster;
+        //features[index++] = prw4Cluster;
+        //features[index++] = prlemaCluster;
         features[index++] = prpos;
-        features[index++] = prcpos;
+        //features[index++] = prcpos;
         features[index++] = depsubcat;
         features[index++] = childdepset;
         features[index++] = childposset;
         features[index++] = childwset;
 
+        features[index++] = childwset+" "+ childdepset;
+        features[index++] = childposset +" "+ childdepset;
+        /*
         for (int i=0;i<feats.size();i++){
             for (int j=0; j< feats.size(); j++){
                 if (i!= j)
-                    features[index++] =  feats.get(i) +" "+ feats.get(j);
-            }
+                    features[index++] =  feats.get(i) +" "+ feats.get(j);}
         }
-
+        */
         return features;
     }
 
