@@ -35,7 +35,7 @@ public class Evaluation {
         aiConfusionMatrix[1][0] = 0;
         aiConfusionMatrix[1][1] = 0;
 
-        HashMap<Integer, int[]> acConfusionMatrix = new HashMap<Integer, int[]>();
+        HashMap<Integer, int[]> acConfusionMatrix = new HashMap<>();
         for (int k = 0; k < argLabels.size(); k++) {
             int[] acGoldLabels = new int[argLabels.size()];
             acConfusionMatrix.put(k, acGoldLabels);
@@ -46,7 +46,6 @@ public class Evaluation {
             return -1;
         }
 
-        boolean decode = true;
         for (int senIdx = 0; senIdx < systemOutputInCONLLFormat.size(); senIdx++) {
             //System.out.println("sen: "+senIdx);
             Sentence sysOutSen = new Sentence(systemOutputInCONLLFormat.get(senIdx), indexMap);
@@ -247,7 +246,7 @@ public class Evaluation {
         System.out.println("Total AI prediction " + total_ai_predictions);
         System.out.println("AI Precision: " + format.format(precision));
         System.out.println("AI Recall: " + format.format(recall));
-        double fscore = (2 * precision * recall) / (precision + recall) * 100;
+        double fscore = (2 * precision * recall) / (precision + recall);
         System.out.println("AI F1-score: " + format.format(fscore));
         System.out.println("*********************************************");
         return fscore;

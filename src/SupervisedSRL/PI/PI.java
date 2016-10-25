@@ -27,9 +27,11 @@ public class PI {
         int noImprovement = 0;
 
         for (int iter = 0; iter < maxNumberOfTrainingIterations; iter++) {
-            System.out.print("iteration:" + iter + "\t");
+            System.out.print("iteration:" + iter + "\n");
 
             for (int sIdx = 0; sIdx < trainSentencesInCONLLFormat.size(); sIdx++) {
+                if (sIdx % 1000 ==0)
+                    System.out.print(sIdx+"...");
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sIdx), indexMap);
                 ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
@@ -39,6 +41,7 @@ public class PI {
                     ap.learnInstance(featureVector, label);
                 }
             }
+            System.out.print(trainSentencesInCONLLFormat.size()+"\n\n");
 
             //making prediction on dev data using the model trained in this iter
             AveragedPerceptron decodeAp = ap.calculateAvgWeights();
@@ -46,6 +49,8 @@ public class PI {
             int total = 0;
 
             for (int sIdx = 0; sIdx < devSentencesInCONLLFormat.size(); sIdx++) {
+                if (sIdx % 1000 ==0)
+                    System.out.print(sIdx+"...");
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(sIdx), indexMap);
                 ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
@@ -58,6 +63,7 @@ public class PI {
                         correct++;
                 }
             }
+            System.out.print(devSentencesInCONLLFormat.size()+"\n");
             double acc = (double) correct / total;
             System.out.print("Accuracy: "+ acc +"\n");
             if (acc > bestAcc) {
