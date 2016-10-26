@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class Decoder {
 
-    AveragedPerceptron piClassifier; //predicate identification (binary classifier)
+    AveragedPerceptron piClassifier; //predicate identification (binary classifier) --> NOTE: will be null if we don't use PI
     AveragedPerceptron aiClassifier; //argument identification (binary classifier)
     AveragedPerceptron acClassifier; //argument classification (multi-class classifier)
 
@@ -39,7 +39,7 @@ public class Decoder {
     public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
                        int aiMaxBeamSize, int acMaxBeamSize, int numOfPIFeatures, int numOfPDFeatures,
                        int numOfAIFeatures, int numOfACFeatures, String outputFile, double aiCoefficient,
-                       String pdModelDir) throws Exception {
+                       String pdModelDir, boolean usePI) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
         System.out.println("Decoding started (on dev data)...");
@@ -54,7 +54,7 @@ public class Decoder {
             String devSentence = devSentencesInCONLLFormat.get(d);
             Sentence sentence = new Sentence(devSentence, indexMap);
             predictions[d] = (TreeMap<Integer, Prediction>) predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, false, aiCoefficient, pdModelDir);
+                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, false, aiCoefficient, pdModelDir, usePI);
 
             sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
         }
@@ -67,17 +67,29 @@ public class Decoder {
 
     public HashMap<Integer, Prediction> predictAI(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                                                   int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures,
-                                                 String pdModelDir)
+                                                 String pdModelDir, boolean usePI)
             throws Exception {
         HashMap<Integer, Prediction> predictedPAs = new HashMap<Integer, Prediction>();
         int[] sentenceLemmas = sentence.getLemmas();
         String[] sentenceLemmas_str = sentence.getLemmas_str();
+        ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
         for (int wordIdx = 0; wordIdx < sentence.getLength(); wordIdx++) {
-            Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-            String piPrediction = piClassifier.predict(featureVector);
+            boolean isPredicate = false;
+            if (usePI){
+                //automatic predicate identification
+                Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
+                String piPrediction = piClassifier.predict(featureVector);
+                if (piPrediction.equals("1"))
+                    isPredicate = true;
+            }else
+            {
+               //gold predicate indices
+                if (goldPredicateIndices.contains(wordIdx))
+                   isPredicate = true;
+            }
 
-            if (piPrediction.equals("1")) {
+            if (isPredicate) {
                 //identified as a predicate
                 int pIdx = wordIdx;
                 int plem = sentenceLemmas[pIdx];
@@ -99,8 +111,6 @@ public class Decoder {
 
                 //having pd label, set pSense in the sentence
                 sentence.setPDAutoLabels4ThisPredicate(pIdx, pLabel);
-
-
                 ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = new ArrayList();
                 HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
 
@@ -114,18 +124,27 @@ public class Decoder {
 
     public Object predict(Sentence sentence, IndexMap indexMap, int aiMaxBeamSize,
                           int acMaxBeamSize, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
-                          boolean use4Reranker, double aiCoefficient, String pdModelDir) throws Exception {
+                          boolean use4Reranker, double aiCoefficient, String pdModelDir, boolean usePI) throws Exception {
 
         TreeMap<Integer, Prediction> predictedPAs = new TreeMap<Integer, Prediction>();
         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
         int[] sentenceLemmas = sentence.getLemmas();
         String[] sentenceLemmas_str = sentence.getLemmas_str();
+        ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
         for (int wordIdx = 0; wordIdx < sentence.getLength(); wordIdx++) {
-            Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-            String piPrediction = piClassifier.predict(featureVector);
+            boolean isPredicate = false;
+            if (usePI) {
+                Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
+                String piPrediction = piClassifier.predict(featureVector);
+                if (piPrediction.equals("1"))
+                    isPredicate = true;
+            }else{
+                if(goldPredicateIndices.contains(wordIdx))
+                    isPredicate = true;
+            }
 
-            if (piPrediction.equals("1")) {
+            if (isPredicate) {
                 //identified as a predicate
                 int pIdx = wordIdx;
                 int plem = sentenceLemmas[pIdx];
@@ -165,7 +184,6 @@ public class Decoder {
             return predictedAIACCandidates;
         else
             return predictedPAs;
-
     }
 
     ////////////////////////////////// GET BEST CANDIDATES ///////////////////////////////////////////////

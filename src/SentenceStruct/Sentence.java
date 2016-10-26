@@ -286,9 +286,20 @@ public class Sentence {
     }
 
     public void setPDAutoLabels4ThisPredicate (int pIdx, String pdLabel){
-        for (PA pa: predicateArguments.getPredicateArgumentsAsArray()){
-            if (pa.getPredicate().getIndex()==pIdx)
-                pa.getPredicate().setPredicateAutoLabel(pdLabel);
+        ArrayList<Integer> goldPredicateIndices = getPredicatesIndices();
+        if (goldPredicateIndices.contains(pIdx)) {
+            //in case we use PI (PI tp) or gold predicate indices
+            for (PA pa : predicateArguments.getPredicateArgumentsAsArray()) {
+                if (pa.getPredicate().getIndex() == pIdx)
+                    pa.getPredicate().setPredicateAutoLabel(pdLabel);
+            }
+        }else{
+            //in case we use PI (PI fp) --> we need to add this predicate to the sentence
+            Predicate p = new Predicate();
+            p.setPredicateIndex(pIdx);
+            p.setPredicateAutoLabel(pdLabel);
+            PA  pa = new PA(p, new ArrayList<Argument>());
+            predicateArguments.addPA(pa);
         }
     }
 

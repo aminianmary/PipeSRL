@@ -39,6 +39,7 @@ public class Properties {
     private String outputFilePathDev;
     private String outputFilePathTest;
     private boolean useReranker;
+    private boolean usePI;
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
@@ -54,7 +55,7 @@ public class Properties {
                       int numOfPartitions, int maxNumOfPITrainingIterations, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient) {
+                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient, boolean pi) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -93,6 +94,7 @@ public class Properties {
         this.outputFilePathTest = outputDir + ProjectConstantPrefixes.OUTPUT_FILE_TEST + "."+ reranker +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.useReranker = useReranker;
+        this.usePI = pi;
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
         this.modelsToBeTrained = modelsToBeTrained;
@@ -314,6 +316,10 @@ public class Properties {
         return useReranker;
     }
 
+    public boolean usePI() {
+        return usePI;
+    }
+
     public ArrayList<Integer> getSteps() {
         return steps;
     }
@@ -358,6 +364,10 @@ public class Properties {
                 "AI Coefficient: "+ aiCoefficient + "\n" +
                 "Models trained: "+ modelsToBeTrained+"\n"+
         "Pipeline Steps: "+ steps+"\n");
+        if (usePI)
+            System.out.print("PI USED\n");
+        else
+            System.out.print("PI NOT USED\n");
         if (useReranker)
             System.out.print("Reranker USED\n****************************\n");
         else

@@ -78,11 +78,9 @@ public class PAs {
         }
     }
 
-
     public ArrayList<PA> getPredicateArgumentsAsArray() {
         return predicateArguments;
     }
-
 
     public HashSet<PADependencyTuple> getAllPredArgDepTupls() {
         ArrayList<PA> predArgs = this.getPredicateArgumentsAsArray();
@@ -98,6 +96,10 @@ public class PAs {
         }
 
         return predArgDepTuples;
+    }
+
+    public void addPA(PA pa){
+        predicateArguments.add(pa);
     }
 
 }

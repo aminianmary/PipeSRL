@@ -42,6 +42,7 @@ public class Step9 {
         int numOfACFeatures = properties.getNumOfACFeatures();
         int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
         double aiCoefficient = properties.getAiCoefficient();
+        boolean usePI = properties.usePI();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("PART "+ devPartIdx);
@@ -57,7 +58,7 @@ public class Step9 {
             generateRerankerInstances4ThisPartition(piClassifier, aiClassifier, acClassifier, trainDataPartitions[devPartIdx],
                     rerankerFeatureMap, indexMap, globalReverseLabelMap, numOfAIBeamSize, numOfACBeamSize,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    rerankerInstanceFilePath, aiCoefficient, pdModelDir4Partition);
+                    rerankerInstanceFilePath, aiCoefficient, pdModelDir4Partition, usePI);
         }
     }
 
@@ -67,7 +68,7 @@ public class Step9 {
                                                                 int aiBeamSize, int acBeamSize, int numOfPIFeatures,
                                                                 int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
                                                                 int numOfGlobalFeatures, String rerankerInstancesFilePath,
-                                                                double aiCoefficient, String pdModelDir) throws Exception {
+                                                                double aiCoefficient, String pdModelDir, boolean usePI) throws Exception {
         Decoder decoder = new Decoder(piClassifier, aiClassifier, acClassifier);
         String[] localClassifierLabelMap = acClassifier.getLabelMap();
         FileOutputStream fos = new FileOutputStream(rerankerInstancesFilePath);
@@ -81,7 +82,7 @@ public class Step9 {
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(devSentence, indexMap, aiBeamSize, acBeamSize,
-                            numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir);
+                            numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir, usePI);
 
             //creating the pool
             for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {

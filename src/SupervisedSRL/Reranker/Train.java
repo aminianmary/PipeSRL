@@ -67,11 +67,12 @@ public class Train {
             String outputFile = properties.getOutputFilePathDev() + "_"+iter;
             String pdModelDir = properties.getPdModelDir();
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
+            boolean usePI = properties.usePI();
 
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(piClassifier, aiClassifier,
                     acClassifier, ap, indexMap, rerankerFeatureMap);
             decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdModelDir);
+                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdModelDir, usePI);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());

@@ -41,6 +41,7 @@ public class Step7 {
         int acBeamSize = properties.getNumOfACBeamSize();
         double aiCoefficient = properties.getAiCoefficient();
         String modelsToBeTrained = properties.getModelsToBeTrained();
+        boolean usePI = properties.usePI();
 
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
@@ -49,7 +50,7 @@ public class Step7 {
         boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                 numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir);
+                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI);
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
@@ -69,6 +70,7 @@ public class Step7 {
         IndexMap indexMap = IO.load(indexMapPath);
         double aiCoefficient = properties.getAiCoefficient();
         String modelsToBeTrained = properties.getModelsToBeTrained();
+        boolean usePI = properties.usePI();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
@@ -85,7 +87,7 @@ public class Step7 {
 
             Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir);
+                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI);
         }
     }
 

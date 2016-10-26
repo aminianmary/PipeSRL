@@ -41,7 +41,7 @@ public class Decoder {
     }
 
     public void decode(ArrayList<String> testSentences, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                       int aiMaxBeamSize, int acMaxBeamSize, String outputFile, double aiCoefficient, String pdModelDir) throws Exception {
+                       int aiMaxBeamSize, int acMaxBeamSize, String outputFile, double aiCoefficient, String pdModelDir, boolean usePI) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.piClassifier, this.aiClasssifier, this.acClasssifier);
         ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
@@ -58,7 +58,7 @@ public class Decoder {
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(testSentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
-                            numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir);
+                            numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir, usePI);
 
             //creating the pool and making prediction
             predictions4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);

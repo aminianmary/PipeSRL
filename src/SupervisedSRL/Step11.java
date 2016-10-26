@@ -36,6 +36,7 @@ public class Step11 {
         String devOutputFile = properties.getOutputFilePathDev();
         String testOutputFile = properties.getOutputFilePathTest();
         double aiCoefficient = properties.getAiCoefficient();
+        boolean usePI = properties.usePI();
 
         if (properties.useReranker()) {
             HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
@@ -44,20 +45,20 @@ public class Step11 {
                     reranker, indexMap, rerankerFeatureMap);
             System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
             decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
-                    devOutputFile, aiCoefficient, pdModelDir);
+                    devOutputFile, aiCoefficient, pdModelDir, usePI);
 
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(testSentences, numOfPIFeatures, numOfPDFeatures,numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
-                    testOutputFile, aiCoefficient, pdModelDir);
+                    testOutputFile, aiCoefficient, pdModelDir, usePI);
         } else {
             SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(piClassifier, aiClassifier, acClassifier);
             System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
             decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, devOutputFile,aiCoefficient, pdModelDir);
+                    numOfAIFeatures,numOfACFeatures, devOutputFile,aiCoefficient, pdModelDir, usePI);
 
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, testOutputFile,aiCoefficient, pdModelDir);
+                    numOfAIFeatures,numOfACFeatures, testOutputFile,aiCoefficient, pdModelDir, usePI);
         }
     }
 }
