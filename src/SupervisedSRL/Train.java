@@ -110,7 +110,8 @@ public class Train {
             //making prediction over dev sentences
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
-            Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(piModelPath), ap.calculateAvgWeights(), "AI");
+            AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath) : null;
+            Decoder argumentDecoder = new Decoder(piClassifier, ap.calculateAvgWeights(), "AI");
             //ai confusion matrix
             int[][] aiConfusionMatrix = new int[2][2];
             aiConfusionMatrix[0][0] = 0;
@@ -189,8 +190,8 @@ public class Train {
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
             String tempOutputFile = ProjectConstantPrefixes.TMP_DIR + "AC_dev_output_" + iter;
-            Decoder argumentDecoder = new Decoder(AveragedPerceptron.loadModel(piModelPath),
-                    AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
+            AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath): null;
+            Decoder argumentDecoder = new Decoder(piClassifier, AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
 
             argumentDecoder.decode(indexMap, devSentencesInCONLLFormat, aiMaxBeamSize, acMaxBeamSize,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, tempOutputFile, aiCoefficient, pdModelDir, usePI);

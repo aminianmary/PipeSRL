@@ -6,7 +6,10 @@ import SupervisedSRL.Strcutures.*;
 import ml.AveragedPerceptron;
 import util.IO;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -44,23 +47,25 @@ public class Decoder {
         DecimalFormat format = new DecimalFormat("##.00");
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
-        TreeMap<Integer, Prediction>[] predictions = new TreeMap[devSentencesInCONLLFormat.size()];
-        ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
+        BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
 
         for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
             String devSentence = devSentencesInCONLLFormat.get(d);
+            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceForOutput(devSentence);
+            TreeMap<Integer, Prediction> prediction = new TreeMap<>();
             Sentence sentence = new Sentence(devSentence, indexMap);
-            predictions[d] = (TreeMap<Integer, Prediction>) predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
+            prediction = (TreeMap<Integer, Prediction>) predict(sentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, false, aiCoefficient, pdModelDir, usePI);
-
-            sentencesToWriteOutputFile.add(IO.getSentenceForOutput(devSentence));
+            outputWriter.write(IO.generateCompleteOutputSentenceInCoNLLFormat(sentenceToWriteOutputFile, prediction, acClassifier.getLabelMap()));
         }
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClassifier.getLabelMap(), outputFile);
+        System.out.println(devSentencesInCONLLFormat.size());
         long endTime = System.currentTimeMillis();
         System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
+        outputWriter.flush();
+        outputWriter.close();
     }
 
     ////////////////////////////////// PREDICT ////////////////////////////////////////////////////////

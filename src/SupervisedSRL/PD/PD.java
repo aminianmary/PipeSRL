@@ -174,13 +174,11 @@ public class PD {
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap);
             ArrayList<Predicate> predicates = sentence.getPredicates();
             int[] sentenceLemmas = sentence.getLemmas();
-
             for (Predicate p: predicates) {
                 int pIdx = p.getIndex();
                 int plem = sentenceLemmas[pIdx];
-                //todo this should be the only place that predicate gold label is used
                 String pGoldLabel = p.getPredicateGoldLabel();
-                assert pGoldLabel!= null;
+                assert pGoldLabel != null;
                 Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
 
                 if (!pLexicon.containsKey(plem)) {
@@ -190,12 +188,12 @@ public class PD {
                     featureVectors.put(pGoldLabel, fvs);
                     pLexicon.put(plem, featureVectors);
 
-                } else{
-                    if (!pLexicon.get(plem).containsKey(pGoldLabel)){
+                } else {
+                    if (!pLexicon.get(plem).containsKey(pGoldLabel)) {
                         HashSet<Object[]> fvs = new HashSet<>();
                         fvs.add(pdfeats);
                         pLexicon.get(plem).put(pGoldLabel, fvs);
-                    }else{
+                    } else {
                         pLexicon.get(plem).get(pGoldLabel).add(pdfeats);
                     }
                 }

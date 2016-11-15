@@ -16,12 +16,13 @@ public class Step11 {
 
     public static void decode(Properties properties)
             throws Exception {
-        if (!properties.getSteps().contains(9))
+        if (!properties.getSteps().contains(11))
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 9 -- Decoding\n>>>>>>>>>>>>>\n");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 11 -- Decoding\n>>>>>>>>>>>>>\n");
+        boolean usePI = properties.usePI();
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
-        AveragedPerceptron piClassifier = AveragedPerceptron.loadModel(properties.getPiModelPath());
+        AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(properties.getPiModelPath()) : null;
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
         String pdModelDir = properties.getPdModelDir();
         ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
@@ -36,7 +37,6 @@ public class Step11 {
         String devOutputFile = properties.getOutputFilePathDev();
         String testOutputFile = properties.getOutputFilePathTest();
         double aiCoefficient = properties.getAiCoefficient();
-        boolean usePI = properties.usePI();
 
         if (properties.useReranker()) {
             HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());

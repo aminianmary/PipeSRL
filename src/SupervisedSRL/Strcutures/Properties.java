@@ -341,7 +341,8 @@ public class Properties {
                 "Model Directory: "+ modelDir+"\n" +
                 "Output Directory: "+ outputDir+"\n" +
                 "IndexMap File Path: "+ indexMapFilePath+"\n" +
-                "Predicate Disambiguation Models Dir: "+ pdModelDir+"\n" +
+                "PI Model path: "+ piModelPath+"\n" +
+                "PD Models Dir: "+ pdModelDir+"\n" +
                 "AI Model Path: "+ aiModelPath+"\n" +
                 "AC Model Path: "+ acModelPath+"\n" +
                 "Reranker FeatureMap Path: "+ rerankerFeatureMapPath+"\n" +

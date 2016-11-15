@@ -13,7 +13,7 @@ import java.util.zip.GZIPOutputStream;
 public class IO {
 
     public static ArrayList<String> readCoNLLFile(String coNLLFile) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(coNLLFile)));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(coNLLFile), "UTF-8"));
         ArrayList<String> sentences = new ArrayList<String>();
         String line2read = "";
         int counter = 0;
@@ -85,7 +85,6 @@ public class IO {
         return sentences;
     }
 
-
     public static Object[] readCoNLLFile_into_words_and_conll_data(String coNLLFile) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(coNLLFile)));
         ArrayList<String> sentences_conll = new ArrayList<String>();
@@ -119,13 +118,12 @@ public class IO {
         return new Object[]{sentences_conll, sentences_words};
     }
 
-
     public static void writePredictionsInCoNLLFormat(ArrayList<ArrayList<String>> sentencesForOutput,
                                                      TreeMap<Integer, Prediction>[] predictedPAs,
                                                      String[] labelMap,
                                                      String outputFile)
             throws IOException {
-        BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile)));
+        BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
         for (int d = 0; d < sentencesForOutput.size(); d++) {
             ArrayList<String> sentenceForOutput = sentencesForOutput.get(d);
             TreeMap<Integer, Prediction> predictionForThisSentence = predictedPAs[d];
@@ -167,6 +165,47 @@ public class IO {
         }
         outputWriter.flush();
         outputWriter.close();
+    }
+
+
+    public static String generateCompleteOutputSentenceInCoNLLFormat(ArrayList<String> sentenceForOutput,
+                                                     TreeMap<Integer, Prediction> predictionForThisSentence,
+                                                     String[] labelMap) {
+        String finalSentence = "";
+        for (int wordIdx = 0; wordIdx < sentenceForOutput.size(); wordIdx++) {
+            int realWordIdx = wordIdx + 1;
+            //for each word in the sentence
+            finalSentence += sentenceForOutput.get(wordIdx) + "\t";  //filling fields 0-11
+            if (predictionForThisSentence.containsKey(realWordIdx)) {
+                Prediction prediction = predictionForThisSentence.get(realWordIdx);
+                //this is a predicate
+                finalSentence += "Y\t"; //filed 12
+                finalSentence += prediction.getPredicateLabel(); //field 13
+            } else {
+                //this is not a predicate
+                finalSentence += "_\t"; //filed 12
+                finalSentence += "_"; //field 13
+            }
+
+            //checking if this word has been an argument for other predicates or not (fields 14-end)
+            for (int pIdx : predictionForThisSentence.keySet()) {
+                HashMap<Integer, Integer> argumentLabels = predictionForThisSentence.get(pIdx).getArgumentLabels();
+                if (argumentLabels.containsKey(realWordIdx)) {
+                    if (!labelMap[argumentLabels.get(realWordIdx)].equals("0"))
+                        //word is an argument
+                        finalSentence += "\t" + labelMap[argumentLabels.get(realWordIdx)];
+                    else
+                        //word is not an argument for this predicate
+                        finalSentence += "\t_";
+                } else
+                    //word is not an argument for this predicate
+                    finalSentence += "\t_";
+            }
+
+            finalSentence += "\n";
+        }
+        finalSentence += "\n";
+        return finalSentence;
     }
 
 

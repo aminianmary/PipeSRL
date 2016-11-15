@@ -22,9 +22,9 @@ import java.util.zip.GZIPOutputStream;
 public class Step9 {
 
     public static void generateRerankerInstances(Properties properties) throws Exception {
-        if (!properties.getSteps().contains(8) || !properties.useReranker())
+        if (!properties.getSteps().contains(9) || !properties.useReranker())
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 8 -- Generate Reranker Train Instances\n>>>>>>>>>>>>>\n");
+        System.out.println("\n>>>>>>>>>>>>>\nStep 9 -- Generate Reranker Train Instances\n>>>>>>>>>>>>>\n");
         int numOfPartitions = properties.getNumOfPartitions();
         RerankerInstanceGenerator rig = new RerankerInstanceGenerator(numOfPartitions);
         ArrayList<String>[] trainDataPartitions = rig.getPartitions(properties.getTrainFile());

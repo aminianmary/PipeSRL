@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Step3 {
 
     public static void trainPIModel(Properties properties) throws Exception {
-        if (!properties.getSteps().contains(3) || !properties.usePI())
+        if (!properties.getSteps().contains(3))
             return;
         buildPIModel4EntireTrainData(properties);
         if (properties.useReranker())

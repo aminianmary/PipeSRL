@@ -11,6 +11,9 @@ import ml.AveragedPerceptron;
 import ml.RerankerAveragedPerceptron;
 import util.IO;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -44,8 +47,7 @@ public class Decoder {
                        int aiMaxBeamSize, int acMaxBeamSize, String outputFile, double aiCoefficient, String pdModelDir, boolean usePI) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.piClassifier, this.aiClasssifier, this.acClasssifier);
-        ArrayList<ArrayList<String>> sentencesToWriteOutputFile = new ArrayList<ArrayList<String>>();
-        TreeMap<Integer, Prediction>[] predictions = new TreeMap[testSentences.size()];
+        BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
 
         for (int senIdx = 0; senIdx < testSentences.size(); senIdx++) {
             if (senIdx%1000 ==0)
@@ -53,18 +55,19 @@ public class Decoder {
 
             Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
-            sentencesToWriteOutputFile.add(IO.getSentenceForOutput(testSentences.get(senIdx)));
-            TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();
+            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceForOutput(testSentences.get(senIdx));
+            TreeMap<Integer, Prediction> prediction4ThisSentence = new TreeMap<Integer, Prediction>();
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(testSentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir, usePI);
 
             //creating the pool and making prediction
-            predictions4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
-            predictions[senIdx] = predictions4ThisSentence;
+            prediction4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
+            outputWriter.write(IO.generateCompleteOutputSentenceInCoNLLFormat(sentenceToWriteOutputFile, prediction4ThisSentence, acClasssifier.getLabelMap()));
         }
-        IO.writePredictionsInCoNLLFormat(sentencesToWriteOutputFile, predictions, acClasssifier.getLabelMap(), outputFile);
+        outputWriter.flush();
+        outputWriter.close();
     }
 
 
