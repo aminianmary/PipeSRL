@@ -38,7 +38,6 @@ public class PD {
         System.out.println("Training Started...");
         System.out.println("trainPLexicon num of lemmas: " + trainPLexicon.size());
 
-
         for (int plem : trainPLexicon.keySet()) {
             HashSet<String> possibleLabels = new HashSet<>(trainPLexicon.get(plem).keySet());
             AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeatures);
@@ -49,11 +48,10 @@ public class PD {
             for (int i = 0; i < maxNumberOfTrainingIterations; i++) {
 
                 for (String label: trainPLexicon.get(plem).keySet()) {
-                    for (Object[] instance: trainPLexicon.get(plem).get(label)) {
+                    for (Object[] instance : trainPLexicon.get(plem).get(label)) {
                         ap.learnInstance(instance, label);
                     }
                 }
-
                 //making prediction on dev instances of this plem
                 if (devPLexicon.containsKey(plem)){
                     //seen in dev data

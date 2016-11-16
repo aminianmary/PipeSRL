@@ -4,7 +4,6 @@ import SentenceStruct.Argument;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import SupervisedSRL.Strcutures.Prediction;
@@ -227,18 +226,21 @@ public class Train {
         sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
+        String[] sentenceFillPred = sentence.getFillPredicate();
 
         for (PA pa : goldPAs) {
             int goldPIdx = pa.getPredicate().getIndex();
             ArrayList<Argument> goldArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
-                        sentence, numOfFeatures, indexMap, false, 0); //sentence object must have pd auto labels now
-
-                String label = (isArgument(wordIdx, goldArgs).equals("")) ? "0" : "1";
-                featVectors.add(featVector);
-                labels.add(label);
+                if (!sentenceFillPred[wordIdx].equals("?")) {
+                    String argLabel = getArgLabel(wordIdx, goldArgs);
+                    Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
+                            sentence, numOfFeatures, indexMap, false, 0); //sentence object must have pd auto labels now
+                    String label = (argLabel.equals("")) ? "0" : "1";
+                    featVectors.add(featVector);
+                    labels.add(label);
+                }
             }
         }
 
@@ -259,9 +261,9 @@ public class Train {
             //extract features for arguments (not all words)
             for (Argument arg : currentArgs) {
                 int argIdx = arg.getIndex();
-                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, argIdx, sentence, numOfFeatures, indexMap, false, 0);
-
                 String label = arg.getType();
+                //check if this word is undecided or not?!
+                Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, argIdx, sentence, numOfFeatures, indexMap, false, 0);
                 featVectors.add(featVector);
                 labels.add(label);
             }
@@ -274,7 +276,7 @@ public class Train {
     //////////////////////////////  SUPPORT FUNCTIONS  /////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    public static String isArgument(int wordIdx, ArrayList<Argument> currentArgs) {
+    public static String getArgLabel(int wordIdx, ArrayList<Argument> currentArgs) {
         for (Argument arg : currentArgs)
             if (arg.getIndex() == wordIdx)
                 return arg.getType();

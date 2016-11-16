@@ -24,6 +24,7 @@ public class Sentence {
     private String[] lemmas_str;
     private TreeSet<Integer>[] reverseDepHeads;
     private PAs predicateArguments;
+    private String[] fillPredicate;
 
 
     public Sentence(String sentence, IndexMap indexMap) {
@@ -55,6 +56,8 @@ public class Sentence {
 
         reverseDepHeads = new TreeSet[numTokens];
         predicateArguments = new PAs();
+        fillPredicate = new String[numTokens];
+        fillPredicate[0] = "_";
 
         for (int tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
             String token = tokens[tokenIdx];
@@ -73,6 +76,7 @@ public class Sentence {
             lemmas[index] = indexMap.str2int(fields[3]);
             lemmas_str[index] = fields[3];
             lemmaClusterIds[index] = indexMap.getFullClusterId(fields[3]);
+            fillPredicate[index] = fields[12];
 
             if (reverseDepHeads[depHead] == null) {
                 TreeSet<Integer> children = new TreeSet<Integer>();
@@ -82,7 +86,7 @@ public class Sentence {
                 reverseDepHeads[depHead].add(index);
 
             String predicateGoldLabel = null;
-            if (!fields[13].equals("_")) {
+            if (!fields[13].equals("_") && !fields[13].equals("?")) {
                 predicatesSeq++;
                 predicateGoldLabel = fields[13];
                 predicateArguments.setPredicate(predicatesSeq, index, predicateGoldLabel);
@@ -91,7 +95,7 @@ public class Sentence {
             if (fields.length > 14) //we have at least one argument
             {
                 for (int i = 14; i < fields.length; i++) {
-                    if (!fields[i].equals("_")) //found an argument
+                    if (!fields[i].equals("_") && !fields[i].equals("?")) //found an argument
                     {
                         String argumentType = fields[i];
                         int associatedPredicateSeq = i - 14;
@@ -304,4 +308,8 @@ public class Sentence {
     }
 
     public int getLength (){return words.length;}
+
+    public String[] getFillPredicate() {
+        return fillPredicate;
+    }
 }

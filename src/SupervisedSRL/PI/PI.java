@@ -9,7 +9,7 @@ import util.IO;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
+import java.util.HashMap;
 /**
  * Created by Maryam Aminian on 10/21/16.
  */
@@ -34,11 +34,15 @@ public class PI {
                     System.out.print(sIdx+"...");
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sIdx), indexMap);
                 ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
+                String[] sentenceFillPredicate = sentence.getFillPredicate();
 
                 for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
-                    Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                    String label = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
-                    ap.learnInstance(featureVector, label);
+                    if (!sentenceFillPredicate[wordIdx].equals("?"))
+                    {
+                        String label = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
+                        Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
+                        ap.learnInstance(featureVector, label);
+                    }
                 }
             }
             System.out.print(trainSentencesInCONLLFormat.size()+"\n\n");
