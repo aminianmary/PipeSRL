@@ -1,9 +1,7 @@
 package util;
 
 import SentenceStruct.Sentence;
-import SentenceStruct.PA;
 import SentenceStruct.simplePA;
-import apple.laf.JRSUIUtils;
 
 import java.io.*;
 import java.util.*;
@@ -200,15 +198,33 @@ public class IO {
                             prediction.get(pPredicateIdx).getArgumentLabels());
                     output.put(pPredicateIdx, p);
                 }else{
-                    //regardless of predicate labels, add arguments which are not projected
-                    for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
-                    {
-                        if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
+                    //first check if this predicate has "null" label
+                    if (!output.get(pPredicateIdx).getPredicateLabel().equalsIgnoreCase("null")){
+
+                        //regardless of predicate labels, add arguments which are not projected
+                        for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
                         {
-                            String pArgLabel = prediction.get(pPredicateIdx).getArgumentLabels().get(pArgIdx);
-                            output.get(pPredicateIdx).getArgumentLabels().put(pArgIdx,pArgLabel);
+                            if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
+                            {
+                                String pArgLabel = prediction.get(pPredicateIdx).getArgumentLabels().get(pArgIdx);
+                                output.get(pPredicateIdx).getArgumentLabels().put(pArgIdx,pArgLabel);
+                            }
+                        }
+                    }else
+                    {
+                        //supplement with new label from prediction
+                        output.get(pPredicateIdx).setPredicateLabel(prediction.get(pPredicateIdx).getPredicateLabel());
+                        
+                        for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
+                        {
+                            if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
+                            {
+                                String pArgLabel = prediction.get(pPredicateIdx).getArgumentLabels().get(pArgIdx);
+                                output.get(pPredicateIdx).getArgumentLabels().put(pArgIdx,pArgLabel);
+                            }
                         }
                     }
+
                 }
             }
         }else

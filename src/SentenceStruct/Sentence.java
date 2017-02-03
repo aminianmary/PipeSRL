@@ -318,7 +318,7 @@ public class Sentence {
         ArrayList<PA> predicateArguments= getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa: predicateArguments) {
             int pIdx = pa.getPredicate().getIndex();
-            String pLabel = pa.getPredicate().getPredicateAutoLabel();
+            String pLabel = pa.getPredicate().getPredicateGoldLabel();
             HashMap<Integer, String> argMap = new HashMap<>();
 
             for (Argument a: pa.getArguments())
