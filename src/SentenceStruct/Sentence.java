@@ -312,4 +312,21 @@ public class Sentence {
     public String[] getFillPredicate() {
         return fillPredicate;
     }
+
+    public HashMap<Integer, simplePA> getPAMap (){
+        HashMap<Integer, simplePA> paMap = new HashMap<>();
+        ArrayList<PA> predicateArguments= getPredicateArguments().getPredicateArgumentsAsArray();
+        for (PA pa: predicateArguments) {
+            int pIdx = pa.getPredicate().getIndex();
+            String pLabel = pa.getPredicate().getPredicateGoldLabel();
+            HashMap<Integer, String> argMap = new HashMap<>();
+
+            for (Argument a: pa.getArguments())
+                argMap.put(a.getIndex(), a.getType());
+
+            simplePA spa = new simplePA(pLabel, argMap);
+            paMap.put(pIdx, spa);
+        }
+        return paMap;
+    }
 }

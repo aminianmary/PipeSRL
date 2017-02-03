@@ -42,6 +42,7 @@ public class Step7 {
         double aiCoefficient = properties.getAiCoefficient();
         String modelsToBeTrained = properties.getModelsToBeTrained();
         boolean usePI = properties.usePI();
+        boolean supplement = properties.supplementOriginalLabels();
 
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
@@ -50,7 +51,7 @@ public class Step7 {
         boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                 numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI);
+                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement);
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
@@ -71,6 +72,7 @@ public class Step7 {
         double aiCoefficient = properties.getAiCoefficient();
         String modelsToBeTrained = properties.getModelsToBeTrained();
         boolean usePI = properties.usePI();
+        boolean supplement= properties.supplementOriginalLabels();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
@@ -87,7 +89,7 @@ public class Step7 {
 
             Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI);
+                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement);
         }
     }
 

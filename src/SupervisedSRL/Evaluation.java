@@ -5,7 +5,7 @@ import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.Prediction;
+import SentenceStruct.simplePA;
 import util.IO;
 
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class Evaluation {
                             //same predicate labels
                             correctPLabel++;
                             //discover argument precision/recall
-                            HashMap<Integer, Integer> sysOutPrediction = convertPredictionToMap(sysOutPA, reverseLabelMap);
+                            HashMap<Integer, String> sysOutPrediction = convertPredictionToMap(sysOutPA);
                             Object[] confusionMatrices = compareWithGold(goldPA, sysOutPrediction,
                                     aiConfusionMatrix, acConfusionMatrix, reverseLabelMap);
                             aiConfusionMatrix = (int[][]) confusionMatrices[0];
@@ -79,7 +79,7 @@ public class Evaluation {
                             //different predicate labels
                             wrongPLabel++;
                             //discover argument precision/recall
-                            HashMap<Integer, Integer> sysOutPrediction = convertPredictionToMap(sysOutPA, reverseLabelMap);
+                            HashMap<Integer, String> sysOutPrediction = convertPredictionToMap(sysOutPA);
                             Object[] confusionMatrices = compareWithGold(goldPA, sysOutPrediction,
                                     aiConfusionMatrix, acConfusionMatrix, reverseLabelMap);
                             aiConfusionMatrix = (int[][]) confusionMatrices[0];
@@ -102,14 +102,14 @@ public class Evaluation {
     }
 
 
-    private static Object[] compareWithGold(PA pa, HashMap<Integer, Integer> highestScorePrediction,
+    private static Object[] compareWithGold(PA pa, HashMap<Integer, String> highestScorePrediction,
                                             int[][] aiConfusionMatrix, HashMap<Integer, int[]> acConfusionMatrix,
                                             HashMap<String, Integer> reverseLabelMap) {
 
         ArrayList<Argument> goldArgs = pa.getArguments();
         HashMap<Integer, String> goldArgMap = getGoldArgMap(goldArgs);
         Set<Integer> goldArgsIndices = goldArgMap.keySet();
-        Set<Integer> sysOutArgIndices = getNonZeroArgs(highestScorePrediction);
+        Set<Integer> sysOutArgIndices = getNonZeroArgs(highestScorePrediction, reverseLabelMap);
 
 
         HashSet<Integer> exclusiveGoldArgIndices = new HashSet(goldArgsIndices);
@@ -125,7 +125,7 @@ public class Evaluation {
         aiConfusionMatrix[0][1] += exclusiveGoldArgIndices.size();
 
         for (int predictedArgIdx : sysOutArgIndices) {
-            int predictedLabel = highestScorePrediction.get(predictedArgIdx);
+            int predictedLabel = reverseLabelMap.get(highestScorePrediction.get(predictedArgIdx));
             if (goldArgMap.containsKey(predictedArgIdx)) {
                 //System.out.print("predictedArgIdx: "+predictedArgIdx + "\tGoldLabel: " + goldArgMap.get(predictedArgIdx) +"\n\n");
                 String goldLabel = goldArgMap.get(predictedArgIdx);
@@ -253,7 +253,7 @@ public class Evaluation {
     }
 
 
-    public static int[][] evaluateAI4ThisSentence(Sentence goldSentence, HashMap<Integer, Prediction> prediction,
+    public static int[][] evaluateAI4ThisSentence(Sentence goldSentence, HashMap<Integer, simplePA> prediction,
                                                   int[][] aiConfusionMatrix) {
         ArrayList<PA> goldPAs = goldSentence.getPredicateArguments().getPredicateArgumentsAsArray();
 
@@ -261,12 +261,12 @@ public class Evaluation {
             int goldPIdx = goldPA.getPredicate().getIndex();
             for (int sysOutPIdx : prediction.keySet()) {
                 if (goldPIdx == sysOutPIdx) {
-                    HashMap<Integer, Integer> prediction4ThisPredicate = prediction.get(sysOutPIdx).getArgumentLabels();
+                    HashMap<Integer, String> prediction4ThisPredicate = prediction.get(sysOutPIdx).getArgumentLabels();
 
                     ArrayList<Argument> goldArgs = goldPA.getArguments();
                     HashMap<Integer, String> goldArgMap = getGoldArgMap(goldArgs);
                     Set<Integer> goldArgsIndices = goldArgMap.keySet();
-                    Set<Integer> sysOutArgIndices = getNonZeroArgs(prediction4ThisPredicate);
+                    Set<Integer> sysOutArgIndices = prediction4ThisPredicate.keySet();
 
                     HashSet<Integer> exclusiveGoldArgIndices = new HashSet(goldArgsIndices);
                     HashSet<Integer> commonGoldPredictedArgIndices = new HashSet(sysOutArgIndices);
@@ -377,20 +377,20 @@ public class Evaluation {
         return goldArgMap;
     }
 
-    private static HashSet<Integer> getNonZeroArgs(HashMap<Integer, Integer> prediction) {
+    private static HashSet<Integer> getNonZeroArgs(HashMap<Integer, String> prediction, HashMap<String, Integer> reverseLabelMap) {
         HashSet<Integer> nonZeroArgs = new HashSet();
         for (int key : prediction.keySet())
-            if (prediction.get(key) != 21)
+            if (prediction.get(key).equals(reverseLabelMap.get("0")))
                 nonZeroArgs.add(key);
 
         return nonZeroArgs;
     }
 
-    private static HashMap<Integer, Integer> convertPredictionToMap(PA pa, HashMap<String, Integer> reverseLabelMap) {
-        HashMap<Integer, Integer> highestScorePrediction = new HashMap<Integer, Integer>();
+    private static HashMap<Integer, String> convertPredictionToMap(PA pa) {
+        HashMap<Integer, String> highestScorePrediction = new HashMap<>();
         ArrayList<Argument> args = pa.getArguments();
         for (Argument arg : args)
-            highestScorePrediction.put(arg.getIndex(), reverseLabelMap.get(arg.getType()));
+            highestScorePrediction.put(arg.getIndex(), arg.getType());
         return highestScorePrediction;
     }
 

@@ -5,7 +5,7 @@ import SentenceStruct.PA;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
-import SupervisedSRL.Strcutures.Prediction;
+import SentenceStruct.simplePA;
 import SupervisedSRL.Strcutures.Prediction4Reranker;
 import ml.AveragedPerceptron;
 import ml.RerankerAveragedPerceptron;
@@ -44,7 +44,8 @@ public class Decoder {
     }
 
     public void decode(ArrayList<String> testSentences, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                       int aiMaxBeamSize, int acMaxBeamSize, String outputFile, double aiCoefficient, String pdModelDir, boolean usePI) throws Exception {
+                       int aiMaxBeamSize, int acMaxBeamSize, String outputFile, double aiCoefficient,
+                       String pdModelDir, boolean usePI, boolean supplement) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.piClassifier, this.aiClasssifier, this.acClasssifier);
         BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
@@ -55,27 +56,30 @@ public class Decoder {
 
             Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
-            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceForOutput(testSentences.get(senIdx));
-            TreeMap<Integer, Prediction> prediction4ThisSentence = new TreeMap<Integer, Prediction>();
+            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceFixedFeilds(testSentences.get(senIdx));
+            TreeMap<Integer, simplePA> prediction4ThisSentence = new TreeMap<Integer, simplePA>();
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =
                     (TreeMap<Integer, Prediction4Reranker>) decoder.predict(testSentence, indexMap, aiMaxBeamSize, acMaxBeamSize,
                             numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, true, aiCoefficient, pdModelDir, usePI);
 
             //creating the pool and making prediction
-            prediction4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, testSentence, goldMap, predictedAIACCandidates4thisSen);
-            outputWriter.write(IO.generateCompleteOutputSentenceInCoNLLFormat(sentenceToWriteOutputFile, prediction4ThisSentence, acClasssifier.getLabelMap()));
+            prediction4ThisSentence = obtainRerankerPrediction4Sentence(numOfAIFeatures, numOfACFeatures,
+                    numOfGlobalFeatures, testSentence, predictedAIACCandidates4thisSen);
+            outputWriter.write(IO.generateCompleteOutputSentenceInCoNLLFormat(sentenceToWriteOutputFile,
+                    IO.createFinalLabeledOutput(testSentence, prediction4ThisSentence, supplement)));
         }
         outputWriter.flush();
         outputWriter.close();
     }
 
 
-    private TreeMap<Integer, Prediction> obtainRerankerPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures,
-                                                                           int numOfGlobalFeatures, Sentence testSentence,
-                                                                           HashMap<Integer, HashMap<Integer, Integer>> goldMap,
-                                                                           TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen) throws Exception {
-        TreeMap<Integer, Prediction> predictions4ThisSentence = new TreeMap<Integer, Prediction>();
+    private TreeMap<Integer, simplePA> obtainRerankerPrediction4Sentence(int numOfAIFeatures, int numOfACFeatures,
+                                                                         int numOfGlobalFeatures, Sentence testSentence,
+                                                                         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen)
+            throws Exception {
+        TreeMap<Integer, simplePA> predictions4ThisSentence = new TreeMap<Integer, simplePA>();
+        String[] labelMap = acClasssifier.getLabelMap();
 
         for (int pIdx : predictedAIACCandidates4thisSen.keySet()) {
             RerankerPool rerankerPool = new RerankerPool();
@@ -104,8 +108,8 @@ public class Decoder {
             int bestACCandidIndex = acCandidateIndexInfo.get(bestCandidateIndex).second;
 
             predictions4ThisSentence.put(pIdx,
-                    new Prediction(pLabel, aiCandidates.get(bestAICandidIndex).second,
-                            acCandidates.get(bestAICandidIndex).get(bestACCandidIndex).second));
+                    new simplePA(pLabel, aiCandidates.get(bestAICandidIndex).second,
+                            acCandidates.get(bestAICandidIndex).get(bestACCandidIndex).second, labelMap));
         }
         return predictions4ThisSentence;
     }

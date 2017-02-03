@@ -174,6 +174,8 @@ public class PD {
             int[] sentenceLemmas = sentence.getLemmas();
             for (Predicate p: predicates) {
                 int pIdx = p.getIndex();
+                if (pIdx == -1)
+                    System.out.print("****NOTE!*** Predicate Index is -1 in sentence " + senID+ "\n");
                 int plem = sentenceLemmas[pIdx];
                 String pGoldLabel = p.getPredicateGoldLabel();
                 assert pGoldLabel != null;

@@ -40,6 +40,7 @@ public class Properties {
     private String outputFilePathTest;
     private boolean useReranker;
     private boolean usePI;
+    private boolean supplementOriginalLabels;
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
@@ -54,8 +55,10 @@ public class Properties {
     public Properties(String trainFile, String devFile, String testFile, String clusterFile, String modelDir, String outputDir,
                       int numOfPartitions, int maxNumOfPITrainingIterations, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
-                      int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
-                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient, boolean pi) {
+                      int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures,
+                      int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
+                      boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient,
+                      boolean pi, boolean supplementOriginalLabels) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -95,6 +98,7 @@ public class Properties {
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.useReranker = useReranker;
         this.usePI = pi;
+        this.supplementOriginalLabels = supplementOriginalLabels;
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
         this.modelsToBeTrained = modelsToBeTrained;
@@ -320,6 +324,8 @@ public class Properties {
         return usePI;
     }
 
+    public boolean supplementOriginalLabels() {return supplementOriginalLabels;}
+
     public ArrayList<Integer> getSteps() {
         return steps;
     }
@@ -369,6 +375,10 @@ public class Properties {
             System.out.print("PI USED\n");
         else
             System.out.print("PI NOT USED\n");
+        if (supplementOriginalLabels)
+            System.out.print("Projected Labels are supplemented with predictions\n");
+        else
+            System.out.print("Projected Labels are NOT supplemented with predictions\n");
         if (useReranker)
             System.out.print("Reranker USED\n****************************\n");
         else

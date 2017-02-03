@@ -52,6 +52,7 @@ public class Train {
 
             System.out.print("Making prediction on Dev data...");
             boolean usePI = properties.usePI();
+            boolean supplement = properties.supplementOriginalLabels();
             HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
             AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(properties.getPiModelPath()) : null;
             AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
@@ -72,7 +73,7 @@ public class Train {
             SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(piClassifier, aiClassifier,
                     acClassifier, ap, indexMap, rerankerFeatureMap);
             decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdModelDir, usePI);
+                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdModelDir, usePI, supplement);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());

@@ -20,6 +20,7 @@ public class Step11 {
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 11 -- Decoding\n>>>>>>>>>>>>>\n");
         boolean usePI = properties.usePI();
+        boolean supplement = properties.supplementOriginalLabels();
         AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
         AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
         AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(properties.getPiModelPath()) : null;
@@ -45,20 +46,20 @@ public class Step11 {
                     reranker, indexMap, rerankerFeatureMap);
             System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
             decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
-                    devOutputFile, aiCoefficient, pdModelDir, usePI);
+                    devOutputFile, aiCoefficient, pdModelDir, usePI, supplement);
 
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(testSentences, numOfPIFeatures, numOfPDFeatures,numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
-                    testOutputFile, aiCoefficient, pdModelDir, usePI);
+                    testOutputFile, aiCoefficient, pdModelDir, usePI, supplement);
         } else {
             SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(piClassifier, aiClassifier, acClassifier);
             System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
             decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, devOutputFile,aiCoefficient, pdModelDir, usePI);
+                    numOfAIFeatures,numOfACFeatures, devOutputFile,aiCoefficient, pdModelDir, usePI, supplement);
 
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, testOutputFile,aiCoefficient, pdModelDir, usePI);
+                    numOfAIFeatures,numOfACFeatures, testOutputFile,aiCoefficient, pdModelDir,usePI, supplement);
         }
     }
 }

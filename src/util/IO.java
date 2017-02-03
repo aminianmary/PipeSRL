@@ -1,6 +1,9 @@
 package util;
 
-import SupervisedSRL.Strcutures.Prediction;
+import SentenceStruct.Sentence;
+import SentenceStruct.PA;
+import SentenceStruct.simplePA;
+import apple.laf.JRSUIUtils;
 
 import java.io.*;
 import java.util.*;
@@ -118,69 +121,17 @@ public class IO {
         return new Object[]{sentences_conll, sentences_words};
     }
 
-    public static void writePredictionsInCoNLLFormat(ArrayList<ArrayList<String>> sentencesForOutput,
-                                                     TreeMap<Integer, Prediction>[] predictedPAs,
-                                                     String[] labelMap,
-                                                     String outputFile)
-            throws IOException {
-        BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
-        for (int d = 0; d < sentencesForOutput.size(); d++) {
-            ArrayList<String> sentenceForOutput = sentencesForOutput.get(d);
-            TreeMap<Integer, Prediction> predictionForThisSentence = predictedPAs[d];
-
-            for (int wordIdx = 0; wordIdx < sentenceForOutput.size(); wordIdx++) {
-                int realWordIdx = wordIdx + 1;
-                //for each word in the sentence
-                outputWriter.write(sentenceForOutput.get(wordIdx) + "\t");  //filling fields 0-11
-
-                if (predictionForThisSentence.containsKey(realWordIdx)) {
-                    Prediction prediction = predictionForThisSentence.get(realWordIdx);
-                    //this is a predicate
-                    outputWriter.write("Y\t"); //filed 12
-                    outputWriter.write(prediction.getPredicateLabel()); //field 13
-                } else {
-                    //this is not a predicate
-                    outputWriter.write("_\t"); //filed 12
-                    outputWriter.write("_"); //field 13
-                }
-
-                //checking if this word has been an argument for other predicates or not (fields 14-end)
-                for (int pIdx : predictionForThisSentence.keySet()) {
-                    HashMap<Integer, Integer> argumentLabels = predictionForThisSentence.get(pIdx).getArgumentLabels();
-                    if (argumentLabels.containsKey(realWordIdx)) {
-                        if (!labelMap[argumentLabels.get(realWordIdx)].equals("0"))
-                            //word is an argument
-                            outputWriter.write("\t" + labelMap[argumentLabels.get(realWordIdx)]);
-                        else
-                            //word is not an argument for this predicate
-                            outputWriter.write("\t_");
-                    } else
-                        //word is not an argument for this predicate
-                        outputWriter.write("\t_");
-                }
-
-                outputWriter.write("\n");
-            }
-            outputWriter.write("\n");
-        }
-        outputWriter.flush();
-        outputWriter.close();
-    }
-
-
     public static String generateCompleteOutputSentenceInCoNLLFormat(ArrayList<String> sentenceForOutput,
-                                                     TreeMap<Integer, Prediction> predictionForThisSentence,
-                                                     String[] labelMap) {
+                                                     TreeMap<Integer, simplePA> finalLabels) {
         String finalSentence = "";
         for (int wordIdx = 0; wordIdx < sentenceForOutput.size(); wordIdx++) {
-            int realWordIdx = wordIdx + 1;
             //for each word in the sentence
             finalSentence += sentenceForOutput.get(wordIdx) + "\t";  //filling fields 0-11
-            if (predictionForThisSentence.containsKey(realWordIdx)) {
-                Prediction prediction = predictionForThisSentence.get(realWordIdx);
+            if (finalLabels.containsKey(wordIdx)) {
+                simplePA simplePA = finalLabels.get(wordIdx);
                 //this is a predicate
                 finalSentence += "Y\t"; //filed 12
-                finalSentence += prediction.getPredicateLabel(); //field 13
+                finalSentence += simplePA.getPredicateLabel(); //field 13
             } else {
                 //this is not a predicate
                 finalSentence += "_\t"; //filed 12
@@ -188,20 +139,15 @@ public class IO {
             }
 
             //checking if this word has been an argument for other predicates or not (fields 14-end)
-            for (int pIdx : predictionForThisSentence.keySet()) {
-                HashMap<Integer, Integer> argumentLabels = predictionForThisSentence.get(pIdx).getArgumentLabels();
-                if (argumentLabels.containsKey(realWordIdx)) {
-                    if (!labelMap[argumentLabels.get(realWordIdx)].equals("0"))
-                        //word is an argument
-                        finalSentence += "\t" + labelMap[argumentLabels.get(realWordIdx)];
-                    else
-                        //word is not an argument for this predicate
-                        finalSentence += "\t_";
-                } else
+            for (int pIdx : finalLabels.keySet()) {
+                HashMap<Integer, String> argumentLabels = finalLabels.get(pIdx).getArgumentLabels();
+                if (argumentLabels.containsKey(wordIdx))
+                    //word is an argument
+                    finalSentence += "\t" + argumentLabels.get(wordIdx);
+                else
                     //word is not an argument for this predicate
                     finalSentence += "\t_";
             }
-
             finalSentence += "\n";
         }
         finalSentence += "\n";
@@ -221,7 +167,7 @@ public class IO {
     }
 
 
-    public static ArrayList<String> getSentenceForOutput(String sentenceInCoNLLFormat) {
+    public static ArrayList<String> getSentenceFixedFeilds(String sentenceInCoNLLFormat) {
         String[] lines = sentenceInCoNLLFormat.split("\n");
         ArrayList<String> sentenceForOutput = new ArrayList<String>();
         for (String line : lines) {
@@ -234,6 +180,44 @@ public class IO {
         }
         return sentenceForOutput;
     }
+
+    /**
+     * creates final labeling of the sentence
+     * @param inputSentence sentence with original labeling, either gold or projected
+     * @param prediction predictions made by SRL
+     * @param supplement a boolean argument specifying if we need to supplement predicted labels to the original ones or not!
+     */
+    public static TreeMap<Integer, simplePA> createFinalLabeledOutput (Sentence inputSentence,
+                                                                       TreeMap<Integer, simplePA> prediction,
+                                                                       boolean supplement){
+        TreeMap<Integer, simplePA> output = new TreeMap<>(inputSentence.getPAMap());
+
+        if (supplement){
+            for (int pPredicateIdx: prediction.keySet()){
+                //for each predicted predicate
+                if (!output.containsKey(pPredicateIdx)){
+                    //add this predicate and all its arguments
+                    simplePA p = new simplePA(prediction.get(pPredicateIdx).getPredicateLabel(),
+                            prediction.get(pPredicateIdx).getArgumentLabels());
+                    output.put(pPredicateIdx, p);
+                }else{
+                    //regardless of predicate labels, add arguments which are not projected
+                    for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
+                    {
+                        if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
+                        {
+                            String pArgLabel = prediction.get(pPredicateIdx).getArgumentLabels().get(pArgIdx);
+                            output.get(pPredicateIdx).getArgumentLabels().put(pArgIdx,pArgLabel);
+                        }
+                    }
+                }
+            }
+        }else
+            output = prediction;
+
+        return output;
+    }
+
 
 
     public static HashSet<String> obtainLabels(List<String> sentences) {
