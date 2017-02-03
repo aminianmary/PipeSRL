@@ -199,7 +199,7 @@ public class IO {
                     output.put(pPredicateIdx, p);
                 }else{
                     //first check if this predicate has "null" label
-                    if (!output.get(pPredicateIdx).getPredicateLabel().equalsIgnoreCase("null")){
+                    if (output.get(pPredicateIdx).getPredicateLabel() != null){
 
                         //regardless of predicate labels, add arguments which are not projected
                         for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
@@ -214,7 +214,7 @@ public class IO {
                     {
                         //supplement with new label from prediction
                         output.get(pPredicateIdx).setPredicateLabel(prediction.get(pPredicateIdx).getPredicateLabel());
-                        
+
                         for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
                         {
                             if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
