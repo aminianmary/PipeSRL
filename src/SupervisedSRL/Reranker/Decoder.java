@@ -56,7 +56,7 @@ public class Decoder {
 
             Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
-            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceFixedFeilds(testSentences.get(senIdx));
+            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceFixedFields(testSentences.get(senIdx));
             TreeMap<Integer, simplePA> prediction4ThisSentence = new TreeMap<Integer, simplePA>();
 
             TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates4thisSen =

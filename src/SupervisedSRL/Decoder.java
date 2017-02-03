@@ -55,7 +55,7 @@ public class Decoder {
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
             String devSentence = devSentencesInCONLLFormat.get(d);
-            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceFixedFeilds(devSentence);
+            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceFixedFields(devSentence);
             Sentence sentence = new Sentence(devSentence, indexMap);
             String[] labelMap = this.acClassifier.getLabelMap();
             TreeMap<Integer, simplePA> prediction = (TreeMap<Integer, simplePA>) predict(sentence, indexMap,

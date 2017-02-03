@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Created by monadiab on 4/12/16.
+ * Created by Maryam Aminian on 4/12/16.
  */
 public class IO {
 
@@ -127,8 +127,9 @@ public class IO {
         for (int wordIdx = 0; wordIdx < sentenceForOutput.size(); wordIdx++) {
             //for each word in the sentence
             finalSentence += sentenceForOutput.get(wordIdx) + "\t";  //filling fields 0-11
-            if (finalLabels.containsKey(wordIdx)) {
-                simplePA simplePA = finalLabels.get(wordIdx);
+            int realWordIdx = wordIdx +1 ;
+            if (finalLabels.containsKey(realWordIdx)) {
+                simplePA simplePA = finalLabels.get(realWordIdx);
                 //this is a predicate
                 finalSentence += "Y\t"; //filed 12
                 finalSentence += simplePA.getPredicateLabel(); //field 13
@@ -141,9 +142,9 @@ public class IO {
             //checking if this word has been an argument for other predicates or not (fields 14-end)
             for (int pIdx : finalLabels.keySet()) {
                 HashMap<Integer, String> argumentLabels = finalLabels.get(pIdx).getArgumentLabels();
-                if (argumentLabels.containsKey(wordIdx))
+                if (argumentLabels.containsKey(realWordIdx))
                     //word is an argument
-                    finalSentence += "\t" + argumentLabels.get(wordIdx);
+                    finalSentence += "\t" + argumentLabels.get(realWordIdx);
                 else
                     //word is not an argument for this predicate
                     finalSentence += "\t_";
@@ -153,7 +154,6 @@ public class IO {
         finalSentence += "\n";
         return finalSentence;
     }
-
 
     public static String formatString2Conll(String input) {
         String ConllFormatString = "";
@@ -166,8 +166,7 @@ public class IO {
         return ConllFormatString;
     }
 
-
-    public static ArrayList<String> getSentenceFixedFeilds(String sentenceInCoNLLFormat) {
+    public static ArrayList<String> getSentenceFixedFields(String sentenceInCoNLLFormat) {
         String[] lines = sentenceInCoNLLFormat.split("\n");
         ArrayList<String> sentenceForOutput = new ArrayList<String>();
         for (String line : lines) {
@@ -217,8 +216,6 @@ public class IO {
 
         return output;
     }
-
-
 
     public static HashSet<String> obtainLabels(List<String> sentences) {
         System.out.println("Getting set of labels...");
