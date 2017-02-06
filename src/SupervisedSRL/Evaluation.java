@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public class Evaluation {
     public static double evaluate(String systemOutput, ArrayList<String> goldOutputInCONLLFormat, IndexMap indexMap,
-                                  HashMap<String, Integer> reverseLabelMap) throws IOException {
+                                  HashMap<String, Integer> reverseLabelMap) throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
 
         ArrayList<String> systemOutputInCONLLFormat = IO.readCoNLLFile(systemOutput);

@@ -3,13 +3,12 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
-import SupervisedSRL.Strcutures.ProjectConstantPrefixes;
 import ml.AveragedPerceptron;
 import util.IO;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.HashMap;
+
 /**
  * Created by Maryam Aminian on 10/21/16.
  */

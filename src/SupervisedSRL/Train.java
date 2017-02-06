@@ -7,7 +7,7 @@ import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import SentenceStruct.simplePA;
-import SupervisedSRL.Strcutures.ProjectConstantPrefixes;
+import SupervisedSRL.Strcutures.ProjectConstants;
 import ml.AveragedPerceptron;
 import util.IO;
 
@@ -189,7 +189,7 @@ public class Train {
 
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
-            String tempOutputFile = ProjectConstantPrefixes.TMP_DIR + "AC_dev_output_" + iter;
+            String tempOutputFile = ProjectConstants.TMP_DIR + "AC_dev_output_" + iter;
             AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath): null;
             Decoder argumentDecoder = new Decoder(piClassifier, AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
 
@@ -207,7 +207,7 @@ public class Train {
                 System.out.print("\nSaving final model...");
                 ModelInfo.saveModel(ap, acModelPath);
                 if (isModelBuiltOnEntireTrainData)
-                    IO.write(ap.getReverseLabelMap(), acModelPath + ProjectConstantPrefixes.GLOBAL_REVERSE_LABEL_MAP);
+                    IO.write(ap.getReverseLabelMap(), acModelPath + ProjectConstants.GLOBAL_REVERSE_LABEL_MAP);
                 System.out.println("Done!");
             } else {
                 noImprovement++;

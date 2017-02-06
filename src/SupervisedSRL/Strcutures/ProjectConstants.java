@@ -1,9 +1,9 @@
 package SupervisedSRL.Strcutures;
 
 /**
- * Created by monadiab on 9/9/16.
+ * Created by Maryam Aminian on 9/9/16.
  */
-public class ProjectConstantPrefixes {
+public class ProjectConstants {
     public static final String AI_MODEL = "/AI.model";
     public static final String AC_MODEL = "/AC.model";
     public static final String TMP_DIR = "/tmp/";
@@ -26,4 +26,5 @@ public class ProjectConstantPrefixes {
     public static final String TEST_PI_LABELS = "/test.PILabels";
     public static final String PI_MODEL = "/PI.model";
 
+    public static final String VERB = "VERB"; //assuming we use universal tags
 }

@@ -1,6 +1,7 @@
 package SentenceStruct;
 
 import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.ProjectConstants;
 
 import java.lang.Object;
 import java.util.ArrayList;
@@ -25,9 +26,10 @@ public class Sentence {
     private TreeSet<Integer>[] reverseDepHeads;
     private PAs predicateArguments;
     private String[] fillPredicate;
+    private boolean[] isArgument;
+    private int numOfLabeledDirectComponents;
 
-
-    public Sentence(String sentence, IndexMap indexMap) {
+    public Sentence(String sentence, IndexMap indexMap) throws Exception {
         String[] tokens = sentence.trim().split("\n");
 
         int numTokens = tokens.length + 1; //add one more token for ROOT
@@ -58,6 +60,7 @@ public class Sentence {
         predicateArguments = new PAs();
         fillPredicate = new String[numTokens];
         fillPredicate[0] = "_";
+        isArgument = new boolean[numTokens];
 
         for (int tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
             String token = tokens[tokenIdx];
@@ -100,9 +103,17 @@ public class Sentence {
                         String argumentType = fields[i];
                         int associatedPredicateSeq = i - 14;
                         predicateArguments.setArgument(associatedPredicateSeq, index, argumentType);
+                        isArgument[index] = true;
                     }
                 }
             }
+        }
+
+        //finding number of labeled direct components
+        for (int i=0; i< numTokens; i++){
+            if (isDirectComponent(i, indexMap))
+                if (fillPredicate[i].equals("Y") || isArgument[i] ==true)
+                    numOfLabeledDirectComponents++;
         }
     }
 
@@ -328,5 +339,17 @@ public class Sentence {
             paMap.put(pIdx, spa);
         }
         return paMap;
+    }
+
+    public boolean isDirectComponent (int wordIdx, IndexMap indexMap) throws Exception{
+        if (indexMap.int2str(posTags[wordIdx]).equals(ProjectConstants.VERB) ||
+                indexMap.int2str(posTags[depHeads[wordIdx]]).equals(ProjectConstants.VERB))
+            return true;
+        return false;
+    }
+
+    public double getCompletenessDegree() {
+        int l = getLength();
+        return (double) numOfLabeledDirectComponents/l;
     }
 }
