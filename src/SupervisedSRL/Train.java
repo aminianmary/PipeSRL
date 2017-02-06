@@ -67,6 +67,7 @@ public class Train {
         long endTime = 0;
         double bestFScore = 0;
         int noImprovement = 0;
+
         for (int iter = 0; iter < numberOfTrainingIterations; iter++) {
             startTime = System.currentTimeMillis();
             System.out.print("iteration:" + iter + "...\n");
@@ -76,13 +77,14 @@ public class Train {
             ap.correct = 0;
 
             for (int sID=0; sID< trainSentencesInCONLLFormat.size(); sID++) {
-                Object[] instances = obtainTrainInstance4AI(trainSentencesInCONLLFormat.get(sID), indexMap, numOfAIFeatures,
+                Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sID), indexMap);
+                Object[] instances = obtainTrainInstance4AI(sentence, indexMap, numOfAIFeatures,
                         trainPDAutoLabels[sID]);
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
                 for (int d = 0; d < featVectors.size(); d++) {
-                    ap.learnInstance(featVectors.get(d), labels.get(d));
+                    ap.learnInstance(featVectors.get(d), labels.get(d), sentence.getCompletenessDegree());
                     if (labels.get(d).equals("0"))
                         negInstances++;
                     dataSize++;
@@ -168,13 +170,15 @@ public class Train {
             System.out.print("iteration:" + iter + "...\n");
             int dataSize = 0;
             int s = 0;
+
             for (int sID=0; sID< trainSentencesInCONLLFormat.size() ; sID++) {
-                Object[] instances = obtainTrainInstance4AC(trainSentencesInCONLLFormat.get(sID), indexMap, numOfACFeatures, trainPDAutoLabels[sID]);
+                Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sID), indexMap);
+                Object[] instances = obtainTrainInstance4AC(sentence, indexMap, numOfACFeatures, trainPDAutoLabels[sID]);
                 s++;
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
                 for (int d = 0; d < featVectors.size(); d++) {
-                    ap.learnInstance(featVectors.get(d), labels.get(d));
+                    ap.learnInstance(featVectors.get(d), labels.get(d), sentence.getCompletenessDegree());
                     dataSize++;
                 }
                 if (s % 1000 == 0)
@@ -220,11 +224,10 @@ public class Train {
     }
 
 
-    public static Object[] obtainTrainInstance4AI(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures,
+    public static Object[] obtainTrainInstance4AI(Sentence sentence, IndexMap indexMap, int numOfFeatures,
                                                   HashMap<Integer, String> pdAutoLabels) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);  //sentence object is built with null predicate auto labels (just with the gold ones from the file)
         sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
@@ -249,11 +252,10 @@ public class Train {
         return new Object[]{featVectors, labels};
     }
 
-    public static Object[] obtainTrainInstance4AC(String sentenceInCONLLFormat, IndexMap indexMap, int numOfFeatures,
+    public static Object[] obtainTrainInstance4AC(Sentence sentence, IndexMap indexMap, int numOfFeatures,
                                                   HashMap<Integer, String> pdAutoLabels) throws Exception {
         ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
         ArrayList<String> labels = new ArrayList<String>();
-        Sentence sentence = new Sentence(sentenceInCONLLFormat, indexMap);
         sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
 

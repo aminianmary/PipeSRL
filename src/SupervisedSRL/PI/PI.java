@@ -32,6 +32,7 @@ public class PI {
                 if (sIdx % 1000 ==0)
                     System.out.print(sIdx+"...");
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sIdx), indexMap);
+                double completeness = sentence.getCompletenessDegree();
                 ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
                 String[] sentenceFillPredicate = sentence.getFillPredicate();
 
@@ -40,7 +41,7 @@ public class PI {
                     {
                         String label = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
                         Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                        ap.learnInstance(featureVector, label);
+                        ap.learnInstance(featureVector, label, completeness);
                     }
                 }
             }
