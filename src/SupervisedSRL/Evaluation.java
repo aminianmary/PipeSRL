@@ -211,10 +211,8 @@ public class Evaluation {
 
                 total_gold += total_gold_4_this_label;
 
-                double precision = 100. * (double) tp / total_prediction_4_this_label;
-                double recall = 100. * (double) tp / total_gold_4_this_label;
-                //System.out.println("Precision of label " + labelMap[predicatedLabel] + ": " + format.format(precision));
-                //System.out.println("Recall of label " + labelMap[predicatedLabel] + ": " + format.format(recall));
+                //double precision = 100. * (double) tp / total_prediction_4_this_label;
+                //double recall = 100. * (double) tp / total_gold_4_this_label;
             }
         }
 

@@ -247,7 +247,7 @@ public class IO {
             for (String token : tokens) {
                 String[] fields = token.split("\t");
                 for (int k = 14; k < fields.length; k++)
-                    if (!fields[k].equals("_"))
+                    if (!fields[k].equals("_") && !fields[k].equals("?"))
                         labels.add(fields[k]);
             }
         }
