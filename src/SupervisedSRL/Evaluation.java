@@ -378,7 +378,7 @@ public class Evaluation {
     private static HashSet<Integer> getNonZeroArgs(HashMap<Integer, String> prediction, HashMap<String, Integer> reverseLabelMap) {
         HashSet<Integer> nonZeroArgs = new HashSet();
         for (int key : prediction.keySet())
-            if (prediction.get(key).equals(reverseLabelMap.get("0")))
+            if (!prediction.get(key).equals(reverseLabelMap.get("0")))
                 nonZeroArgs.add(key);
 
         return nonZeroArgs;
