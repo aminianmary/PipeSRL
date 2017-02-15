@@ -8,7 +8,6 @@ import SupervisedSRL.Strcutures.IndexMap;
 import SentenceStruct.simplePA;
 import util.IO;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,11 +124,21 @@ public class Evaluation {
         aiConfusionMatrix[0][1] += exclusiveGoldArgIndices.size();
 
         for (int predictedArgIdx : sysOutArgIndices) {
-            int predictedLabel = reverseLabelMap.get(highestScorePrediction.get(predictedArgIdx));
+            int predictedLabelIndex = -1;
+            int goldLabelIdx = -1;
+            String predictedLabel = highestScorePrediction.get(predictedArgIdx);
+
+            if (reverseLabelMap.containsKey(predictedLabel))
+                predictedLabelIndex = reverseLabelMap.get(highestScorePrediction.get(predictedArgIdx));
+            else {
+                reverseLabelMap.put(predictedLabel, reverseLabelMap.size());
+                predictedLabelIndex = reverseLabelMap.get(predictedLabel);
+                acConfusionMatrix = updateConfusionMatrix(acConfusionMatrix);
+            }
+
             if (goldArgMap.containsKey(predictedArgIdx)) {
-                //System.out.print("predictedArgIdx: "+predictedArgIdx + "\tGoldLabel: " + goldArgMap.get(predictedArgIdx) +"\n\n");
                 String goldLabel = goldArgMap.get(predictedArgIdx);
-                int goldLabelIdx = -1;
+
                 if (reverseLabelMap.containsKey(goldLabel)) {
                     //seen gold label in train data
                     goldLabelIdx = reverseLabelMap.get(goldLabel);
@@ -138,10 +147,10 @@ public class Evaluation {
                     goldLabelIdx = reverseLabelMap.get(goldLabel);
                     acConfusionMatrix = updateConfusionMatrix(acConfusionMatrix);
                 }
-                acConfusionMatrix.get(predictedLabel)[goldLabelIdx]++;
+                acConfusionMatrix.get(predictedLabelIndex)[goldLabelIdx]++;
 
             } else {
-                acConfusionMatrix.get(predictedLabel)[reverseLabelMap.get("0")]++;
+                acConfusionMatrix.get(predictedLabelIndex)[reverseLabelMap.get("0")]++;
             }
         }
 
@@ -392,7 +401,7 @@ public class Evaluation {
         return highestScorePrediction;
     }
 
-    private static HashMap<Integer, int[]> updateConfusionMatrix(HashMap<Integer, int[]> currentConfusionMatrix) {
+    private static HashMap<Integer, int[]> updateConfusionMatrix (HashMap<Integer, int[]> currentConfusionMatrix) {
         HashMap<Integer, int[]> newConfusionMatrix = new HashMap<Integer, int[]>();
         for (int predictedLabel : currentConfusionMatrix.keySet()) {
             int[] currentGoldLabels = currentConfusionMatrix.get(predictedLabel);
