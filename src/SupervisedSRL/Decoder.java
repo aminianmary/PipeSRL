@@ -57,10 +57,11 @@ public class Decoder {
             String devSentence = devSentencesInCONLLFormat.get(d);
             ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceFixedFields(devSentence);
             Sentence sentence = new Sentence(devSentence, indexMap);
-            String[] labelMap = this.acClassifier.getLabelMap();
+
             TreeMap<Integer, simplePA> prediction = (TreeMap<Integer, simplePA>) predict(sentence, indexMap,
                     aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures,
                     numOfACFeatures, false, aiCoefficient, pdModelDir, usePI);
+
             outputWriter.write(IO.generateCompleteOutputSentenceInCoNLLFormat(sentenceToWriteOutputFile,
                     IO.createFinalLabeledOutput(sentence, prediction, supplement)));
         }

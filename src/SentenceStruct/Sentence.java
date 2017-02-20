@@ -27,7 +27,9 @@ public class Sentence {
     private PAs predicateArguments;
     private String[] fillPredicate;
     private boolean[] isArgument;
+    private int numOfDirectComponents;
     private int numOfLabeledDirectComponents;
+
 
     public Sentence(String sentence, IndexMap indexMap) throws Exception {
         String[] tokens = sentence.trim().split("\n");
@@ -89,6 +91,7 @@ public class Sentence {
                 reverseDepHeads[depHead].add(index);
 
             String predicateGoldLabel = null;
+            //fills predicate iff it has a label (skipping "_" and "?")
             if (!fields[13].equals("_") && !fields[13].equals("?")) {
                 predicatesSeq++;
                 predicateGoldLabel = fields[13];
@@ -109,11 +112,14 @@ public class Sentence {
             }
         }
 
-        //finding number of labeled direct components
+        //finding number of annotated direct components
+        //note: labeled components are words for them projection has not returned "?"
         for (int i=0; i< numTokens; i++){
-            if (isDirectComponent(i, indexMap))
-                if (fillPredicate[i].equals("Y") || isArgument[i] ==true)
+            if (isDirectComponent(i, indexMap)) {
+                numOfDirectComponents++;
+                if (!fillPredicate[i].equals("?"))
                     numOfLabeledDirectComponents++;
+            }
         }
     }
 
@@ -349,7 +355,9 @@ public class Sentence {
     }
 
     public double getCompletenessDegree() {
-        int l = getLength();
-        return (double) numOfLabeledDirectComponents/l;
+        if (numOfDirectComponents == 0)
+            return 1;
+        else
+            return (double) numOfLabeledDirectComponents/numOfDirectComponents;
     }
 }

@@ -132,7 +132,7 @@ public class IO {
                 finalSentence += "Y\t"; //filed 12
                 finalSentence += simplePA.getPredicateLabel(); //field 13
             } else {
-                //this is not a predicate
+                //this is not a predicate (either "_" or remained "?" even after supplementing predictions)
                 finalSentence += "_\t"; //filed 12
                 finalSentence += "_"; //field 13
             }
@@ -188,43 +188,42 @@ public class IO {
                                                                        TreeMap<Integer, simplePA> prediction,
                                                                        boolean supplement){
         TreeMap<Integer, simplePA> output = new TreeMap<>(inputSentence.getPAMap());
+        String[]  inputSentenceFillPredicate =inputSentence.getFillPredicate();
 
         if (supplement){
             for (int pPredicateIdx: prediction.keySet()){
                 //for each predicted predicate
                 if (!output.containsKey(pPredicateIdx)){
-                    //add this predicate and all its arguments
-                    simplePA p = new simplePA(prediction.get(pPredicateIdx).getPredicateLabel(),
-                            prediction.get(pPredicateIdx).getArgumentLabels());
-                    output.put(pPredicateIdx, p);
-                }else{
-                    //first check if this predicate has "null" label
-                    if (output.get(pPredicateIdx).getPredicateLabel() != null){
-
-                        //regardless of predicate labels, add arguments which are not projected
-                        for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
-                        {
-                            if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
-                            {
-                                String pArgLabel = prediction.get(pPredicateIdx).getArgumentLabels().get(pArgIdx);
-                                output.get(pPredicateIdx).getArgumentLabels().put(pArgIdx,pArgLabel);
-                            }
-                        }
-                    }else
                     {
-                        //supplement with new label from prediction
-                        output.get(pPredicateIdx).setPredicateLabel(prediction.get(pPredicateIdx).getPredicateLabel());
-
-                        for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
+                        //case 1: predicate was originally "?"
+                        if (inputSentenceFillPredicate[pPredicateIdx].equals("?"))
                         {
-                            if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
+                            //supplement
+                            //add this predicate and all its arguments
+                            simplePA p = new simplePA(prediction.get(pPredicateIdx).getPredicateLabel(),
+                                    prediction.get(pPredicateIdx).getArgumentLabels());
+                            output.put(pPredicateIdx, p);
+
+                        }else if (inputSentenceFillPredicate[pPredicateIdx].equals("_")){
+                            //case 2: predicate was originally "_"
+                            //Do Nothing for now --> //TODO we may need to change this part
+                        }
+                    }
+                }else{
+                    //regardless of predicate labels, add arguments which are not projected
+                    for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
+                    {
+                        if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
+                        {
+                            if (inputSentenceFillPredicate[pArgIdx].equals("?"))
                             {
                                 String pArgLabel = prediction.get(pPredicateIdx).getArgumentLabels().get(pArgIdx);
                                 output.get(pPredicateIdx).getArgumentLabels().put(pArgIdx,pArgLabel);
+                            }else if (inputSentenceFillPredicate[pArgIdx].equals("_")){
+                               //Do nothing //TODO we may need to change this later!
                             }
                         }
                     }
-
                 }
             }
         }else
