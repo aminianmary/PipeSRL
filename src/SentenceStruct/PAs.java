@@ -51,7 +51,7 @@ public class PAs {
             PA pa = new PA(new Predicate(), arguments);
             predicateArguments.add(pa);
         } else if (predicateArguments.size() > associatedPredicateSeq) {
-            //we still don't know has predicate seen before or not
+            //we still don't know predicate seen before or not
             PA currentPA = predicateArguments.get(associatedPredicateSeq);
             if (currentPA.getPredicate().getIndex() > 0) {
                 //this PA has predicate

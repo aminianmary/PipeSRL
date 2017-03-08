@@ -6,6 +6,7 @@ import SupervisedSRL.Strcutures.ProjectConstants;
 import java.lang.Object;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.TreeSet;
 
 /**
@@ -29,6 +30,8 @@ public class Sentence {
     private boolean[] isArgument;
     private int numOfDirectComponents;
     private int numOfLabeledDirectComponents;
+    HashMap<Integer, HashSet<Integer>> undecidedArgs; //keeps set of undecided arguments for each predicate
+                                                      //NOTE: the key is predicate sequence, not predicate index
 
 
     public Sentence(String sentence, IndexMap indexMap) throws Exception {
@@ -60,6 +63,7 @@ public class Sentence {
 
         reverseDepHeads = new TreeSet[numTokens];
         predicateArguments = new PAs();
+        undecidedArgs = new HashMap<>();
         fillPredicate = new String[numTokens];
         fillPredicate[0] = "_";
         isArgument = new boolean[numTokens];
@@ -91,7 +95,6 @@ public class Sentence {
                 reverseDepHeads[depHead].add(index);
 
             String predicateGoldLabel = null;
-            //fills predicate iff it has a label (skipping "_" and "?")
             if (!fields[13].equals("_") && !fields[13].equals("?")) {
                 predicatesSeq++;
                 predicateGoldLabel = fields[13];
@@ -101,12 +104,22 @@ public class Sentence {
             if (fields.length > 14) //we have at least one argument
             {
                 for (int i = 14; i < fields.length; i++) {
-                    if (!fields[i].equals("_") && !fields[i].equals("?")) //found an argument
+                    int associatedPredicateSeq = i - 14;
+                    String argumentType = fields[i];
+                    if (!argumentType.equals("_")) //found an argument
                     {
-                        String argumentType = fields[i];
-                        int associatedPredicateSeq = i - 14;
-                        predicateArguments.setArgument(associatedPredicateSeq, index, argumentType);
-                        isArgument[index] = true;
+                        if (!argumentType.equals("?")) {
+                            predicateArguments.setArgument(associatedPredicateSeq, index, argumentType);
+                            isArgument[index] = true;
+                        }else {
+                            if (!undecidedArgs.containsKey(associatedPredicateSeq)) {
+                                HashSet<Integer> temp = new HashSet<>();
+                                temp.add(index);
+                                undecidedArgs.put(associatedPredicateSeq, temp);
+                            } else {
+                                undecidedArgs.get(associatedPredicateSeq).add(index);
+                            }
+                        }
                     }
                 }
             }
@@ -330,7 +343,7 @@ public class Sentence {
         return fillPredicate;
     }
 
-    public HashMap<Integer, simplePA> getPAMap (){
+    public HashMap<Integer, simplePA> getPAMap(){
         HashMap<Integer, simplePA> paMap = new HashMap<>();
         ArrayList<PA> predicateArguments= getPredicateArguments().getPredicateArgumentsAsArray();
         for (PA pa: predicateArguments) {
@@ -359,5 +372,9 @@ public class Sentence {
             return 1;
         else
             return (double) numOfLabeledDirectComponents/numOfDirectComponents;
+    }
+
+    public HashMap<Integer, HashSet<Integer>> getUndecidedArgs() {
+        return undecidedArgs;
     }
 }

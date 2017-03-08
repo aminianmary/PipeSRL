@@ -16,7 +16,7 @@ public class PI {
 
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
                                IndexMap indexMap, int maxNumberOfTrainingIterations, String PIModelPath,
-                             int numOfPIFeatures) throws Exception {
+                             int numOfPIFeatures, boolean weightedLearning) throws Exception {
 
         HashSet<String> labelSet = new HashSet<String>();
         labelSet.add("1");
@@ -32,7 +32,7 @@ public class PI {
                 if (sIdx % 1000 ==0)
                     System.out.print(sIdx+"...");
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sIdx), indexMap);
-                double completeness = sentence.getCompletenessDegree();
+                double completeness = (weightedLearning)? sentence.getCompletenessDegree() :1;
                 ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
                 String[] sentenceFillPredicate = sentence.getFillPredicate();
 

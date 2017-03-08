@@ -24,10 +24,10 @@ public class Step12 {
         ArrayList<String> testGoldSentences = IO.readCoNLLFile(properties.getTestFile());
         HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
         reverseLabelMap.put("0", reverseLabelMap.size());
-
+        /*
         System.out.println("Evaluating dev output >>>>>>\n");
         Evaluation.evaluate(devOutputFile, devGoldSentences, indexMap, reverseLabelMap);
-
+        */
         System.out.println("Evaluating test output >>>>>>\n");
         Evaluation.evaluate(testOutputFile, testGoldSentences, indexMap, reverseLabelMap);
     }

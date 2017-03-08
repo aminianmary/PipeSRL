@@ -34,8 +34,9 @@ public class Step3 {
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
         IndexMap indexMap = IO.load(indexMapPath);
+        boolean weightedLearning = properties.isWeightedLearning();
 
-        PI.train(trainSentences, devSentences, indexMap, maxTrainingIters, PIModelPath, numOfPIFeatures);
+        PI.train(trainSentences, devSentences, indexMap, maxTrainingIters, PIModelPath, numOfPIFeatures, weightedLearning);
     }
 
     public static void buildPIModel4TrainPartitions(Properties properties) throws Exception {
@@ -47,6 +48,7 @@ public class Step3 {
         int numOfPIFeatures = properties.getNumOfPIFeatures();
         int numOfPartitions = properties.getNumOfPartitions();
         IndexMap indexMap = IO.load(indexMapPath);
+        boolean weightedLearning = properties.isWeightedLearning();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
@@ -56,7 +58,7 @@ public class Step3 {
             ArrayList<String> trainSentences = IO.load(trainFilePath);
             ArrayList<String> devSentences = IO.load(devFilePath);
 
-            PI.train(trainSentences, devSentences, indexMap, maxTrainingIters, piModelPath, numOfPIFeatures);
+            PI.train(trainSentences, devSentences, indexMap, maxTrainingIters, piModelPath, numOfPIFeatures, weightedLearning);
         }
     }
 }

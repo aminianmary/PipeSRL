@@ -2,6 +2,9 @@ package util;
 
 import SentenceStruct.Sentence;
 import SentenceStruct.simplePA;
+import SupervisedSRL.Strcutures.SRLOutput;
+import apple.laf.JRSUIUtils;
+import sun.util.resources.cldr.zh.CalendarData_zh_Hans_HK;
 
 import java.io.*;
 import java.util.*;
@@ -119,38 +122,45 @@ public class IO {
         return new Object[]{sentences_conll, sentences_words};
     }
 
-    public static String generateCompleteOutputSentenceInCoNLLFormat(ArrayList<String> sentenceForOutput,
-                                                     TreeMap<Integer, simplePA> finalLabels) {
+    public static SRLOutput generateCompleteOutputSentenceInCoNLLFormat(Sentence inputSentence, String inputSentenceStr,
+                                                                        TreeMap<Integer, simplePA> prediction, boolean supplement) {
         String finalSentence = "";
+        ArrayList<String> sentenceForOutput = IO.getSentenceFixedFields(inputSentenceStr);
+        String[] inputSentenceFillPreds = inputSentence.getFillPredicate();
+        HashMap<Integer, HashSet<Integer>> inputSentenceUndecidedArgs = inputSentence.getUndecidedArgs();
+        Object[] o =  createFinalLabeledOutput(inputSentence, prediction,
+                inputSentenceFillPreds, inputSentenceUndecidedArgs, supplement);
+
+        TreeMap<Integer, simplePA>  finalLabels = (TreeMap<Integer, simplePA>) o[0];
+        double overlap = (double) o[1];
+
         for (int wordIdx = 0; wordIdx < sentenceForOutput.size(); wordIdx++) {
             //for each word in the sentence
             finalSentence += sentenceForOutput.get(wordIdx) + "\t";  //filling fields 0-11
             int realWordIdx = wordIdx +1 ;
+
             if (finalLabels.containsKey(realWordIdx)) {
                 simplePA simplePA = finalLabels.get(realWordIdx);
-                //this is a predicate
                 finalSentence += "Y\t"; //filed 12
                 finalSentence += simplePA.getPredicateLabel(); //field 13
-            } else {
-                //this is not a predicate (either "_" or remained "?" even after supplementing predictions)
+            }else {
                 finalSentence += "_\t"; //filed 12
                 finalSentence += "_"; //field 13
             }
 
             //checking if this word has been an argument for other predicates or not (fields 14-end)
             for (int pIdx : finalLabels.keySet()) {
-                HashMap<Integer, String> argumentLabels = finalLabels.get(pIdx).getArgumentLabels();
-                if (argumentLabels.containsKey(realWordIdx))
-                    //word is an argument
-                    finalSentence += "\t" + argumentLabels.get(realWordIdx);
-                else
-                    //word is not an argument for this predicate
+                if (finalLabels.get(pIdx).getArgumentLabels().containsKey(realWordIdx))
+                    // either argument label or "?"
+                    finalSentence += "\t" + finalLabels.get(pIdx).getArgumentLabels().get(realWordIdx);
+                else {
                     finalSentence += "\t_";
+                }
             }
             finalSentence += "\n";
         }
         finalSentence += "\n";
-        return finalSentence;
+        return new SRLOutput(finalSentence, overlap);
     }
 
     public static String formatString2Conll(String input) {
@@ -184,52 +194,72 @@ public class IO {
      * @param prediction predictions made by SRL
      * @param supplement a boolean argument specifying if we need to supplement predicted labels to the original ones or not!
      */
-    public static TreeMap<Integer, simplePA> createFinalLabeledOutput (Sentence inputSentence,
+    public static Object[] createFinalLabeledOutput (Sentence inputSentence,
                                                                        TreeMap<Integer, simplePA> prediction,
+                                                                       String[] fillPredicates,
+                                                                       HashMap<Integer, HashSet<Integer>> undecidedArgs,
                                                                        boolean supplement){
-        TreeMap<Integer, simplePA> output = new TreeMap<>(inputSentence.getPAMap());
-        String[]  inputSentenceFillPredicate =inputSentence.getFillPredicate();
+        TreeMap<Integer, simplePA> output = new TreeMap<>(inputSentence.getPAMap());  //contains neither "_", nor "?"
+        int overlap =0;
+        int totalNumOfPredictedDependencies = 0;
 
-        if (supplement){
-            for (int pPredicateIdx: prediction.keySet()){
+        if (supplement) {
+            int pSeq = -1;
+            for (int ppIdx : prediction.keySet()) {
+                pSeq++;
+                totalNumOfPredictedDependencies += prediction.get(ppIdx).getArgumentLabels().size();
                 //for each predicted predicate
-                if (!output.containsKey(pPredicateIdx)){
-                    {
-                        //case 1: predicate was originally "?"
-                        if (inputSentenceFillPredicate[pPredicateIdx].equals("?"))
-                        {
-                            //supplement
-                            //add this predicate and all its arguments
-                            simplePA p = new simplePA(prediction.get(pPredicateIdx).getPredicateLabel(),
-                                    prediction.get(pPredicateIdx).getArgumentLabels());
-                            output.put(pPredicateIdx, p);
-
-                        }else if (inputSentenceFillPredicate[pPredicateIdx].equals("_")){
-                            //case 2: predicate was originally "_"
-                            //Do Nothing for now --> //TODO we may need to change this part
-                        }
+                if (!output.containsKey(ppIdx)) {
+                    if (fillPredicates[ppIdx].equals("?")) {
+                        simplePA p = new simplePA(prediction.get(ppIdx).getPredicateLabel(),
+                                prediction.get(ppIdx).getArgumentLabels());
+                        output.put(ppIdx, p);
                     }
-                }else{
-                    //regardless of predicate labels, add arguments which are not projected
-                    for (int pArgIdx: prediction.get(pPredicateIdx).getArgumentLabels().keySet())
-                    {
-                        if (!output.get(pPredicateIdx).getArgumentLabels().keySet().contains(pArgIdx))
-                        {
-                            if (inputSentenceFillPredicate[pArgIdx].equals("?"))
-                            {
-                                String pArgLabel = prediction.get(pPredicateIdx).getArgumentLabels().get(pArgIdx);
-                                output.get(pPredicateIdx).getArgumentLabels().put(pArgIdx,pArgLabel);
-                            }else if (inputSentenceFillPredicate[pArgIdx].equals("_")){
-                               //Do nothing //TODO we may need to change this later!
+                } else {
+                    String pPLabel = prediction.get(ppIdx).getPredicateLabel();
+                    String previousPLabel = output.get(ppIdx).getPredicateLabel();
+
+                    for (int pArgIdx : prediction.get(ppIdx).getArgumentLabels().keySet()) {
+                        if (!output.get(ppIdx).getArgumentLabels().containsKey(pArgIdx)) {
+                            if (undecidedArgs.containsKey(pSeq) && undecidedArgs.get(pSeq).contains(pArgIdx)) {
+                                String pArgLabel = prediction.get(ppIdx).getArgumentLabels().get(pArgIdx);
+                                output.get(ppIdx).getArgumentLabels().put(pArgIdx, pArgLabel);
                             }
+                        }else{
+                           String pALabel = prediction.get(ppIdx).getArgumentLabels().get(pArgIdx);
+                            String previousALabel = output.get(ppIdx).getArgumentLabels().get(pArgIdx);
+
+                            if (pALabel.equals(previousALabel))
+                                overlap++;
                         }
                     }
                 }
             }
         }else
-            output = prediction;
+        {
+            for (int ppIdx : prediction.keySet()) {
+                totalNumOfPredictedDependencies += prediction.get(ppIdx).getArgumentLabels().size();
+                //for each predicted predicate
+                if (output.containsKey(ppIdx)){
+                    String pPLabel = prediction.get(ppIdx).getPredicateLabel();
+                    String previousPLabel = output.get(ppIdx).getPredicateLabel();
 
-        return output;
+                    for (int pArgIdx : prediction.get(ppIdx).getArgumentLabels().keySet()) {
+                        if (output.get(ppIdx).getArgumentLabels().containsKey(pArgIdx)) {
+                            String pALabel = prediction.get(ppIdx).getArgumentLabels().get(pArgIdx);
+                            String previousALabel = output.get(ppIdx).getArgumentLabels().get(pArgIdx);
+                            if (pALabel.equals(previousALabel))
+                                overlap++;
+                        }
+                    }
+                }
+            }
+            output = prediction;
+        }
+        double overlapScore = 0;
+        if (totalNumOfPredictedDependencies !=0)
+            overlapScore =((double) overlap)/totalNumOfPredictedDependencies;
+        return new Object[]{output, overlapScore};
     }
 
     public static HashSet<String> obtainLabels(List<String> sentences) {

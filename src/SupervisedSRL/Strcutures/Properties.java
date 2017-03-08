@@ -41,6 +41,7 @@ public class Properties {
     private boolean useReranker;
     private boolean usePI;
     private boolean supplementOriginalLabels;
+    private boolean weightedLearning;
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
@@ -58,7 +59,7 @@ public class Properties {
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures,
                       int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
                       boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient,
-                      boolean pi, boolean supplementOriginalLabels) {
+                      boolean pi, boolean supplementOriginalLabels, boolean weightedLearning) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -99,6 +100,7 @@ public class Properties {
         this.useReranker = useReranker;
         this.usePI = pi;
         this.supplementOriginalLabels = supplementOriginalLabels;
+        this.weightedLearning = weightedLearning;
         this.aiCoefficient = aiCoefficient;
         this.steps = convertSteps2Array(steps);
         this.modelsToBeTrained = modelsToBeTrained;
@@ -263,6 +265,10 @@ public class Properties {
         return numOfPIFeatures;
     }
 
+    public boolean isWeightedLearning() {
+        return weightedLearning;
+    }
+
     public String getPartitionTrainDataPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstants.PARTITION_TRAIN_DATA;
     }
@@ -379,11 +385,14 @@ public class Properties {
             System.out.print("Projected Labels are supplemented with predictions\n");
         else
             System.out.print("Projected Labels are NOT supplemented with predictions\n");
+        if (weightedLearning)
+            System.out.print("Uses weighted Averaged Perceptron\n");
         if (useReranker)
             System.out.print("Reranker USED\n****************************\n");
         else
             System.out.print("Reranker NOT USED\n****************************\n");
 
     }
+
 }
 

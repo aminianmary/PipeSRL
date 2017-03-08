@@ -49,27 +49,30 @@ public class Decoder {
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
         BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
+        BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+".score"), "UTF-8"));
 
         for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
             if (d % 1000 == 0)
                 System.out.println(d + "/" + devSentencesInCONLLFormat.size());
 
             String devSentence = devSentencesInCONLLFormat.get(d);
-            ArrayList<String> sentenceToWriteOutputFile = IO.getSentenceFixedFields(devSentence);
             Sentence sentence = new Sentence(devSentence, indexMap);
 
             TreeMap<Integer, simplePA> prediction = (TreeMap<Integer, simplePA>) predict(sentence, indexMap,
                     aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures,
                     numOfACFeatures, false, aiCoefficient, pdModelDir, usePI);
 
-            outputWriter.write(IO.generateCompleteOutputSentenceInCoNLLFormat(sentenceToWriteOutputFile,
-                    IO.createFinalLabeledOutput(sentence, prediction, supplement)));
+            SRLOutput output = IO.generateCompleteOutputSentenceInCoNLLFormat(sentence, devSentence,prediction,supplement);
+            outputWriter.write(output.getSentence());
+            outputScoresWriter.write(d+"\t"+ output.getConfidenceScore() +"\n");
         }
         System.out.println(devSentencesInCONLLFormat.size());
         long endTime = System.currentTimeMillis();
         System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
         outputWriter.flush();
         outputWriter.close();
+        outputScoresWriter.flush();
+        outputScoresWriter.close();
     }
 
     ////////////////////////////////// PREDICT ////////////////////////////////////////////////////////

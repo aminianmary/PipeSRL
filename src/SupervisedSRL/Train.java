@@ -28,13 +28,15 @@ public class Train {
                              int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
                              int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData,
                              double aiCoefficient, String modelsToBeTrained,
-                             String trainPDAutoLabelsPath, String pdModelDir, boolean usePI, boolean supplement) throws Exception {
+                             String trainPDAutoLabelsPath, String pdModelDir,
+                             boolean usePI, boolean supplement, boolean weightedLearning) throws Exception {
 
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         if (modelsToBeTrained.contains("AI")) {
             System.out.print("\n>>>> Training AI >>>>\n");
             trainAI(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, indexMap, numberOfAITrainingIterations,
-                    piModelPath, aiModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, aiMaxBeamSize, trainPDAutoLabelsPath, pdModelDir, usePI);
+                    piModelPath, aiModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, aiMaxBeamSize,
+                    trainPDAutoLabelsPath, pdModelDir, usePI, weightedLearning);
             System.out.print("\nDone!\n");
         }
         if (modelsToBeTrained.contains("AC")){
@@ -42,7 +44,7 @@ public class Train {
             trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfACTrainingIterations,
                 piModelPath, aiModelPath, acModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures,
                 aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath,
-                    pdModelDir, usePI, supplement);
+                    pdModelDir, usePI, supplement, weightedLearning);
             System.out.print("\nDone!...\n");
 
         }
@@ -52,7 +54,7 @@ public class Train {
                                List<String> devSentencesInCONLLFormat,
                                IndexMap indexMap, int numberOfTrainingIterations, String piModelPath, String aiModelPath,
                                int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures,
-                               int aiMaxBeamSize, String trainPDAutoLabelsPath, String pdModelDir, boolean usePI)
+                               int aiMaxBeamSize, String trainPDAutoLabelsPath, String pdModelDir, boolean usePI, boolean weightedLearning)
             throws Exception {
         HashMap<Integer, String>[] trainPDAutoLabels = IO.load(trainPDAutoLabelsPath);
 
@@ -84,7 +86,8 @@ public class Train {
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
 
                 for (int d = 0; d < featVectors.size(); d++) {
-                    ap.learnInstance(featVectors.get(d), labels.get(d), sentence.getCompletenessDegree());
+                    double learningWeight = (weightedLearning) ? sentence.getCompletenessDegree() : 1;
+                    ap.learnInstance(featVectors.get(d), labels.get(d), learningWeight);
                     if (labels.get(d).equals("0"))
                         negInstances++;
                     dataSize++;
@@ -130,7 +133,7 @@ public class Train {
                 aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
             }
             double f1 = Evaluation.computePrecisionRecall(aiConfusionMatrix);
-            if (f1 > bestFScore) {
+            if (f1 >= bestFScore) {
                 noImprovement = 0;
                 bestFScore = f1;
                 System.out.print("\nSaving the new model...");
@@ -153,7 +156,7 @@ public class Train {
                                int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures,int numOfACFeatures,
                                int aiMaxBeamSize, int acMaxBeamSize,
                                boolean isModelBuiltOnEntireTrainData, double aiCoefficient,
-                               String trainPDAutoLabelsPath, String pdModelDir, boolean usePI, boolean supplement)
+                               String trainPDAutoLabelsPath, String pdModelDir, boolean usePI, boolean supplement, boolean weightedLearning)
             throws Exception {
         HashMap<Integer, String>[] trainPDAutoLabels = IO.load(trainPDAutoLabelsPath);
         DecimalFormat format = new DecimalFormat("##.00");
@@ -178,7 +181,8 @@ public class Train {
                 ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
                 for (int d = 0; d < featVectors.size(); d++) {
-                    ap.learnInstance(featVectors.get(d), labels.get(d), sentence.getCompletenessDegree());
+                    double learningWeight = (weightedLearning)? sentence.getCompletenessDegree():1;
+                    ap.learnInstance(featVectors.get(d), labels.get(d), learningWeight);
                     dataSize++;
                 }
                 if (s % 1000 == 0)
@@ -205,7 +209,7 @@ public class Train {
             reverseLabelMap.put("0", reverseLabelMap.size());
 
             double f1 = Evaluation.evaluate(tempOutputFile, devSentencesInCONLLFormat, indexMap, reverseLabelMap);
-            if (f1 > bestFScore) {
+            if (f1 >= bestFScore) {
                 noImprovement = 0;
                 bestFScore = f1;
                 System.out.print("\nSaving final model...");
@@ -238,14 +242,12 @@ public class Train {
             ArrayList<Argument> goldArgs = pa.getArguments();
 
             for (int wordIdx = 1; wordIdx < sentenceWords.length; wordIdx++) {
-                if (!sentenceFillPred[wordIdx].equals("?")) {
-                    String argLabel = getArgLabel(wordIdx, goldArgs);
-                    Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
-                            sentence, numOfFeatures, indexMap, false, 0); //sentence object must have pd auto labels now
-                    String label = (argLabel.equals("")) ? "0" : "1";
-                    featVectors.add(featVector);
-                    labels.add(label);
-                }
+                String argLabel = getArgLabel(wordIdx, goldArgs);
+                Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
+                        sentence, numOfFeatures, indexMap, false, 0); //sentence object must have pd auto labels now
+                String label = (argLabel.equals("")) ? "0" : "1";
+                featVectors.add(featVector);
+                labels.add(label);
             }
         }
 

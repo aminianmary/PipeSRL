@@ -43,6 +43,7 @@ public class Step7 {
         String modelsToBeTrained = properties.getModelsToBeTrained();
         boolean usePI = properties.usePI();
         boolean supplement = properties.supplementOriginalLabels();
+        boolean weightedLearning = properties.isWeightedLearning();
 
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
@@ -51,7 +52,7 @@ public class Step7 {
         boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                 numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement);
+                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning);
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
@@ -73,6 +74,7 @@ public class Step7 {
         String modelsToBeTrained = properties.getModelsToBeTrained();
         boolean usePI = properties.usePI();
         boolean supplement= properties.supplementOriginalLabels();
+        boolean weightedLearning = properties.isWeightedLearning();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
@@ -89,7 +91,7 @@ public class Step7 {
 
             Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement);
+                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning);
         }
     }
 
