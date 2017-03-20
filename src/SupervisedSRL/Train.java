@@ -235,6 +235,7 @@ public class Train {
         sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
+        String[] sentenceFillPred = sentence.getFillPredicate();
 
         for (PA pa : goldPAs) {
             int goldPIdx = pa.getPredicate().getIndex();

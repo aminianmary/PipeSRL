@@ -70,9 +70,6 @@ public class FeatureExtractor {
         int[] sentencePOSTags = sentence.getPosTags();
         int[] sentenceCPOSTags = sentence.getcPosTags();
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
-        int[] sentenceSourcePOSTags = sentence.getSourcePosTags();
-        int[] sentenceSourceHeadPOSTags = sentence.getSourceHeadPosTags();
-        int[] sentenceSourceDepLabels = sentence.getSourceDepLabels();
 
         //word features
         int w = sentenceWords[wordIdx];
@@ -94,9 +91,6 @@ public class FeatureExtractor {
         String childdepset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
         String childposset = getChildSet(wordIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
         String childwset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
-        int p_source_pos = sentenceSourcePOSTags[wordIdx];
-        int p_source_head_pos = sentenceSourceHeadPOSTags[wordIdx];
-        int p_source_depLabel = sentenceSourceDepLabels[wordIdx];
 
         ArrayList<Object> feats= new ArrayList<>();
         feats.add(w);
@@ -118,9 +112,6 @@ public class FeatureExtractor {
         feats.add(childdepset);
         feats.add(childposset);
         feats.add(childwset);
-        feats.add(p_source_pos);
-        feats.add(p_source_head_pos);
-        feats.add(p_source_depLabel);
 
         int index = 0;
         features[index++] = w;
@@ -142,9 +133,6 @@ public class FeatureExtractor {
         features[index++] = childdepset;
         features[index++] = childposset;
         features[index++] = childwset;
-        features[index++] = p_source_pos;
-        features[index++]= p_source_head_pos;
-        features[index++] = p_source_depLabel;
 
         for (int i=0;i<feats.size();i++){
             for (int j=0; j< feats.size(); j++){
@@ -168,9 +156,6 @@ public class FeatureExtractor {
         int[] sentencePOSTags = sentence.getPosTags();
         int[] sentenceCPOSTags = sentence.getcPosTags();
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
-        int[] sentenceSourcePOSTags = sentence.getSourcePosTags();
-        int[] sentenceSourceHeadPOSTags = sentence.getSourceHeadPosTags();
-        int[] sentenceSourceDepLabels = sentence.getSourceDepLabels();
 
         //predicate features
         int pw = sentenceWords[pIdx];
@@ -192,9 +177,6 @@ public class FeatureExtractor {
         String pchilddepset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
         String pchildposset = getChildSet(pIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
         String pchildwset = getChildSet(pIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
-        int p_source_pos = sentenceSourcePOSTags[pIdx];
-        int p_source_head_pos = sentenceSourceHeadPOSTags[pIdx];
-        int p_source_depLabel = sentenceSourceDepLabels[pIdx];
 
         ArrayList<Object> pFeats= new ArrayList<>();
         pFeats.add(pw);
@@ -216,9 +198,6 @@ public class FeatureExtractor {
         pFeats.add(pchilddepset);
         pFeats.add(pchildposset);
         pFeats.add(pchildwset);
-        pFeats.add(p_source_pos);
-        pFeats.add(p_source_head_pos);
-        pFeats.add(p_source_depLabel);
 
         int index = 0;
         features[index++] = pw;
@@ -240,9 +219,6 @@ public class FeatureExtractor {
         features[index++] = pchilddepset;
         features[index++] = pchildposset;
         features[index++] = pchildwset;
-        features[index++] = p_source_pos;
-        features[index++]= p_source_head_pos;
-        features[index++] = p_source_depLabel;
 
         for (int i=0;i<pFeats.size();i++){
             for (int j=0; j< pFeats.size(); j++){
@@ -416,10 +392,6 @@ public class FeatureExtractor {
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.plem_cluster) << 6 | label : baseFeatureFields.plem_cluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pprw_fullCluster) << 6 | label : baseFeatureFields.pprw_fullCluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.pprw_4cluster) << 6 | label : baseFeatureFields.pprw_4cluster;
-        //projected features from source
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.p_source_pos) << 6 | label : baseFeatureFields.p_source_pos;
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.p_source_head_pos) << 6 | label : baseFeatureFields.p_source_head_pos;
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.p_source_deprel) << 6 | label : baseFeatureFields.p_source_deprel;
 
         return new Object[]{currentFeatures, index};
     }
@@ -448,10 +420,6 @@ public class FeatureExtractor {
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightw_cluster << 6) | label : baseFeatureFields.rightw_cluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.leftsiblingw_cluster << 6) | label : baseFeatureFields.leftsiblingw_cluster;
         currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.rightsiblingw_cluster << 6) | label : baseFeatureFields.rightsiblingw_cluster;
-        //projected features from source
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.a_source_pos << 6) | label : baseFeatureFields.a_source_pos;
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.a_source_head_pos << 6) | label : baseFeatureFields.a_source_head_pos;
-        currentFeatures[index++] = (extractGlobalFeatures) ? (baseFeatureFields.a_source_deprel << 6) | label : baseFeatureFields.a_source_deprel;
 
         return new Object[]{currentFeatures, index};
     }
@@ -475,10 +443,6 @@ public class FeatureExtractor {
         int pw_4Cluster = (extractGlobalFeatures) ? (baseFeatureFields.getPw4cluster() << 6) | label : baseFeatureFields.getPw4cluster();
         int pprw_fullCluster = (extractGlobalFeatures) ? (baseFeatureFields.getPprw_fullCluster() << 6) | label : baseFeatureFields.getPprw_fullCluster();
         int pprw_4Cluster = (extractGlobalFeatures) ? (baseFeatureFields.getPprw_4cluster() << 6) | label : baseFeatureFields.getPprw_4cluster();
-        //features from source
-        int p_source_pos = (extractGlobalFeatures) ? (baseFeatureFields.p_source_pos << 6) | label : baseFeatureFields.p_source_pos;
-        int p_source_head_pos = (extractGlobalFeatures) ? (baseFeatureFields.p_source_head_pos << 6) | label : baseFeatureFields.p_source_head_pos;
-        int p_source_depLabel = (extractGlobalFeatures) ? (baseFeatureFields.p_source_deprel << 6) | label : baseFeatureFields.p_source_deprel;
 
         int aw = baseFeatureFields.getAw();
         int apos = baseFeatureFields.getApos();
@@ -497,10 +461,7 @@ public class FeatureExtractor {
         //cluster features
         int aw_fullCluster = baseFeatureFields.getAw_fullCluster();
         int aw_4Cluster = baseFeatureFields.getAw_4cluster();
-        //features projected from source
-        int a_source_pos = baseFeatureFields.a_source_pos;
-        int a_source_head_pos = baseFeatureFields.a_source_head_pos;
-        int a_source_depLabel = baseFeatureFields.a_source_deprel;
+
 
         // pw + argument features
         long pw_aw = (pw << 20) | aw;
@@ -547,12 +508,6 @@ public class FeatureExtractor {
         features[index++] = pw_fullCluster_position;
         long pw_4Cluster_position = (pw_4Cluster << 2) | position;
         features[index++] = pw_4Cluster_position;
-        long pw_a_source_pos = (pw << 10) | a_source_pos;
-        features[index++] = pw_a_source_pos;
-        long pw_a_source_head_pos = (pw << 10) | a_source_head_pos;
-        features[index++] = pw_a_source_head_pos;
-        long pw_a_source_depLabel = (pw << 10) | a_source_depLabel;
-        features[index++] = pw_a_source_depLabel;
 
         //ppos + argument features
         long aw_ppos = (aw << 10) | ppos;
@@ -583,12 +538,6 @@ public class FeatureExtractor {
         features[index++] = rightsiblingw_ppos;
         long ppos_rightsiblingpos = (ppos << 10) | rightsiblingpos;
         features[index++] = ppos_rightsiblingpos;
-        long ppos_a_source_pos = (ppos <<10) | a_source_pos;
-        features[index++] = ppos_a_source_pos;
-        long ppos_a_source_head_pos = (ppos <<10) | a_source_head_pos;
-        features[index++] = ppos_a_source_head_pos;
-        long ppos_a_depLabel = (ppos <<10) | a_source_depLabel;
-        features[index++] = ppos_a_depLabel;
 
         //pdeprel + argument features
         long aw_pdeprel = (aw << 10) | pdeprel;
@@ -619,12 +568,7 @@ public class FeatureExtractor {
         features[index++] = rightsiblingw_pdeprel;
         long pdeprel_rightsiblingpos = (pdeprel << 10) | rightsiblingpos;
         features[index++] = pdeprel_rightsiblingpos;
-        long pdeprel_a_source_pos = (pdeprel << 10 )| a_source_pos;
-        features[index++] = pdeprel_a_source_pos;
-        long pdeprel_a_source_head_pos = (pdeprel << 10 )| a_source_head_pos;
-        features[index++] = pdeprel_a_source_head_pos;
-        long pdeprel_a_source_depLabel = (pdeprel << 10 )| a_source_depLabel;
-        features[index++] = pdeprel_a_source_depLabel;
+
 
         //plem + argument features
         long aw_plem = (aw << 20) | plem;
@@ -655,12 +599,6 @@ public class FeatureExtractor {
         features[index++] = rightsiblingw_plem;
         long plem_rightsiblingpos = (plem << 10) | rightsiblingpos;
         features[index++] = plem_rightsiblingpos;
-        long plem_a_source_pos = (plem_adeprel << 10) | a_source_pos;
-        features[index++] = plem_a_source_pos;
-        long plem_a_source_head_pos = (plem_adeprel << 10) | a_source_head_pos;
-        features[index++] = plem_a_source_head_pos;
-        long plem_a_source_depLabel = (plem_adeprel << 10) | a_source_depLabel;
-        features[index++] = plem_a_source_depLabel;
 
         //psense + argument features
         String psense_aw = pSense + " " + aw;
@@ -695,12 +633,6 @@ public class FeatureExtractor {
         features[index++] = psense_aw_fullCluster;
         String psense_aw_4Cluster = pSense + " " + aw_4Cluster;
         features[index++] = psense_aw_4Cluster;
-        String psense_a_source_pos = pSense +" "+ a_source_pos;
-        features[index++] = psense_a_source_pos;
-        String psense_a_source_head_pos = pSense +" "+ a_source_head_pos;
-        features[index++] = psense_a_source_head_pos;
-        String psense_a_source_depLabel = pSense +" "+ a_source_depLabel;
-        features[index++] = psense_a_source_depLabel;
 
         //pprw  + argument features
         long aw_pprw = (aw << 20) | pprw;
@@ -735,13 +667,6 @@ public class FeatureExtractor {
         features[index++] = aw_pprw_fullCluster;
         long aw_pprw_4Cluster = (aw << 26) | pprw_4Cluster;
         features[index++] = aw_pprw_4Cluster;
-        long pprw_a_source_pos =  (pprw << 10) | a_source_pos;
-        features[index++] = pprw_a_source_pos;
-        long pprw_a_source_head_pos =  (pprw << 10) | a_source_head_pos;
-        features[index++] = pprw_a_source_head_pos;
-        long pprw_a_source_depLabel =  (pprw << 10) | a_source_depLabel;
-        features[index++] = pprw_a_source_depLabel;
-
 
         //pprpos + argument features
         long aw_pprpos = (aw << 10) | pprpos;
@@ -772,12 +697,6 @@ public class FeatureExtractor {
         features[index++] = rightsiblingw_pprpos;
         long pprpos_rightsiblingpos = (pprpos << 10) | rightsiblingpos;
         features[index++] = pprpos_rightsiblingpos;
-        long pprpos_a_source_pos = (pprpos << 10) | a_source_pos;
-        features[index++] = pprpos_a_source_pos;
-        long pprpos_a_source_head_pos = (pprpos << 10) | a_source_head_pos;
-        features[index++] = pprpos_a_source_head_pos;
-        long pprpos_a_source_depLabel = (pprpos << 10) | a_source_depLabel;
-        features[index++] = pprpos_a_source_depLabel;
 
         //pchilddepset + argument features
         String pchilddepset_aw = pchilddepset + " " + aw;
@@ -838,12 +757,6 @@ public class FeatureExtractor {
         features[index++] = pdepsubcat_rightsiblingw;
         String pdepsubcat_rightsiblingpos = pdepsubcat + " " + rightsiblingpos;
         features[index++] = pdepsubcat_rightsiblingpos;
-        String pdepsubcat_a_source_pos = pdepsubcat +" "+ a_source_pos;
-        features[index++] = pdepsubcat_a_source_pos;
-        String pdepsubcat_a_source_head_pos = pdepsubcat +" "+ a_source_head_pos;
-        features[index++] = pdepsubcat_a_source_head_pos;
-        String pdepsubcat_a_source_depLabel = pdepsubcat +" "+ a_source_depLabel;
-        features[index++] = pdepsubcat_a_source_depLabel;
 
         //pchildposset + argument features
         String pchildposset_aw = pchildposset + " " + aw;
@@ -904,115 +817,6 @@ public class FeatureExtractor {
         features[index++] = pchildwset_rightsiblingw;
         String pchildwset_rightsiblingpos = pchildwset + " " + rightsiblingpos;
         features[index++] = pchildwset_rightsiblingpos;
-
-        //p_source_pos + argument features
-        long aw_p_source_pos = (aw << 10) | p_source_pos;
-        features[index++] = aw_p_source_pos;
-        long p_source_pos_apos = (p_source_pos << 10) | apos;
-        features[index++] = p_source_pos_apos;
-        long p_source_pos_adeprel = (p_source_pos << 10) | adeprel;
-        features[index++] = p_source_pos_adeprel;
-        String p_source_pos_deprelpath = p_source_pos + " " + deprelpath;
-        features[index++] = p_source_pos_deprelpath;
-        String p_source_pos_pospath = p_source_pos + " " + pospath;
-        features[index++] = p_source_pos_pospath;
-        long p_source_pos_position = (p_source_pos << 2) | position;
-        features[index++] = p_source_pos_position;
-        long leftw_p_source_pos = (leftw << 10) | p_source_pos;
-        features[index++] = leftw_p_source_pos;
-        long p_source_pos_leftpos = (p_source_pos << 10) | leftpos;
-        features[index++] = p_source_pos_leftpos;
-        long rightw_p_source_pos = (rightw << 10) | p_source_pos;
-        features[index++] = rightw_p_source_pos;
-        long p_source_pos_rightpos = (p_source_pos << 10) | rightpos;
-        features[index++] = p_source_pos_rightpos;
-        long leftsiblingw_p_source_pos = (leftsiblingw << 10) | p_source_pos;
-        features[index++] = leftsiblingw_p_source_pos;
-        long p_source_pos_leftsiblingpos = (p_source_pos << 10) | leftsiblingpos;
-        features[index++] = p_source_pos_leftsiblingpos;
-        long rightsiblingw_p_source_pos = (rightsiblingw << 10) | p_source_pos;
-        features[index++] = rightsiblingw_p_source_pos;
-        long p_source_pos_rightsiblingpos = (p_source_pos << 10) | rightsiblingpos;
-        features[index++] = p_source_pos_rightsiblingpos;
-        long p_source_pos_a_source_pos = (p_source_pos << 10) | a_source_pos;
-        features[index++] = p_source_pos_a_source_pos;
-        long p_source_pos_a_source_head_pos = (p_source_pos << 10) | a_source_head_pos;
-        features[index++] = p_source_pos_a_source_head_pos;
-        long p_source_pos_a_source_depLabel = (p_source_pos << 10) | a_source_depLabel;
-        features[index++] = p_source_pos_a_source_depLabel;
-
-        //p_source_head_pos + argument features
-        long aw_p_source_head_pos = (aw << 10) | p_source_head_pos;
-        features[index++] = aw_p_source_head_pos;
-        long p_source_head_pos_apos = (p_source_head_pos << 10) | apos;
-        features[index++] = p_source_head_pos_apos;
-        long p_source_head_pos_adeprel = (p_source_head_pos << 10) | adeprel;
-        features[index++] = p_source_head_pos_adeprel;
-        String p_source_head_pos_deprelpath = p_source_head_pos + " " + deprelpath;
-        features[index++] = p_source_head_pos_deprelpath;
-        String p_source_head_pos_pospath = p_source_head_pos + " " + pospath;
-        features[index++] = p_source_head_pos_pospath;
-        long p_source_head_pos_position = (p_source_head_pos << 2) | position;
-        features[index++] = p_source_head_pos_position;
-        long leftw_p_source_head_pos = (leftw << 10) | p_source_head_pos;
-        features[index++] = leftw_p_source_head_pos;
-        long p_source_head_pos_leftpos = (p_source_head_pos << 10) | leftpos;
-        features[index++] = p_source_head_pos_leftpos;
-        long rightw_p_source_head_pos = (rightw << 10) | p_source_head_pos;
-        features[index++] = rightw_p_source_head_pos;
-        long p_source_head_pos_rightpos = (p_source_head_pos << 10) | rightpos;
-        features[index++] = p_source_head_pos_rightpos;
-        long leftsiblingw_p_source_head_pos = (leftsiblingw << 10) | p_source_head_pos;
-        features[index++] = leftsiblingw_p_source_head_pos;
-        long p_source_head_pos_leftsiblingpos = (p_source_head_pos << 10) | leftsiblingpos;
-        features[index++] = p_source_head_pos_leftsiblingpos;
-        long rightsiblingw_p_source_head_pos = (rightsiblingw << 10) | p_source_head_pos;
-        features[index++] = rightsiblingw_p_source_head_pos;
-        long p_source_head_pos_rightsiblingpos = (p_source_head_pos << 10) | rightsiblingpos;
-        features[index++] = p_source_head_pos_rightsiblingpos;
-        long p_source_head_pos_a_source_pos = (p_source_pos << 10) | a_source_pos;
-        features[index++] = p_source_head_pos_a_source_pos;
-        long p_source_head_pos_a_source_head_pos = (p_source_head_pos << 10) | a_source_head_pos;
-        features[index++] = p_source_head_pos_a_source_head_pos;
-        long p_source_head_pos_a_source_depLabel = (p_source_head_pos << 10) | a_source_depLabel;
-        features[index++] = p_source_head_pos_a_source_depLabel;
-
-        //p_source_depLabel + argument features
-        long aw_p_source_depLabel = (aw << 10) | p_source_depLabel;
-        features[index++] = aw_p_source_depLabel;
-        long p_source_depLabel_apos = (p_source_depLabel << 10) | apos;
-        features[index++] = p_source_depLabel_apos;
-        long p_source_depLabel_adeprel = (p_source_depLabel << 10) | adeprel;
-        features[index++] = p_source_depLabel_adeprel;
-        String p_source_depLabel_deprelpath = p_source_depLabel + " " + deprelpath;
-        features[index++] = p_source_depLabel_deprelpath;
-        String p_source_depLabel_pospath = p_source_depLabel + " " + pospath;
-        features[index++] = p_source_depLabel_pospath;
-        long p_source_depLabel_position = (p_source_depLabel << 2) | position;
-        features[index++] = p_source_depLabel_position;
-        long leftw_p_source_depLabel = (leftw << 10) | p_source_depLabel;
-        features[index++] = leftw_p_source_depLabel;
-        long p_source_depLabel_leftpos = (p_source_depLabel << 10) | leftpos;
-        features[index++] = p_source_depLabel_leftpos;
-        long rightw_p_source_depLabel = (rightw << 10) | p_source_depLabel;
-        features[index++] = rightw_p_source_depLabel;
-        long p_source_depLabel_rightpos = (p_source_depLabel << 10) | rightpos;
-        features[index++] = p_source_depLabel_rightpos;
-        long leftsiblingw_p_source_depLabel = (leftsiblingw << 10) | p_source_depLabel;
-        features[index++] = leftsiblingw_p_source_depLabel;
-        long p_source_depLabel_leftsiblingpos = (p_source_depLabel << 10) | leftsiblingpos;
-        features[index++] = p_source_depLabel_leftsiblingpos;
-        long rightsiblingw_p_source_depLabel = (rightsiblingw << 10) | p_source_depLabel;
-        features[index++] = rightsiblingw_p_source_depLabel;
-        long p_source_depLabel_rightsiblingpos = (p_source_depLabel << 10) | rightsiblingpos;
-        features[index++] = p_source_depLabel_rightsiblingpos;
-        long p_source_depLabel_a_source_pos = (p_source_depLabel << 10) | a_source_pos;
-        features[index++] = p_source_depLabel_a_source_pos;
-        long p_source_depLabel_a_source_head_pos = (p_source_depLabel << 10) | a_source_head_pos;
-        features[index++] = p_source_depLabel_a_source_head_pos;
-        long p_source_depLabel_a_source_depLabel = (p_source_depLabel << 10) | a_source_depLabel;
-        features[index++] = p_source_depLabel_a_source_depLabel;
-
         return new Object[]{features, index};
     }
 
@@ -1723,14 +1527,6 @@ public class FeatureExtractor {
         private int rightsiblingw_cluster;
         private int leftsiblingw_cluster;
 
-        //features projected from source
-        private int p_source_pos;
-        private int p_source_head_pos;
-        private int p_source_deprel;
-        private int a_source_pos;
-        private int a_source_head_pos;
-        private int a_source_deprel;
-
         public BaseFeatureFields(int pIdx, int aIdx, Sentence sentence, IndexMap indexMap) {
             this.pIdx = pIdx;
             this.aIdx = aIdx;
@@ -1882,30 +1678,6 @@ public class FeatureExtractor {
             return aw_4cluster;
         }
 
-        public int getP_source_pos() {
-            return p_source_pos;
-        }
-
-        public int getP_source_head_pos() {
-            return p_source_head_pos;
-        }
-
-        public int getP_source_deprel() {
-            return p_source_deprel;
-        }
-
-        public int getA_source_pos() {
-            return a_source_pos;
-        }
-
-        public int getA_source_head_pos() {
-            return a_source_head_pos;
-        }
-
-        public int getA_source_deprel() {
-            return a_source_deprel;
-        }
-
         public BaseFeatureFields invoke() throws Exception {
             int[] sentenceDepLabels = sentence.getDepLabels();
             int[] sentenceDepHeads = sentence.getDepHeads();
@@ -1917,9 +1689,6 @@ public class FeatureExtractor {
             int[] sentenceLemmaClusterIds = sentence.getLemmaClusterIds();
             TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
             HashMap<Integer, String> sentencePredicatesInfo = sentence.getPredicatesAutoLabelMap();
-            int[] sentenceSourcePOSTags = sentence.getSourcePosTags();
-            int[] sentenceSourceHeadPOSTags = sentence.getSourceHeadPosTags();
-            int[] sentenceSourceDepLabels = sentence.getSourceDepLabels();
 
             //predicate features
             pw = sentenceWords[pIdx];
@@ -1974,14 +1743,6 @@ public class FeatureExtractor {
             leftsiblingw = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[lefSiblingIndex];
             leftsiblingw_cluster = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[lefSiblingIndex];
             leftsiblingpos = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[lefSiblingIndex];
-
-            //projected features from source
-            p_source_pos = sentenceSourcePOSTags[pIdx];
-            p_source_head_pos = sentenceSourceHeadPOSTags[pIdx];
-            p_source_deprel = sentenceSourceDepLabels[pIdx];
-            a_source_pos = sentenceSourcePOSTags[aIdx];
-            a_source_head_pos = sentenceSourceHeadPOSTags[aIdx];
-            a_source_deprel = sentenceSourceDepLabels[aIdx];
             return this;
         }
     }
