@@ -7,6 +7,7 @@ import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
 import SentenceStruct.simplePA;
+import SupervisedSRL.Strcutures.Pair;
 import SupervisedSRL.Strcutures.ProjectConstants;
 import ml.AveragedPerceptron;
 import util.IO;
@@ -80,14 +81,20 @@ public class Train {
 
             for (int sID=0; sID< trainSentencesInCONLLFormat.size(); sID++) {
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sID), indexMap);
+                int[] depLabels = sentence.getDepLabels();
+                int[] sourceDepLabels = sentence.getSourceDepLabels();
+
                 Object[] instances = obtainTrainInstance4AI(sentence, indexMap, numOfAIFeatures,
                         trainPDAutoLabels[sID]);
-                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
+                ArrayList<Pair> featVectors = (ArrayList<Pair>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
+                //double learningWeight = (weightedLearning) ? sentence.getCompletenessDegree() : 1;
 
                 for (int d = 0; d < featVectors.size(); d++) {
-                    double learningWeight = (weightedLearning) ? sentence.getCompletenessDegree() : 1;
-                    ap.learnInstance(featVectors.get(d), labels.get(d), learningWeight);
+                    int wIdx = (int) featVectors.get(d).second;
+                    Object[] f = (Object[]) featVectors.get(d).first;
+                    double learningWeight = (weightedLearning)? ((depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5):1;
+                    ap.learnInstance(f, labels.get(d), learningWeight);
                     if (labels.get(d).equals("0"))
                         negInstances++;
                     dataSize++;
@@ -176,13 +183,20 @@ public class Train {
 
             for (int sID=0; sID< trainSentencesInCONLLFormat.size() ; sID++) {
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sID), indexMap);
+                int[] depLabels = sentence.getDepLabels();
+                int[] sourceDepLabels = sentence.getSourceDepLabels();
+
                 Object[] instances = obtainTrainInstance4AC(sentence, indexMap, numOfACFeatures, trainPDAutoLabels[sID]);
                 s++;
-                ArrayList<Object[]> featVectors = (ArrayList<Object[]>) instances[0];
+                ArrayList<Pair> featVectors = (ArrayList<Pair>) instances[0];
                 ArrayList<String> labels = (ArrayList<String>) instances[1];
+
                 for (int d = 0; d < featVectors.size(); d++) {
-                    double learningWeight = (weightedLearning)? sentence.getCompletenessDegree():1;
-                    ap.learnInstance(featVectors.get(d), labels.get(d), learningWeight);
+                    int wIdx = (int) featVectors.get(d).second;
+                    Object[] f = (Object[]) featVectors.get(d).first;
+                    //double learningWeight = (weightedLearning)? sentence.getCompletenessDegree():1;
+                    double learningWeight = (weightedLearning)? ((depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5):1;
+                    ap.learnInstance(f, labels.get(d), learningWeight);
                     dataSize++;
                 }
                 if (s % 1000 == 0)
@@ -230,7 +244,7 @@ public class Train {
 
     public static Object[] obtainTrainInstance4AI(Sentence sentence, IndexMap indexMap, int numOfFeatures,
                                                   HashMap<Integer, String> pdAutoLabels) throws Exception {
-        ArrayList<Object[]> featVectors = new ArrayList<>();
+        ArrayList<Pair> featVectors = new ArrayList<Pair>();
         ArrayList<String> labels = new ArrayList<>();
         sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
@@ -246,7 +260,7 @@ public class Train {
                 Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
                         sentence, numOfFeatures, indexMap, false, 0); //sentence object must have pd auto labels now
                 String label = (argLabel.equals("")) ? "0" : "1";
-                featVectors.add(featVector);
+                featVectors.add(new Pair(featVector,wordIdx));
                 labels.add(label);
             }
         }
@@ -256,7 +270,7 @@ public class Train {
 
     public static Object[] obtainTrainInstance4AC(Sentence sentence, IndexMap indexMap, int numOfFeatures,
                                                   HashMap<Integer, String> pdAutoLabels) throws Exception {
-        ArrayList<Object[]> featVectors = new ArrayList<Object[]>();
+        ArrayList<Pair> featVectors = new ArrayList<Pair>();
         ArrayList<String> labels = new ArrayList<String>();
         sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> pas = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
@@ -270,7 +284,7 @@ public class Train {
                 String label = arg.getType();
                 //check if this word is undecided or not?!
                 Object[] featVector = FeatureExtractor.extractACFeatures(pIdx, argIdx, sentence, numOfFeatures, indexMap, false, 0);
-                featVectors.add(featVector);
+                featVectors.add(new Pair(featVector, argIdx));
                 labels.add(label);
             }
         }

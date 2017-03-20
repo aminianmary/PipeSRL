@@ -393,4 +393,8 @@ public class Sentence {
     public HashMap<Integer, HashSet<Integer>> getUndecidedArgs() {
         return undecidedArgs;
     }
+
+    public int[] getSourceDepLabels() {
+        return sourceDepLabels;
+    }
 }
