@@ -90,14 +90,6 @@ public class FeatureExtractor {
         String childdepset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
         String childposset = getChildSet(wordIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
         String childwset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
-<<<<<<< HEAD
-=======
-        //features projected from source
-        int p_source_pos = sentenceSourcePOSTags[wordIdx];
-        int p_source_head_pos = sentenceSourceHeadPOSTags[wordIdx];
-        int p_source_depLabel = sentenceSourceDepLabels[wordIdx];
->>>>>>> parent of 7f55087... Revert "changed Decoder to generate sentences with projected info (in order to be compatible in our evaluation)"
-
         ArrayList<Object> feats= new ArrayList<>();
         feats.add(w);
         feats.add(lem);
