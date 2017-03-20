@@ -38,7 +38,6 @@ public class Properties {
     private String rerankerModelPath;
     private String outputFilePathDev;
     private String outputFilePathTest;
-    private String outputFilePathTest_w_projected_info;
     private boolean useReranker;
     private boolean usePI;
     private boolean supplementOriginalLabels;
@@ -98,9 +97,6 @@ public class Properties {
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.outputFilePathTest = outputDir + ProjectConstants.OUTPUT_FILE_TEST + "."+ reranker +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
-        this.outputFilePathTest_w_projected_info = outputDir + ProjectConstants.OUTPUT_FILE_TEST + "."+ reranker +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient+
-                ProjectConstants.PROJECTED_INFO_PREFIX;
         this.useReranker = useReranker;
         this.usePI = pi;
         this.supplementOriginalLabels = supplementOriginalLabels;
@@ -239,10 +235,6 @@ public class Properties {
 
     public String getOutputFilePathTest() {
         return outputFilePathTest;
-    }
-
-    public String getOutputFilePathTest_w_projected_info() {
-        return outputFilePathTest_w_projected_info;
     }
 
     public double getAiCoefficient() {

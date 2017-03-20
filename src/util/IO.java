@@ -2,7 +2,6 @@ package util;
 
 import SentenceStruct.Sentence;
 import SentenceStruct.simplePA;
-import SupervisedSRL.Strcutures.Pair;
 import SupervisedSRL.Strcutures.SRLOutput;
 import apple.laf.JRSUIUtils;
 import sun.util.resources.cldr.zh.CalendarData_zh_Hans_HK;
@@ -124,65 +123,44 @@ public class IO {
     }
 
     public static SRLOutput generateCompleteOutputSentenceInCoNLLFormat(Sentence inputSentence, String inputSentenceStr,
-                                                                        TreeMap<Integer, simplePA> prediction,
-                                                                        boolean supplement) {
+                                                                        TreeMap<Integer, simplePA> prediction, boolean supplement) {
         String finalSentence = "";
-        String finalSentence_w_projected_info = "";
-
-        Pair fixedFields = IO.getSentenceFixedFields(inputSentenceStr);
-        ArrayList<String> sentenceForOutput = (ArrayList<String>) fixedFields.first;
-        ArrayList<String> sentenceForOutput_w_projected_info = (ArrayList<String>) fixedFields.second;
-
+        ArrayList<String> sentenceForOutput = IO.getSentenceFixedFields(inputSentenceStr);
         String[] inputSentenceFillPreds = inputSentence.getFillPredicate();
         HashMap<Integer, HashSet<Integer>> inputSentenceUndecidedArgs = inputSentence.getUndecidedArgs();
-        Pair o =  createFinalLabeledOutput(inputSentence, prediction,
+        Object[] o =  createFinalLabeledOutput(inputSentence, prediction,
                 inputSentenceFillPreds, inputSentenceUndecidedArgs, supplement);
 
-        TreeMap<Integer, simplePA>  finalLabels = (TreeMap<Integer, simplePA>) o.first;
-        double overlap = (double) o.second;
+        TreeMap<Integer, simplePA>  finalLabels = (TreeMap<Integer, simplePA>) o[0];
+        double overlap = (double) o[1];
 
         for (int wordIdx = 0; wordIdx < sentenceForOutput.size(); wordIdx++) {
             //for each word in the sentence
             finalSentence += sentenceForOutput.get(wordIdx) + "\t";  //filling fields 0-11
-            finalSentence_w_projected_info += sentenceForOutput_w_projected_info.get(wordIdx) + "\t";  //filling fields 0-14
-
             int realWordIdx = wordIdx +1 ;
 
             if (finalLabels.containsKey(realWordIdx)) {
                 simplePA simplePA = finalLabels.get(realWordIdx);
                 finalSentence += "Y\t"; //filed 12
                 finalSentence += simplePA.getPredicateLabel(); //field 13
-
-                finalSentence_w_projected_info += "Y\t"; //filed 14
-                finalSentence_w_projected_info += simplePA.getPredicateLabel(); //field 15
             }else {
                 finalSentence += "_\t"; //filed 12
                 finalSentence += "_"; //field 13
-
-                finalSentence_w_projected_info += "_\t"; //filed 14
-                finalSentence_w_projected_info += "_"; //field 15
             }
 
             //checking if this word has been an argument for other predicates or not (fields 14-end)
             for (int pIdx : finalLabels.keySet()) {
-                if (finalLabels.get(pIdx).getArgumentLabels().containsKey(realWordIdx)) {
+                if (finalLabels.get(pIdx).getArgumentLabels().containsKey(realWordIdx))
                     // either argument label or "?"
                     finalSentence += "\t" + finalLabels.get(pIdx).getArgumentLabels().get(realWordIdx);
-                    finalSentence_w_projected_info += "\t" + finalLabels.get(pIdx).getArgumentLabels().get(realWordIdx);
-
-                }
                 else {
                     finalSentence += "\t_";
-                    finalSentence_w_projected_info += "\t_";
                 }
             }
             finalSentence += "\n";
-            finalSentence_w_projected_info += "\n";
         }
         finalSentence += "\n";
-        finalSentence_w_projected_info += "\n";
-
-        return new SRLOutput(finalSentence, finalSentence_w_projected_info ,overlap);
+        return new SRLOutput(finalSentence, overlap);
     }
 
     public static String formatString2Conll(String input) {
@@ -196,28 +174,18 @@ public class IO {
         return ConllFormatString;
     }
 
-    public static Pair getSentenceFixedFields(String sentenceInCoNLLFormat) {
+    public static ArrayList<String> getSentenceFixedFields(String sentenceInCoNLLFormat) {
         String[] lines = sentenceInCoNLLFormat.split("\n");
         ArrayList<String> sentenceForOutput = new ArrayList<String>();
-        ArrayList<String> sentenceForOutput_w_projected_info = new ArrayList<String>();
-
         for (String line : lines) {
             String[] fields = line.split("\t");
-            String fieldsForOutput = "";
-            String fieldsForOutput_w_projected_info = "";
-
+            String filedsForOutput = "";
             //we just need the first 12 fields. The rest of filed must be filled based on what system predicted
-            for (int k = 0; k < 12; k++) {
-                fieldsForOutput += fields[k] + "\t";
-                fieldsForOutput_w_projected_info += fields[k] + "\t";
-            }
-            fieldsForOutput_w_projected_info += fields[12]+"\t";
-            fieldsForOutput_w_projected_info += fields[13]+"\t";
-            fieldsForOutput_w_projected_info += fields[14]+"\t";
-            sentenceForOutput.add(fieldsForOutput.trim());
-            sentenceForOutput_w_projected_info.add(fieldsForOutput_w_projected_info.trim());
+            for (int k = 0; k < 12; k++)
+                filedsForOutput += fields[k] + "\t";
+            sentenceForOutput.add(filedsForOutput.trim());
         }
-        return new Pair<>(sentenceForOutput, sentenceForOutput_w_projected_info);
+        return sentenceForOutput;
     }
 
     /**
@@ -226,7 +194,7 @@ public class IO {
      * @param prediction predictions made by SRL
      * @param supplement a boolean argument specifying if we need to supplement predicted labels to the original ones or not!
      */
-    public static Pair createFinalLabeledOutput (Sentence inputSentence,
+    public static Object[] createFinalLabeledOutput (Sentence inputSentence,
                                                                        TreeMap<Integer, simplePA> prediction,
                                                                        String[] fillPredicates,
                                                                        HashMap<Integer, HashSet<Integer>> undecidedArgs,
@@ -291,7 +259,7 @@ public class IO {
         double overlapScore = 0;
         if (totalNumOfPredictedDependencies !=0)
             overlapScore =((double) overlap)/totalNumOfPredictedDependencies;
-        return new Pair<>(output, overlapScore);
+        return new Object[]{output, overlapScore};
     }
 
     public static HashSet<String> obtainLabels(List<String> sentences) {
