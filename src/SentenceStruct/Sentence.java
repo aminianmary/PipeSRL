@@ -32,10 +32,6 @@ public class Sentence {
     private int numOfLabeledDirectComponents;
     HashMap<Integer, HashSet<Integer>> undecidedArgs; //keeps set of undecided arguments for each predicate
                                                       //NOTE: the key is predicate sequence, not predicate index
-    //info projected from source sentence
-    private int[] sourcePosTags;
-    private int[] sourceHeadPosTags;
-    private int[] sourceDepLabels;
 
 
     public Sentence(String sentence, IndexMap indexMap) throws Exception {
@@ -72,13 +68,6 @@ public class Sentence {
         fillPredicate[0] = "_";
         isArgument = new boolean[numTokens];
 
-        sourcePosTags = new int[numTokens];
-        sourcePosTags[0] = words[0];
-        sourceHeadPosTags = new int[numTokens];
-        sourceHeadPosTags[0] = words[0];
-        sourceDepLabels = new int[numTokens];
-        sourceDepLabels[0] = IndexMap.nullIdx;
-
         for (int tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
             String token = tokens[tokenIdx];
             String[] fields = token.split("\t");
@@ -96,12 +85,7 @@ public class Sentence {
             lemmas[index] = indexMap.str2int(fields[3]);
             lemmas_str[index] = fields[3];
             lemmaClusterIds[index] = indexMap.getFullClusterId(fields[3]);
-            //projected info from source
-            sourcePosTags[index] = indexMap.str2int(fields[12]);
-            sourceHeadPosTags[index] = indexMap.str2int(fields[13]);
-            sourceDepLabels[index] = indexMap.str2int(fields[14]);
-
-            fillPredicate[index] = fields[15];
+            fillPredicate[index] = fields[12];
 
             if (reverseDepHeads[depHead] == null) {
                 TreeSet<Integer> children = new TreeSet<Integer>();
@@ -111,16 +95,16 @@ public class Sentence {
                 reverseDepHeads[depHead].add(index);
 
             String predicateGoldLabel = null;
-            if (!fields[16].equals("_") && !fields[16].equals("?")) {
+            if (!fields[13].equals("_") && !fields[13].equals("?")) {
                 predicatesSeq++;
-                predicateGoldLabel = fields[16];
+                predicateGoldLabel = fields[13];
                 predicateArguments.setPredicate(predicatesSeq, index, predicateGoldLabel);
             }
 
-            if (fields.length > 17) //we have at least one argument
+            if (fields.length > 14) //we have at least one argument
             {
-                for (int i = 17; i < fields.length; i++) {
-                    int associatedPredicateSeq = i - 17;
+                for (int i = 14; i < fields.length; i++) {
+                    int associatedPredicateSeq = i - 14;
                     String argumentType = fields[i];
                     if (!argumentType.equals("_")) //found an argument
                     {
