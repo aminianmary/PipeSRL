@@ -35,6 +35,7 @@ public class Step11 {
         int aiMaxBeamSize = properties.getNumOfAIBeamSize();
         int acMaxBeamSize = properties.getNumOfACBeamSize();
         String testOutputFile = properties.getOutputFilePathTest();
+        String testOutputFile_w_projected_info = properties.getOutputFilePathTest_w_projected_info();
         double aiCoefficient = properties.getAiCoefficient();
 
         if (properties.useReranker()) {
@@ -59,7 +60,7 @@ public class Step11 {
             */
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, testOutputFile,aiCoefficient, pdModelDir,usePI, supplement);
+                    numOfAIFeatures,numOfACFeatures, testOutputFile,testOutputFile_w_projected_info,aiCoefficient, pdModelDir,usePI, supplement);
         }
     }
 }

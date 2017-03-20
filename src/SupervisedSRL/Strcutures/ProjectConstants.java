@@ -25,6 +25,7 @@ public class ProjectConstants {
     public static final String DEV_PI_LABELS = "/dev.PIabels";
     public static final String TEST_PI_LABELS = "/test.PILabels";
     public static final String PI_MODEL = "/PI.model";
+    public static final String PROJECTED_INFO_PREFIX = "_w_projected_info";
 
     public static final String VERB = "VERB"; //assuming we use universal tags
 }

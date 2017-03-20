@@ -71,7 +71,6 @@ public class FeatureExtractor {
         int[] sentenceCPOSTags = sentence.getcPosTags();
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
 
-        //word features
         int w = sentenceWords[wordIdx];
         int lem = sentenceLemmas[wordIdx];
         int wFullCluster = sentenceWordsFullClusters[wordIdx];
@@ -91,6 +90,13 @@ public class FeatureExtractor {
         String childdepset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
         String childposset = getChildSet(wordIdx, sentenceReverseDepHeads, sentencePOSTags, sentencePOSTags, indexMap);
         String childwset = getChildSet(wordIdx, sentenceReverseDepHeads, sentenceWords, sentencePOSTags, indexMap);
+<<<<<<< HEAD
+=======
+        //features projected from source
+        int p_source_pos = sentenceSourcePOSTags[wordIdx];
+        int p_source_head_pos = sentenceSourceHeadPOSTags[wordIdx];
+        int p_source_depLabel = sentenceSourceDepLabels[wordIdx];
+>>>>>>> parent of 7f55087... Revert "changed Decoder to generate sentences with projected info (in order to be compatible in our evaluation)"
 
         ArrayList<Object> feats= new ArrayList<>();
         feats.add(w);
@@ -136,8 +142,10 @@ public class FeatureExtractor {
 
         for (int i=0;i<feats.size();i++){
             for (int j=0; j< feats.size(); j++){
-                if (i!= j)
-                    features[index++] =  feats.get(i) +" "+ feats.get(j);}
+                if (i!= j){
+                    features[index++] =  feats.get(i) +" "+ feats.get(j);
+                }
+            }
         }
         return features;
     }
@@ -221,9 +229,10 @@ public class FeatureExtractor {
         features[index++] = pchildwset;
 
         for (int i=0;i<pFeats.size();i++){
-            for (int j=0; j< pFeats.size(); j++){
-                if (i!= j)
-                    features[index++] =  pFeats.get(i) +" "+ pFeats.get(j);
+            for (int j=0; j< pFeats.size(); j++) {
+                if (i != j) {
+                    features[index++] = pFeats.get(i) + " " + pFeats.get(j);
+                }
             }
         }
 
