@@ -63,27 +63,27 @@ public class FeatureExtractor {
         int[] sentenceDepLabels = sentence.getDepLabels();
         int[] sentenceDepHeads = sentence.getDepHeads();
         int[] sentenceWords = sentence.getWords();
-        int[] sentenceWordsFullClusters = sentence.getWordFullClusterIds();
-        int[] sentenceWords4Clusters = sentence.getWord4ClusterIds();
+        Integer[] sentenceWordsFullClusters = sentence.getWordFullClusterIds();
+        Integer[] sentenceWords4Clusters = sentence.getWord4ClusterIds();
         int[] sentenceLemmas = sentence.getLemmas();
-        int[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
+        Integer[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
         int[] sentencePOSTags = sentence.getPosTags();
         int[] sentenceCPOSTags = sentence.getcPosTags();
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
 
         int w = sentenceWords[wordIdx];
         int lem = sentenceLemmas[wordIdx];
-        int wFullCluster = sentenceWordsFullClusters[wordIdx];
-        int w4Clsuter = sentenceWords4Clusters[wordIdx];
-        int lemCluster = sentenceLemmasClusters[wordIdx];
+        Integer wFullCluster = sentenceWordsFullClusters[wordIdx];
+        Integer w4Clsuter = sentenceWords4Clusters[wordIdx];
+        Integer lemCluster = sentenceLemmasClusters[wordIdx];
         int pos = sentencePOSTags[wordIdx];
         int cPos = sentenceCPOSTags[wordIdx];
         int deprel = sentenceDepLabels[wordIdx];
         int prw = sentenceWords[sentenceDepHeads[wordIdx]];
         int prlem = sentenceLemmas[sentenceDepHeads[wordIdx]];
-        int prwFullCluster = sentenceWordsFullClusters[sentenceDepHeads[wordIdx]];
-        int prw4Cluster = sentenceWords4Clusters[sentenceDepHeads[wordIdx]];
-        int prlemaCluster = sentenceLemmasClusters[sentenceDepHeads[wordIdx]];
+        Integer prwFullCluster = sentenceWordsFullClusters[sentenceDepHeads[wordIdx]];
+        Integer prw4Cluster = sentenceWords4Clusters[sentenceDepHeads[wordIdx]];
+        Integer prlemaCluster = sentenceLemmasClusters[sentenceDepHeads[wordIdx]];
         int prpos = sentencePOSTags[sentenceDepHeads[wordIdx]];
         int prcpos = sentenceCPOSTags[sentenceDepHeads[wordIdx]];
         String depsubcat = getDepSubCat(wordIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
@@ -149,10 +149,10 @@ public class FeatureExtractor {
         int[] sentenceDepLabels = sentence.getDepLabels();
         int[] sentenceDepHeads = sentence.getDepHeads();
         int[] sentenceWords = sentence.getWords();
-        int[] sentenceWordsFullClusters = sentence.getWordFullClusterIds();
-        int[] sentenceWords4Clusters = sentence.getWord4ClusterIds();
+        Integer[] sentenceWordsFullClusters = sentence.getWordFullClusterIds();
+        Integer[] sentenceWords4Clusters = sentence.getWord4ClusterIds();
         int[] sentenceLemmas = sentence.getLemmas();
-        int[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
+        Integer[] sentenceLemmasClusters = sentence.getLemmaClusterIds();
         int[] sentencePOSTags = sentence.getPosTags();
         int[] sentenceCPOSTags = sentence.getcPosTags();
         TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
@@ -160,17 +160,17 @@ public class FeatureExtractor {
         //predicate features
         int pw = sentenceWords[pIdx];
         int plem = sentenceLemmas[pIdx];
-        int pwFullCluster = sentenceWordsFullClusters[pIdx];
-        int pw4Clsuter = sentenceWords4Clusters[pIdx];
-        int plemCluster = sentenceLemmasClusters[pIdx];
+        Integer pwFullCluster = sentenceWordsFullClusters[pIdx];
+        Integer pw4Clsuter = sentenceWords4Clusters[pIdx];
+        Integer plemCluster = sentenceLemmasClusters[pIdx];
         int ppos = sentencePOSTags[pIdx];
         int pcPos = sentenceCPOSTags[pIdx];
         int pdeprel = sentenceDepLabels[pIdx];
         int pprw = sentenceWords[sentenceDepHeads[pIdx]];
         int pprlem = sentenceLemmas[sentenceDepHeads[pIdx]];
-        int pprwFullCluster = sentenceWordsFullClusters[sentenceDepHeads[pIdx]];
-        int pprw4Cluster = sentenceWords4Clusters[sentenceDepHeads[pIdx]];
-        int pprlemaCluster = sentenceLemmasClusters[sentenceDepHeads[pIdx]];
+        Integer pprwFullCluster = sentenceWordsFullClusters[sentenceDepHeads[pIdx]];
+        Integer pprw4Cluster = sentenceWords4Clusters[sentenceDepHeads[pIdx]];
+        Integer pprlemaCluster = sentenceLemmasClusters[sentenceDepHeads[pIdx]];
         int pprpos = sentencePOSTags[sentenceDepHeads[pIdx]];
         int pprcpos = sentenceCPOSTags[sentenceDepHeads[pIdx]];
         String pdepsubcat = getDepSubCat(pIdx, sentenceReverseDepHeads, sentenceDepLabels, sentencePOSTags, indexMap);
@@ -1516,17 +1516,17 @@ public class FeatureExtractor {
         private int leftsiblingpos;
 
         //word cluster features
-        private int pwFullCluster;
-        private int pw4cluster;
-        private int plem_cluster;
-        private int pprw_fullCluster;
-        private int pprw_4cluster;
-        private int aw_fullCluster;
-        private int aw_4cluster;
-        private int leftw_cluster;
-        private int rightw_cluster;
-        private int rightsiblingw_cluster;
-        private int leftsiblingw_cluster;
+        private Integer pwFullCluster;
+        private Integer pw4cluster;
+        private Integer plem_cluster;
+        private Integer pprw_fullCluster;
+        private Integer pprw_4cluster;
+        private Integer aw_fullCluster;
+        private Integer aw_4cluster;
+        private Integer leftw_cluster;
+        private Integer rightw_cluster;
+        private Integer rightsiblingw_cluster;
+        private Integer leftsiblingw_cluster;
 
         public BaseFeatureFields(int pIdx, int aIdx, Sentence sentence, IndexMap indexMap) {
             this.pIdx = pIdx;
@@ -1635,47 +1635,27 @@ public class FeatureExtractor {
             return leftsiblingpos;
         }
 
-        public int getPwFullCluster() {
+        public Integer getPwFullCluster() {
             return pwFullCluster;
         }
 
-        public int getPlem_cluster() {
-            return plem_cluster;
-        }
-
-        public int getAw_fullCluster() {
+        public Integer getAw_fullCluster() {
             return aw_fullCluster;
         }
 
-        public int getPprw_fullCluster() {
+        public Integer getPprw_fullCluster() {
             return pprw_fullCluster;
         }
 
-        public int getLeftw_cluster() {
-            return leftw_cluster;
-        }
-
-        public int getRightw_cluster() {
-            return rightw_cluster;
-        }
-
-        public int getRightsiblingw_cluster() {
-            return rightsiblingw_cluster;
-        }
-
-        public int getLeftsiblingw_cluster() {
-            return leftsiblingw_cluster;
-        }
-
-        public int getPw4cluster() {
+        public Integer getPw4cluster() {
             return pw4cluster;
         }
 
-        public int getPprw_4cluster() {
+        public Integer getPprw_4cluster() {
             return pprw_4cluster;
         }
 
-        public int getAw_4cluster() {
+        public Integer getAw_4cluster() {
             return aw_4cluster;
         }
 
@@ -1685,9 +1665,9 @@ public class FeatureExtractor {
             int[] sentenceWords = sentence.getWords();
             int[] sentencePOSTags = sentence.getPosTags();
             int[] sentenceLemmas = sentence.getLemmas();
-            int[] sentenceWordsFullClusterIds = sentence.getWordFullClusterIds();
-            int[] sentenceWords4ClusterIds = sentence.getWord4ClusterIds();
-            int[] sentenceLemmaClusterIds = sentence.getLemmaClusterIds();
+            Integer[] sentenceWordsFullClusterIds = sentence.getWordFullClusterIds();
+            Integer[] sentenceWords4ClusterIds = sentence.getWord4ClusterIds();
+            Integer[] sentenceLemmaClusterIds = sentence.getLemmaClusterIds();
             TreeSet<Integer>[] sentenceReverseDepHeads = sentence.getReverseDepHeads();
             HashMap<Integer, String> sentencePredicatesInfo = sentence.getPredicatesAutoLabelMap();
 
@@ -1739,7 +1719,7 @@ public class FeatureExtractor {
             rightw_cluster = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[rightMostDependentIndex];
             rightpos = rightMostDependentIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightMostDependentIndex];
             rightsiblingw = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[rightSiblingIndex];
-            rightsiblingw_cluster = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[rightSiblingIndex];
+            rightsiblingw_cluster = null;//rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[rightSiblingIndex];
             rightsiblingpos = rightSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentencePOSTags[rightSiblingIndex];
             leftsiblingw = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullIdx : sentenceWords[lefSiblingIndex];
             leftsiblingw_cluster = lefSiblingIndex == IndexMap.nullIdx ? IndexMap.nullClusterIdx : sentenceWordsFullClusterIds[lefSiblingIndex];

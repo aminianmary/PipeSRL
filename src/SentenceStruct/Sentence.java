@@ -2,6 +2,7 @@ package SentenceStruct;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ProjectConstants;
+import org.omg.CORBA.INTERNAL;
 
 import java.lang.Object;
 import java.util.ArrayList;
@@ -17,12 +18,12 @@ public class Sentence {
     private int[] depHeads;
     private int[] depLabels;
     private int[] words;
-    private int[] wordFullClusterIds;
+    private Integer[] wordFullClusterIds;
     private int[] posTags;
     private int[] cPosTags;
-    private int[] word4ClusterIds;
+    private Integer[] word4ClusterIds;
     private int[] lemmas;
-    private int[] lemmaClusterIds;
+    private Integer[] lemmaClusterIds;
     private String[] lemmas_str;
     private TreeSet<Integer>[] reverseDepHeads;
     private PAs predicateArguments;
@@ -58,12 +59,12 @@ public class Sentence {
         lemmas[0] = words[0];
         lemmas_str = new String[numTokens];
         lemmas_str[0] = "ROOT";
-        wordFullClusterIds = new int[numTokens];
-        wordFullClusterIds[0] = IndexMap.ROOTClusterIdx;
-        word4ClusterIds = new int[numTokens];
-        word4ClusterIds[0] = IndexMap.ROOTClusterIdx;
-        lemmaClusterIds = new int[numTokens];
-        lemmaClusterIds[0] = IndexMap.ROOTClusterIdx;
+        wordFullClusterIds = new Integer[numTokens];
+        wordFullClusterIds[0] = indexMap.getRootClusterId();
+        word4ClusterIds = new Integer[numTokens];
+        word4ClusterIds[0] = indexMap.getRootClusterId();
+        lemmaClusterIds = new Integer[numTokens];
+        lemmaClusterIds[0] = indexMap.getRootClusterId();
 
         reverseDepHeads = new TreeSet[numTokens];
         predicateArguments = new PAs();
@@ -276,15 +277,15 @@ public class Sentence {
         return lemmas;
     }
 
-    public int[] getWordFullClusterIds() {
+    public Integer[] getWordFullClusterIds() {
         return wordFullClusterIds;
     }
 
-    public int[] getWord4ClusterIds() {
+    public Integer[] getWord4ClusterIds() {
         return word4ClusterIds;
     }
 
-    public int[] getLemmaClusterIds() {
+    public Integer[] getLemmaClusterIds() {
         return lemmaClusterIds;
     }
 

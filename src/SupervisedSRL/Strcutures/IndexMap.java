@@ -129,51 +129,67 @@ public class IndexMap implements Serializable {
     }
 
     private Pair buildWordClusterMap(String clusterFilePath) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(clusterFilePath)));
-        String line2read = "";
         HashMap<String, Integer> wordFullClusterIDMap = new HashMap<>();
         HashMap<Integer, Integer> fullClusterID2Cluster4IDMap = new HashMap<>();
         HashMap<String, Integer> fullClusterIDMap = new HashMap<>();
         HashMap<String, Integer> cluster4IDMap = new HashMap<>();
 
-        while ((line2read = reader.readLine()) != null) {
-            if (line2read.equals(""))
-                continue;
-            String[] splitLine = line2read.split("\t");
-            String fullClusterBitString = splitLine[0];
-            String cluster4BitString = fullClusterBitString.substring(0, Math.min(4, fullClusterBitString.length()));
+        if (!clusterFilePath.equals("")) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(clusterFilePath)));
+            String line2read = "";
+            while ((line2read = reader.readLine()) != null) {
+                if (line2read.equals(""))
+                    continue;
+                String[] splitLine = line2read.split("\t");
+                String fullClusterBitString = splitLine[0];
+                String cluster4BitString = fullClusterBitString.substring(0, Math.min(4, fullClusterBitString.length()));
 
-            if (!fullClusterIDMap.containsKey(fullClusterBitString))
-                fullClusterIDMap.put(fullClusterBitString, fullClusterIDMap.size());
-            int fullClusterID = fullClusterIDMap.get(fullClusterBitString);
+                if (!fullClusterIDMap.containsKey(fullClusterBitString))
+                    fullClusterIDMap.put(fullClusterBitString, fullClusterIDMap.size());
+                int fullClusterID = fullClusterIDMap.get(fullClusterBitString);
 
-            if (!cluster4IDMap.containsKey(cluster4BitString))
-                cluster4IDMap.put(cluster4BitString, cluster4IDMap.size());
-            int cluster4ID = cluster4IDMap.get(cluster4BitString);
+                if (!cluster4IDMap.containsKey(cluster4BitString))
+                    cluster4IDMap.put(cluster4BitString, cluster4IDMap.size());
+                int cluster4ID = cluster4IDMap.get(cluster4BitString);
 
-            String word = splitLine[1];
-            wordFullClusterIDMap.put(word, fullClusterID);
-            if (!fullClusterID2Cluster4IDMap.containsKey(fullClusterID))
-                fullClusterID2Cluster4IDMap.put(fullClusterID, cluster4ID);
+                String word = splitLine[1];
+                wordFullClusterIDMap.put(word, fullClusterID);
+                if (!fullClusterID2Cluster4IDMap.containsKey(fullClusterID))
+                    fullClusterID2Cluster4IDMap.put(fullClusterID, cluster4ID);
+            }
         }
         return new Pair<>(wordFullClusterIDMap, fullClusterID2Cluster4IDMap);
     }
 
-    public int getFullClusterId(String str) {
+    public Integer getFullClusterId(String str) {
         String word = str;
-        int cluster = unknownClusterIdx;
-        if (wordFullClusterMap.containsKey(word))
-            cluster = wordFullClusterMap.get(word);
+        Integer cluster = null;
+        if (wordFullClusterMap.size() > 0){
+            if (wordFullClusterMap.containsKey(word))
+                cluster = wordFullClusterMap.get(word);
+            else
+                cluster = unknownClusterIdx;
+        }
         return cluster;
     }
 
-    public int get4ClusterId(String str){
-        String word = str;
-        int fullClusterID = getFullClusterId(word);
-        if (fullClusterID == unknownClusterIdx)
-            return unknownClusterIdx;
+    public Integer getRootClusterId (){
+        if (wordFullClusterMap.size() > 0)
+            return ROOTClusterIdx;
         else
-            return fullCluster2Cluster4Map.get(fullClusterID);
+            return null;
+    }
+
+    public Integer get4ClusterId(String str) {
+        String word = str;
+        Integer fullClusterID = getFullClusterId(word);
+        if (fullClusterID != null) {
+            if (fullClusterID == unknownClusterIdx)
+                return unknownClusterIdx;
+            else
+                return fullCluster2Cluster4Map.get(fullClusterID);
+        }
+        return null;
     }
 
 }
