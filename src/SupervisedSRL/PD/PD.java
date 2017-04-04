@@ -1,12 +1,9 @@
 package SupervisedSRL.PD;
 
-import SentenceStruct.PA;
 import SentenceStruct.Predicate;
 import SentenceStruct.Sentence;
-import SupervisedSRL.Evaluation;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;
 import util.IO;
 
@@ -15,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Maryam Aminian on 5/19/16.
@@ -23,9 +19,9 @@ import java.util.concurrent.ExecutorService;
  */
 public class PD {
 
+    public static final int maxNumOfPDIterations4UnseenPredicates = 10;
     public static int unseenPreds = 0;
     public static int totalPreds = 0;
-    public static final int maxNumOfPDIterations4UnseenPredicates = 10;
 
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
                              IndexMap indexMap, int maxNumberOfTrainingIterations, String modelDir, int numOfPDFeatures)
@@ -34,41 +30,41 @@ public class PD {
                 buildPredicateLexicon(trainSentencesInCONLLFormat, indexMap, numOfPDFeatures);
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPLexicon =
                 buildPredicateLexicon(devSentencesInCONLLFormat, indexMap, numOfPDFeatures);
-        int numOfSavedModelFiles =0;
+        int numOfSavedModelFiles = 0;
         System.out.println("Training Started...");
         System.out.println("trainPLexicon num of lemmas: " + trainPLexicon.size());
 
         for (int plem : trainPLexicon.keySet()) {
             HashSet<String> possibleLabels = new HashSet<>(trainPLexicon.get(plem).keySet());
             AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeatures);
-            double learningWeight =1;
+            double learningWeight = 1;
             double bestAcc = 0;
             int noImprovement = 0;
             boolean savedModel4ThisLemma = false;
 
             for (int i = 0; i < maxNumberOfTrainingIterations; i++) {
 
-                for (String label: trainPLexicon.get(plem).keySet()) {
+                for (String label : trainPLexicon.get(plem).keySet()) {
                     for (Object[] instance : trainPLexicon.get(plem).get(label)) {
                         ap.learnInstance(instance, label, learningWeight);
                     }
                 }
                 //making prediction on dev instances of this plem
-                if (devPLexicon.containsKey(plem)){
+                if (devPLexicon.containsKey(plem)) {
                     //seen in dev data
                     AveragedPerceptron decodeAp = ap.calculateAvgWeights();
-                    int correct =0;
-                    int total =0;
+                    int correct = 0;
+                    int total = 0;
 
-                    for (String goldLabel: devPLexicon.get(plem).keySet()) {
-                        for (Object[] instance: devPLexicon.get(plem).get(goldLabel)){
+                    for (String goldLabel : devPLexicon.get(plem).keySet()) {
+                        for (Object[] instance : devPLexicon.get(plem).get(goldLabel)) {
                             String prediction = decodeAp.predict(instance);
                             total++;
                             if (prediction.equals(goldLabel))
                                 correct++;
                         }
                     }
-                    double acc = (double) correct/total;
+                    double acc = (double) correct / total;
                     if (acc > bestAcc) {
                         noImprovement = 0;
                         bestAcc = acc;
@@ -78,15 +74,14 @@ public class PD {
                         if (bestAcc == 0) {
                             ap.saveModel(modelDir + "/" + plem);
                             savedModel4ThisLemma = true;
-                        }
-                        else {
+                        } else {
                             noImprovement++;
                             if (noImprovement > 5) {
                                 break;
                             }
                         }
                     }
-                }else{
+                } else {
                     if (i >= maxNumOfPDIterations4UnseenPredicates) {
                         ap.saveModel(modelDir + "/" + plem);
                         savedModel4ThisLemma = true;
@@ -101,31 +96,31 @@ public class PD {
         System.out.println("Done!");
     }
 
-    public static void predict (ArrayList<String> sentencesInCONLLFormat, IndexMap indexMap,
-                                                      String modelDir, int numOfPDFeatures, String path2SavePredictions)
-            throws Exception{
+    public static void predict(ArrayList<String> sentencesInCONLLFormat, IndexMap indexMap,
+                               String modelDir, int numOfPDFeatures, String path2SavePredictions)
+            throws Exception {
         HashMap<Integer, String>[] pdPredictions = new HashMap[sentencesInCONLLFormat.size()];
-        int total =0;
-        int correct=0;
+        int total = 0;
+        int correct = 0;
 
-        for (int d=0; d< sentencesInCONLLFormat.size(); d++){
-            if (d%1000 ==0)
-                System.out.print(d+"...");
+        for (int d = 0; d < sentencesInCONLLFormat.size(); d++) {
+            if (d % 1000 == 0)
+                System.out.print(d + "...");
 
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(d), indexMap);
             HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesGoldLabelMap();
-            pdPredictions[d] =predict4ThisSentence(sentence, indexMap, modelDir, numOfPDFeatures);
+            pdPredictions[d] = predict4ThisSentence(sentence, indexMap, modelDir, numOfPDFeatures);
             assert goldPredicateLabelMap.size() == pdPredictions[d].size();
             total += goldPredicateLabelMap.size();
 
-            for (int pIdx: goldPredicateLabelMap.keySet()) {
+            for (int pIdx : goldPredicateLabelMap.keySet()) {
                 assert pdPredictions[d].containsKey(pIdx);
                 if (goldPredicateLabelMap.get(pIdx).equals(pdPredictions[d].get(pIdx)))
                     correct++;
             }
         }
-        System.out.print(sentencesInCONLLFormat.size()+"\n");
-        double acc = ((double) correct/total) *100;
+        System.out.print(sentencesInCONLLFormat.size() + "\n");
+        double acc = ((double) correct / total) * 100;
         System.out.print("PD Accuracy: " + acc);
         IO.write(pdPredictions, path2SavePredictions);
     }
@@ -140,15 +135,15 @@ public class PD {
         String[] sentenceLemmas_str = sentence.getLemmas_str();
 
         HashMap<Integer, String> predictions = new HashMap<Integer, String>();
-        for (Predicate p: predicates) {
+        for (Predicate p : predicates) {
             totalPreds++;
             int pIdx = p.getIndex();
             int plem = sentenceLemmas[pIdx];
             Object[] pdfeats = FeatureExtractor.extractPDFeatures(pIdx, sentence, numOfPDFeatures, indexMap);
-            f1 = new File(modelDir + "/" + plem );
+            f1 = new File(modelDir + "/" + plem);
             if (f1.exists() && !f1.isDirectory()) {
                 //seen predicates
-                AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem );
+                AveragedPerceptron classifier = AveragedPerceptron.loadModel(modelDir + "/" + plem);
                 String prediction = classifier.predict(pdfeats);
                 predictions.put(pIdx, prediction);
             } else {
@@ -156,8 +151,7 @@ public class PD {
                 unseenPreds++;
                 if (plem != indexMap.unknownIdx) {
                     predictions.put(pIdx, indexMap.int2str(plem) + ".01"); //seen pLem
-                }
-                else {
+                } else {
                     predictions.put(pIdx, sentenceLemmas_str[pIdx] + ".01"); //unseen pLem
                 }
             }
@@ -173,10 +167,10 @@ public class PD {
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(senID), indexMap);
             ArrayList<Predicate> predicates = sentence.getPredicates();
             int[] sentenceLemmas = sentence.getLemmas();
-            for (Predicate p: predicates) {
+            for (Predicate p : predicates) {
                 int pIdx = p.getIndex();
                 if (pIdx == -1)
-                    System.out.print("****NOTE!*** Predicate Index is -1 in sentence " + senID+ "\n");
+                    System.out.print("****NOTE!*** Predicate Index is -1 in sentence " + senID + "\n");
                 int plem = sentenceLemmas[pIdx];
                 String pGoldLabel = p.getPredicateGoldLabel();
                 assert pGoldLabel != null;

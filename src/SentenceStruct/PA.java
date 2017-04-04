@@ -38,8 +38,8 @@ public class PA {
     }
 
     public HashSet<Integer> getArgumentsIndices() {
-        HashSet<Integer> argIndices= new HashSet<>();
-        for (Argument a: ams)
+        HashSet<Integer> argIndices = new HashSet<>();
+        for (Argument a : ams)
             argIndices.add(a.getIndex());
         return argIndices;
     }

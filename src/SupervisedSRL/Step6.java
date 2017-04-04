@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 public class Step6 {
 
-    public static void predictPDLabels (Properties properties) throws Exception{
+    public static void predictPDLabels(Properties properties) throws Exception {
         if (!properties.getSteps().contains(6))
             return;
         predictPDLabels4EntireData(properties);
@@ -20,8 +20,7 @@ public class Step6 {
             predictPDLabels4Partitions(properties);
     }
 
-    public static void predictPDLabels4EntireData (Properties properties) throws Exception
-    {
+    public static void predictPDLabels4EntireData(Properties properties) throws Exception {
         if (!properties.getSteps().contains(6))
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 6.1 -- Predicting Predicate Labels of Train/dev data (used later as features)\n>>>>>>>>>>>>>\n");
@@ -47,8 +46,7 @@ public class Step6 {
         PD.predict(testSentences, indexMap, pdModelDir, numOfPDFeatures, testPDAutoLabelsPath);
     }
 
-    public static void predictPDLabels4Partitions (Properties properties) throws Exception
-    {
+    public static void predictPDLabels4Partitions(Properties properties) throws Exception {
         if (!properties.getSteps().contains(6) || !properties.useReranker())
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 6.2 -- Predicting Predicate Labels of Train/dev data partitions\n>>>>>>>>>>>>>\n");
@@ -58,7 +56,7 @@ public class Step6 {
         IndexMap indexMap = IO.load(indexMapPath);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
+            System.out.println("\n>>>>>>>>\nPART " + devPartIdx + "\n>>>>>>>>\n");
             String pdModelDir = properties.getPartitionPdModelDir(devPartIdx);
             String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
             String devFilePath = properties.getPartitionDevDataPath(devPartIdx);

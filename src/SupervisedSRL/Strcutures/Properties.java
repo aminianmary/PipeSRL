@@ -55,7 +55,7 @@ public class Properties {
 
 
     public Properties(String trainFile, String devFile, String testFile, String clusterFile, String modelDir, String outputDir,
-                      int numOfPartitions, int maxNumOfPITrainingIterations, int maxNumOfPDTrainingIterations,int maxNumOfAITrainingIterations,
+                      int numOfPartitions, int maxNumOfPITrainingIterations, int maxNumOfPDTrainingIterations, int maxNumOfAITrainingIterations,
                       int maxNumOfACTrainingIterations, int maxNumOfRerankerTrainingIterations,
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures,
                       int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
@@ -83,23 +83,23 @@ public class Properties {
         this.indexMapFilePath = modelDir + ProjectConstants.INDEX_MAP;
         this.pdModelDir = modelDir;
         this.piModelPath = modelDir + ProjectConstants.PI_MODEL;
-        this.aiModelPath = modelDir + ProjectConstants.AI_MODEL +".AIF_"+numOfAIFeatures;
-        this.acModelPath = modelDir + ProjectConstants.AC_MODEL + ".ACF_"+numOfACFeatures;
+        this.aiModelPath = modelDir + ProjectConstants.AI_MODEL + ".AIF_" + numOfAIFeatures;
+        this.acModelPath = modelDir + ProjectConstants.AC_MODEL + ".ACF_" + numOfACFeatures;
         this.partitionPrefix = modelDir + ProjectConstants.PARTITION_PREFIX;
         this.rerankerFeatureMapPath = modelDir + ProjectConstants.RERANKER_FEATURE_MAP +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
+                ".AIF_" + numOfAIFeatures + ".ACF_" + numOfACFeatures + ".AIB_" + numOfAIBeamSize + ".ACB_" + numOfACBeamSize + "." + aiCoefficient;
         this.rerankerSeenFeaturesPath = modelDir + ProjectConstants.RERANKER_SEEN_FEATURES +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
+                ".AIF_" + numOfAIFeatures + ".ACF_" + numOfACFeatures + ".AIB_" + numOfAIBeamSize + ".ACB_" + numOfACBeamSize + "." + aiCoefficient;
         this.globalReverseLabelMapPath = acModelPath + ProjectConstants.GLOBAL_REVERSE_LABEL_MAP;
         this.rerankerModelPath = modelDir + ProjectConstants.RERANKER_MODEL +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
+                ".AIF_" + numOfAIFeatures + ".ACF_" + numOfACFeatures + ".AIB_" + numOfAIBeamSize + ".ACB_" + numOfACBeamSize + "." + aiCoefficient;
         String reranker = (useReranker) ? "wr" : "wor";
-        this.outputFilePathDev = outputDir + ProjectConstants.OUTPUT_FILE_DEV + "."+ reranker +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
-        this.outputFilePathTest = outputDir + ProjectConstants.OUTPUT_FILE_TEST + "."+ reranker +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
-        this.outputFilePathTest_w_projected_info = outputDir + ProjectConstants.OUTPUT_FILE_TEST + "."+ reranker +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient+
+        this.outputFilePathDev = outputDir + ProjectConstants.OUTPUT_FILE_DEV + "." + reranker +
+                ".AIF_" + numOfAIFeatures + ".ACF_" + numOfACFeatures + ".AIB_" + numOfAIBeamSize + ".ACB_" + numOfACBeamSize + "." + aiCoefficient;
+        this.outputFilePathTest = outputDir + ProjectConstants.OUTPUT_FILE_TEST + "." + reranker +
+                ".AIF_" + numOfAIFeatures + ".ACF_" + numOfACFeatures + ".AIB_" + numOfAIBeamSize + ".ACB_" + numOfACBeamSize + "." + aiCoefficient;
+        this.outputFilePathTest_w_projected_info = outputDir + ProjectConstants.OUTPUT_FILE_TEST + "." + reranker +
+                ".AIF_" + numOfAIFeatures + ".ACF_" + numOfACFeatures + ".AIB_" + numOfAIBeamSize + ".ACB_" + numOfACBeamSize + "." + aiCoefficient +
                 ProjectConstants.PROJECTED_INFO_PREFIX;
         this.useReranker = useReranker;
         this.usePI = pi;
@@ -221,7 +221,7 @@ public class Properties {
         return rerankerFeatureMapPath;
     }
 
-    public String getNumOfRerankerSeenFeaturesPath(){
+    public String getNumOfRerankerSeenFeaturesPath() {
         return rerankerSeenFeaturesPath;
     }
 
@@ -294,35 +294,35 @@ public class Properties {
     }
 
     public String getPartitionPiModelPath(int devPartIdx) {
-        return partitionPrefix + devPartIdx +  ProjectConstants.PI_MODEL;
+        return partitionPrefix + devPartIdx + ProjectConstants.PI_MODEL;
     }
 
     public String getPartitionAIModelPath(int devPartIdx) {
-        return partitionPrefix + devPartIdx + ProjectConstants.AI_MODEL +".AIF_"+numOfAIFeatures;
+        return partitionPrefix + devPartIdx + ProjectConstants.AI_MODEL + ".AIF_" + numOfAIFeatures;
     }
 
     public String getPartitionACModelPath(int devPartIdx) {
-        return partitionPrefix + devPartIdx + ProjectConstants.AC_MODEL + ".ACF_"+numOfACFeatures;
+        return partitionPrefix + devPartIdx + ProjectConstants.AC_MODEL + ".ACF_" + numOfACFeatures;
     }
 
     public String getRerankerInstancesFilePath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstants.RERANKER_INSTANCES_FILE +
-                ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize;
+                ".AIF_" + numOfAIFeatures + ".ACF_" + numOfACFeatures + ".AIB_" + numOfAIBeamSize + ".ACB_" + numOfACBeamSize;
     }
 
-    public String getPartitionTrainPDAutoLabelsPath(int devPartIdx){
+    public String getPartitionTrainPDAutoLabelsPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstants.TRAIN_AUTO_PD_LABELS;
     }
 
-    public String getPartitionDevPDAutoLabelsPath(int devPartIdx){
+    public String getPartitionDevPDAutoLabelsPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstants.DEV_AUTO_PD_LABELS;
     }
 
-    public String getPartitionTrainPILabelsPath(int devPartIdx){
+    public String getPartitionTrainPILabelsPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstants.TRAIN_PI_LABELS;
     }
 
-    public String getPartitionDevPILabelsPath(int devPartIdx){
+    public String getPartitionDevPILabelsPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstants.DEV_PI_LABELS;
     }
 
@@ -338,7 +338,9 @@ public class Properties {
         return usePI;
     }
 
-    public boolean supplementOriginalLabels() {return supplementOriginalLabels;}
+    public boolean supplementOriginalLabels() {
+        return supplementOriginalLabels;
+    }
 
     public ArrayList<Integer> getSteps() {
         return steps;
@@ -351,40 +353,40 @@ public class Properties {
         return s;
     }
 
-    private void printModelProperties (){
+    private void printModelProperties() {
 
         System.out.print("\n************** MODEL PROPERTIES **************\n" +
-                "Train File Path : "+ trainFile +"\n" +
-                "Dev File Path: " + devFile +"\n" +
-                "Test File Path: "+ testFile +"\n" +
-                "Cluster File Path: "+ clusterFile+"\n" +
-                "Model Directory: "+ modelDir+"\n" +
-                "Output Directory: "+ outputDir+"\n" +
-                "IndexMap File Path: "+ indexMapFilePath+"\n" +
-                "PI Model path: "+ piModelPath+"\n" +
-                "PD Models Dir: "+ pdModelDir+"\n" +
-                "AI Model Path: "+ aiModelPath+"\n" +
-                "AC Model Path: "+ acModelPath+"\n" +
-                "Reranker FeatureMap Path: "+ rerankerFeatureMapPath+"\n" +
-                "Global Reverse LabeMap Path: "+ globalReverseLabelMapPath+"\n" +
-                "Reranker Model Path: "+ rerankerModelPath+"\n" +
-                "Dev Output File Path: "+ outputFilePathDev+"\n" +
-                "Test Output File Path: "+ outputFilePathTest+"\n" +
-                "Number of Partitions: "+ numOfPartitions+"\n" +
-                "AI Beam Size: "+ numOfAIBeamSize+"\n" +
-                "AC Beam Size: "+ numOfACBeamSize+"\n" +
-                "PI Feature Size: "+ numOfPIFeatures+"\n" +
-                "PD Feature Size: "+ numOfPDFeatures+"\n" +
-                "AI Feature Size: "+ numOfAIFeatures+"\n" +
-                "AC Feature Size: "+ numOfACFeatures+"\n" +
-                "Global Feature Size: "+ numOfGlobalFeatures+"\n" +
-                "Max Number of PI Iterations: "+ maxNumOfPITrainingIterations+"\n" +
-                "Max Number of PD Iterations: "+ maxNumOfPDTrainingIterations+"\n" +
-                "Max Number of AI Iterations: "+ maxNumOfAITrainingIterations+"\n" +
-                "Max Number of AC Iterations: "+ maxNumOfACTrainingIterations+"\n" +
-                "AI Coefficient: "+ aiCoefficient + "\n" +
-                "Models trained: "+ modelsToBeTrained+"\n"+
-        "Pipeline Steps: "+ steps+"\n");
+                "Train File Path : " + trainFile + "\n" +
+                "Dev File Path: " + devFile + "\n" +
+                "Test File Path: " + testFile + "\n" +
+                "Cluster File Path: " + clusterFile + "\n" +
+                "Model Directory: " + modelDir + "\n" +
+                "Output Directory: " + outputDir + "\n" +
+                "IndexMap File Path: " + indexMapFilePath + "\n" +
+                "PI Model path: " + piModelPath + "\n" +
+                "PD Models Dir: " + pdModelDir + "\n" +
+                "AI Model Path: " + aiModelPath + "\n" +
+                "AC Model Path: " + acModelPath + "\n" +
+                "Reranker FeatureMap Path: " + rerankerFeatureMapPath + "\n" +
+                "Global Reverse LabeMap Path: " + globalReverseLabelMapPath + "\n" +
+                "Reranker Model Path: " + rerankerModelPath + "\n" +
+                "Dev Output File Path: " + outputFilePathDev + "\n" +
+                "Test Output File Path: " + outputFilePathTest + "\n" +
+                "Number of Partitions: " + numOfPartitions + "\n" +
+                "AI Beam Size: " + numOfAIBeamSize + "\n" +
+                "AC Beam Size: " + numOfACBeamSize + "\n" +
+                "PI Feature Size: " + numOfPIFeatures + "\n" +
+                "PD Feature Size: " + numOfPDFeatures + "\n" +
+                "AI Feature Size: " + numOfAIFeatures + "\n" +
+                "AC Feature Size: " + numOfACFeatures + "\n" +
+                "Global Feature Size: " + numOfGlobalFeatures + "\n" +
+                "Max Number of PI Iterations: " + maxNumOfPITrainingIterations + "\n" +
+                "Max Number of PD Iterations: " + maxNumOfPDTrainingIterations + "\n" +
+                "Max Number of AI Iterations: " + maxNumOfAITrainingIterations + "\n" +
+                "Max Number of AC Iterations: " + maxNumOfACTrainingIterations + "\n" +
+                "AI Coefficient: " + aiCoefficient + "\n" +
+                "Models trained: " + modelsToBeTrained + "\n" +
+                "Pipeline Steps: " + steps + "\n");
         if (usePI)
             System.out.print("PI USED\n");
         else

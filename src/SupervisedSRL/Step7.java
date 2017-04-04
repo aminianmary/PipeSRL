@@ -11,7 +11,7 @@ import java.util.ArrayList;
  */
 public class Step7 {
 
-    public  static void trainAIAICModels(Properties properties) throws Exception {
+    public static void trainAIAICModels(Properties properties) throws Exception {
         if (!properties.getSteps().contains(7))
             return;
         buildModel4EntireData(properties);
@@ -50,7 +50,7 @@ public class Step7 {
 
         IndexMap indexMap = IO.load(indexMapPath);
         boolean isModelBuiltOnEntireTrainData = true;
-        Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
+        Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters, maxACTrainingIters,
                 numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
                 aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning);
     }
@@ -73,11 +73,11 @@ public class Step7 {
         double aiCoefficient = properties.getAiCoefficient();
         String modelsToBeTrained = properties.getModelsToBeTrained();
         boolean usePI = properties.usePI();
-        boolean supplement= properties.supplementOriginalLabels();
+        boolean supplement = properties.supplementOriginalLabels();
         boolean weightedLearning = properties.isWeightedLearning();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
+            System.out.println("\n>>>>>>>>\nPART " + devPartIdx + "\n>>>>>>>>\n");
             String piModelPath = properties.getPartitionPiModelPath(devPartIdx);
             String aiModelPath = properties.getPartitionAIModelPath(devPartIdx);
             String acModelPath = properties.getPartitionACModelPath(devPartIdx);
@@ -89,7 +89,7 @@ public class Step7 {
             boolean isModelBuiltOnEntireTrainData = false;
             String trainPDAutoLabelsPath = properties.getPartitionTrainPDAutoLabelsPath(devPartIdx);
 
-            Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
+            Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters, maxACTrainingIters,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
                     aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning);
         }

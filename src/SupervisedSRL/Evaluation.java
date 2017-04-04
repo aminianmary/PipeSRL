@@ -3,9 +3,9 @@ package SupervisedSRL;
 import SentenceStruct.Argument;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
+import SentenceStruct.simplePA;
 import SupervisedSRL.PD.PD;
 import SupervisedSRL.Strcutures.IndexMap;
-import SentenceStruct.simplePA;
 import util.IO;
 
 import java.text.DecimalFormat;
@@ -53,7 +53,7 @@ public class Evaluation {
             ArrayList<PA> sysOutPAs = sysOutSen.getPredicateArguments().getPredicateArgumentsAsArray();
             ArrayList<PA> goldPAs = goldSen.getPredicateArguments().getPredicateArgumentsAsArray();
 
-            assert sysOutPAs.size()== goldPAs.size();
+            assert sysOutPAs.size() == goldPAs.size();
 
             for (PA goldPA : goldPAs) {
                 int goldPIdx = goldPA.getPredicate().getIndex();
@@ -89,9 +89,9 @@ public class Evaluation {
                 }
             }
 
-            assert correctPLabel+ wrongPLabel == goldPAs.size();
+            assert correctPLabel + wrongPLabel == goldPAs.size();
         }
-        double pdAcc= (double) correctPLabel / (correctPLabel + wrongPLabel) *100;
+        double pdAcc = (double) correctPLabel / (correctPLabel + wrongPLabel) * 100;
         System.out.println("*********************************************");
         System.out.println("Total Predicate Disambiguation Accuracy " + format.format(pdAcc));
         System.out.println("Total Number of Predicate Tokens in dev data: " + PD.totalPreds);
@@ -188,7 +188,7 @@ public class Evaluation {
         int total_ai_predictions = aiTP + aiFP;
 
         System.out.println("Total AI prediction " + total_ai_predictions);
-        System.out.println("AI Precision: " + format.format((double) aiTP / (aiTP + aiFP)* 100));
+        System.out.println("AI Precision: " + format.format((double) aiTP / (aiTP + aiFP) * 100));
         System.out.println("AI Recall: " + format.format((double) aiTP / (aiTP + aiFN) * 100));
         System.out.println("*********************************************");
 
@@ -248,8 +248,8 @@ public class Evaluation {
         int aiFN = aiConfusionMatrix[0][1];
         int total_ai_predictions = aiTP + aiFP;
 
-        double precision = ((double) aiTP / (aiTP + aiFP) ) * 100;
-        double recall = ((double) aiTP / (aiTP + aiFN)) *100;
+        double precision = ((double) aiTP / (aiTP + aiFP)) * 100;
+        double recall = ((double) aiTP / (aiTP + aiFN)) * 100;
         System.out.println("Total AI prediction " + total_ai_predictions);
         System.out.println("AI Precision: " + format.format(precision));
         System.out.println("AI Recall: " + format.format(recall));
@@ -293,20 +293,20 @@ public class Evaluation {
         return aiConfusionMatrix;
     }
 
-    public static void evaluatePD (ArrayList<String> trainSentences,ArrayList<String> devSentences, ArrayList<String> goldEvalSentences,
-                                   HashMap<Integer, String>[] pdPredictionsOnEvalData, IndexMap indexMap, int numOfPDFeatures)
+    public static void evaluatePD(ArrayList<String> trainSentences, ArrayList<String> devSentences, ArrayList<String> goldEvalSentences,
+                                  HashMap<Integer, String>[] pdPredictionsOnEvalData, IndexMap indexMap, int numOfPDFeatures)
             throws Exception {
         DecimalFormat format = new DecimalFormat("##.00");
-        int seenLemm_seenSense_correct =0;
-        int seenLemm_unseenSense_correct =0;
-        int unseenLemma_correct =0;
+        int seenLemm_seenSense_correct = 0;
+        int seenLemm_unseenSense_correct = 0;
+        int unseenLemma_correct = 0;
 
-        int seenLemm_seenSense_total =0;
-        int seenLemm_unseenSense_total =0;
-        int unseenLemma_total =0;
+        int seenLemm_seenSense_total = 0;
+        int seenLemm_unseenSense_total = 0;
+        int unseenLemma_total = 0;
 
-        int correct =0;
-        int total =0;
+        int correct = 0;
+        int total = 0;
 
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> trainPredicateLexicon =
                 PD.buildPredicateLexicon(trainSentences, indexMap, numOfPDFeatures);
@@ -314,8 +314,8 @@ public class Evaluation {
         HashMap<Integer, HashMap<String, HashSet<Object[]>>> devPredicateLexicon =
                 PD.buildPredicateLexicon(devSentences, indexMap, numOfPDFeatures);
 
-        for (int senID =0 ; senID < goldEvalSentences.size() ; senID++){
-            Sentence sentence = new Sentence(goldEvalSentences.get(senID), indexMap );
+        for (int senID = 0; senID < goldEvalSentences.size(); senID++) {
+            Sentence sentence = new Sentence(goldEvalSentences.get(senID), indexMap);
             int[] sentenceLemmas = sentence.getLemmas();
             String[] sentenceLemmaStr = sentence.getLemmas_str();
             HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesGoldLabelMap();
@@ -323,38 +323,37 @@ public class Evaluation {
             assert goldPredicateLabelMap.size() == predicatedPredicateLabelMap.size();
             total += goldPredicateLabelMap.size();
 
-            for (int pIdx: goldPredicateLabelMap.keySet()) {
+            for (int pIdx : goldPredicateLabelMap.keySet()) {
                 int predicateLemma = sentenceLemmas[pIdx];
                 String goldPredicateLabel = goldPredicateLabelMap.get(pIdx);
-                String predictedPredicateLabel =predicatedPredicateLabelMap.get(pIdx);
+                String predictedPredicateLabel = predicatedPredicateLabelMap.get(pIdx);
 
                 if (goldPredicateLabel.equals(predictedPredicateLabel))
                     correct++;
 
-                if (trainPredicateLexicon.containsKey(predicateLemma)){
+                if (trainPredicateLexicon.containsKey(predicateLemma)) {
                     //seen lemma
-                    if (trainPredicateLexicon.get(predicateLemma).containsKey(goldPredicateLabel))
-                    {
+                    if (trainPredicateLexicon.get(predicateLemma).containsKey(goldPredicateLabel)) {
                         //seen sense
                         seenLemm_seenSense_total++;
                         if (goldPredicateLabel.equals(predictedPredicateLabel))
                             seenLemm_seenSense_correct++;
-                        System.out.print("SEEN LEMMA-SEEN SENSE\tLemma index:\t"+predicateLemma+"\tLemma:\t"+
-                                indexMap.int2str(predicateLemma)+"\tGold label:\t"+goldPredicateLabel+
-                                "\tAutomatic label:\t"+predictedPredicateLabel+"\tSeen labels in train:\t"+trainPredicateLexicon.get(predicateLemma).keySet()+"\t");
+                        System.out.print("SEEN LEMMA-SEEN SENSE\tLemma index:\t" + predicateLemma + "\tLemma:\t" +
+                                indexMap.int2str(predicateLemma) + "\tGold label:\t" + goldPredicateLabel +
+                                "\tAutomatic label:\t" + predictedPredicateLabel + "\tSeen labels in train:\t" + trainPredicateLexicon.get
+                                (predicateLemma).keySet() + "\t");
                         if (devPredicateLexicon.containsKey(predicateLemma)) {
-                            System.out.print("Seen in dev with labels:\t" + devPredicateLexicon.get(predicateLemma).keySet() +"\n");
-                        }
-                        else
+                            System.out.print("Seen in dev with labels:\t" + devPredicateLexicon.get(predicateLemma).keySet() + "\n");
+                        } else
                             System.out.print("Not seen in dev data");
-                    }else{
+                    } else {
                         //unseen sense
                         seenLemm_unseenSense_total++;
                         if (goldPredicateLabel.equals(predictedPredicateLabel)) {
                             seenLemm_unseenSense_correct++;
                         }
                     }
-                }else{
+                } else {
                     //unseen lemma
                     unseenLemma_total++;
                     if (goldPredicateLabel.equals(predictedPredicateLabel))
@@ -363,15 +362,18 @@ public class Evaluation {
             }
         }
 
-        double seenLemma_seenSense_acc = ((double) seenLemm_seenSense_correct/seenLemm_seenSense_total) * 100;
-        double seenLemma_unseenSense_acc = ((double) seenLemm_unseenSense_correct/seenLemm_unseenSense_total) * 100;
-        double unseenLemma_acc = ((double) unseenLemma_correct/unseenLemma_total) * 100;
-        double total_acc = ((double) correct/total) * 100;
+        double seenLemma_seenSense_acc = ((double) seenLemm_seenSense_correct / seenLemm_seenSense_total) * 100;
+        double seenLemma_unseenSense_acc = ((double) seenLemm_unseenSense_correct / seenLemm_unseenSense_total) * 100;
+        double unseenLemma_acc = ((double) unseenLemma_correct / unseenLemma_total) * 100;
+        double total_acc = ((double) correct / total) * 100;
 
-        System.out.print("\nPD Accuracy on seenLemma_seenSense: " + seenLemm_seenSense_correct + "/" + seenLemm_seenSense_total + "= " + format.format(seenLemma_seenSense_acc)+"\n");
-        System.out.print("\nPD Accuracy on seenLemma_unseenSense: " + seenLemm_unseenSense_correct + "/" + seenLemm_unseenSense_total +"= " + format.format(seenLemma_unseenSense_acc)+"\n");
-        System.out.print("\nPD Accuracy on unseenLemma: " + unseenLemma_correct +"/" + unseenLemma_total +"= " + format.format(unseenLemma_acc)+"\n");
-        System.out.print("\nPD Accuracy: " + correct +"/"+total +"= "+format.format(total_acc)+"\n");
+        System.out.print("\nPD Accuracy on seenLemma_seenSense: " + seenLemm_seenSense_correct + "/" + seenLemm_seenSense_total + "= " + format
+                .format(seenLemma_seenSense_acc) + "\n");
+        System.out.print("\nPD Accuracy on seenLemma_unseenSense: " + seenLemm_unseenSense_correct + "/" + seenLemm_unseenSense_total + "= " +
+                format.format(seenLemma_unseenSense_acc) + "\n");
+        System.out.print("\nPD Accuracy on unseenLemma: " + unseenLemma_correct + "/" + unseenLemma_total + "= " + format.format(unseenLemma_acc) +
+                "\n");
+        System.out.print("\nPD Accuracy: " + correct + "/" + total + "= " + format.format(total_acc) + "\n");
 
     }
 
@@ -401,7 +403,7 @@ public class Evaluation {
         return highestScorePrediction;
     }
 
-    private static HashMap<Integer, int[]> updateConfusionMatrix (HashMap<Integer, int[]> currentConfusionMatrix) {
+    private static HashMap<Integer, int[]> updateConfusionMatrix(HashMap<Integer, int[]> currentConfusionMatrix) {
         HashMap<Integer, int[]> newConfusionMatrix = new HashMap<Integer, int[]>();
         for (int predictedLabel : currentConfusionMatrix.keySet()) {
             int[] currentGoldLabels = currentConfusionMatrix.get(predictedLabel);

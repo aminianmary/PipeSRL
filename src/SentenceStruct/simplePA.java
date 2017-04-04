@@ -31,9 +31,11 @@ public class simplePA {
         return predicateLabel;
     }
 
+    public void setPredicateLabel(String pl) {
+        predicateLabel = pl;
+    }
+
     public HashMap<Integer, String> getArgumentLabels() {
         return argumentLabels;
     }
-
-    public void setPredicateLabel(String pl){ predicateLabel = pl;}
 }

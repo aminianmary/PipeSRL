@@ -1,4 +1,5 @@
 package SupervisedSRL.PI;
+
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
@@ -15,7 +16,7 @@ import java.util.HashSet;
 public class PI {
 
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
-                               IndexMap indexMap, int maxNumberOfTrainingIterations, String PIModelPath,
+                             IndexMap indexMap, int maxNumberOfTrainingIterations, String PIModelPath,
                              int numOfPIFeatures, boolean weightedLearning) throws Exception {
 
         HashSet<String> labelSet = new HashSet<String>();
@@ -29,8 +30,8 @@ public class PI {
             System.out.print("iteration:" + iter + "\n");
 
             for (int sIdx = 0; sIdx < trainSentencesInCONLLFormat.size(); sIdx++) {
-                if (sIdx % 1000 ==0)
-                    System.out.print(sIdx+"...");
+                if (sIdx % 1000 == 0)
+                    System.out.print(sIdx + "...");
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sIdx), indexMap);
                 int[] sentenceSourceDepLabels = sentence.getSourceDepLabels();
                 int[] sentenceDepLabels = sentence.getDepLabels();
@@ -40,17 +41,16 @@ public class PI {
                 String[] sentenceFillPredicate = sentence.getFillPredicate();
 
                 for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
-                    if (!sentenceFillPredicate[wordIdx].equals("?"))
-                    {
+                    if (!sentenceFillPredicate[wordIdx].equals("?")) {
                         String label = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
                         Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                        double learningWeight = (weightedLearning)?
-                                ((sentenceDepLabels[wordIdx]== sentenceSourceDepLabels[wordIdx])? 1: 0.5):1;
+                        double learningWeight = (weightedLearning) ?
+                                ((sentenceDepLabels[wordIdx] == sentenceSourceDepLabels[wordIdx]) ? 1 : 0.5) : 1;
                         ap.learnInstance(featureVector, label, learningWeight);
                     }
                 }
             }
-            System.out.print(trainSentencesInCONLLFormat.size()+"\n\n");
+            System.out.print(trainSentencesInCONLLFormat.size() + "\n\n");
 
             //making prediction on dev data using the model trained in this iter
             AveragedPerceptron decodeAp = ap.calculateAvgWeights();
@@ -58,8 +58,8 @@ public class PI {
             int total = 0;
 
             for (int sIdx = 0; sIdx < devSentencesInCONLLFormat.size(); sIdx++) {
-                if (sIdx % 1000 ==0)
-                    System.out.print(sIdx+"...");
+                if (sIdx % 1000 == 0)
+                    System.out.print(sIdx + "...");
                 Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(sIdx), indexMap);
                 ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
@@ -72,9 +72,9 @@ public class PI {
                         correct++;
                 }
             }
-            System.out.print(devSentencesInCONLLFormat.size()+"\n");
+            System.out.print(devSentencesInCONLLFormat.size() + "\n");
             double acc = (double) correct / total;
-            System.out.print("Accuracy: "+ acc +"\n");
+            System.out.print("Accuracy: " + acc + "\n");
             if (acc > bestAcc) {
                 noImprovement = 0;
                 bestAcc = acc;
@@ -91,16 +91,16 @@ public class PI {
         }
     }
 
-    public static void predict (ArrayList<String> evalSentencesInCONLLFormat, IndexMap indexMap,
-                                String PIModelPath, int numOfPIFeatures, String path2SavePredictions) throws Exception {
+    public static void predict(ArrayList<String> evalSentencesInCONLLFormat, IndexMap indexMap,
+                               String PIModelPath, int numOfPIFeatures, String path2SavePredictions) throws Exception {
         HashSet<Integer>[] PIPredictions = new HashSet[evalSentencesInCONLLFormat.size()];
         AveragedPerceptron classifier = IO.load(PIModelPath);
 
-        for (int senIdx =0 ; senIdx < evalSentencesInCONLLFormat.size(); senIdx++){
+        for (int senIdx = 0; senIdx < evalSentencesInCONLLFormat.size(); senIdx++) {
             HashSet<Integer> prediction4ThisSentence = new HashSet<>();
             Sentence sentence = new Sentence(evalSentencesInCONLLFormat.get(senIdx), indexMap);
 
-            for (int wordIdx =0; wordIdx< sentence.getLength(); wordIdx++){
+            for (int wordIdx = 0; wordIdx < sentence.getLength(); wordIdx++) {
                 Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
                 String prediction = classifier.predict(featureVector);
                 if (prediction.equals("1"))

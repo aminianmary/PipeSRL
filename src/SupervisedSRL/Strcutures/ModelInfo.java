@@ -30,13 +30,13 @@ public class ModelInfo implements Serializable {
         for (int f = 0; f < weights.length; f++) {
             newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
-                double[] w = weights[f].get(feat).getArray();
-                double[] aw = avgWeights[f].get(feat).getArray();
-                double[] naw = new double[w.length];
-                for (int i = 0; i < w.length; i++) {
-                    naw[i] = w[i] - (aw[i] / iteration);
+                HashMap<Integer, Double> w = weights[f].get(feat).getArray();
+                HashMap<Integer, Double> aw = avgWeights[f].get(feat).getArray();
+                HashMap<Integer, Double> naw = new HashMap<>();
+                for (int i : w.keySet()) {
+                    naw.put(i, w.get(i) - (aw.get(i) / iteration));
                 }
-                CompactArray nawCompact = new CompactArray(weights[f].get(feat).getOffset(), naw);
+                CompactArray nawCompact = new CompactArray(naw);
                 newAvgMap[f].put(feat, nawCompact);
             }
         }
@@ -71,15 +71,15 @@ public class ModelInfo implements Serializable {
         HashMap<Object, CompactArray>[] newAvgMap = new HashMap[weights.length];
 
         for (int f = 0; f < weights.length; f++) {
-            newAvgMap[f] = new HashMap<Object, CompactArray>();
+            newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
-                double[] w = weights[f].get(feat).getArray();
-                double[] aw = avgWeights[f].get(feat).getArray();
-                double[] naw = new double[w.length];
-                for (int i = 0; i < w.length; i++) {
-                    naw[i] = w[i] - (aw[i] / iteration);
+                HashMap<Integer, Double> w = weights[f].get(feat).getArray();
+                HashMap<Integer, Double> aw = avgWeights[f].get(feat).getArray();
+                HashMap<Integer, Double> naw = new HashMap<>();
+                for (int i : w.keySet()) {
+                    naw.put(i, w.get(i) - (aw.get(i) / iteration));
                 }
-                CompactArray nawCompact = new CompactArray(weights[f].get(feat).getOffset(), naw);
+                CompactArray nawCompact = new CompactArray(naw);
                 newAvgMap[f].put(feat, nawCompact);
             }
         }

@@ -3,10 +3,10 @@ package SupervisedSRL;
 import SentenceStruct.Argument;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
+import SentenceStruct.simplePA;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
-import SentenceStruct.simplePA;
 import SupervisedSRL.Strcutures.Pair;
 import SupervisedSRL.Strcutures.ProjectConstants;
 import ml.AveragedPerceptron;
@@ -40,11 +40,11 @@ public class Train {
                     trainPDAutoLabelsPath, pdModelDir, usePI, weightedLearning);
             System.out.print("\nDone!\n");
         }
-        if (modelsToBeTrained.contains("AC")){
+        if (modelsToBeTrained.contains("AC")) {
             System.out.print("\n>>>> Training AC >>>>\n");
             trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfACTrainingIterations,
-                piModelPath, aiModelPath, acModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures,
-                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath,
+                    piModelPath, aiModelPath, acModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures,
+                    aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath,
                     pdModelDir, usePI, supplement, weightedLearning);
             System.out.print("\nDone!...\n");
 
@@ -79,7 +79,7 @@ public class Train {
             int s = 0;
             ap.correct = 0;
 
-            for (int sID=0; sID< trainSentencesInCONLLFormat.size(); sID++) {
+            for (int sID = 0; sID < trainSentencesInCONLLFormat.size(); sID++) {
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sID), indexMap);
                 int[] depLabels = sentence.getDepLabels();
                 int[] sourceDepLabels = sentence.getSourceDepLabels();
@@ -93,7 +93,7 @@ public class Train {
                 for (int d = 0; d < featVectors.size(); d++) {
                     int wIdx = (int) featVectors.get(d).second;
                     Object[] f = (Object[]) featVectors.get(d).first;
-                    double learningWeight = (weightedLearning)? ((depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5):1;
+                    double learningWeight = (weightedLearning) ? ((depLabels[wIdx] == sourceDepLabels[wIdx]) ? 1 : 0.5) : 1;
                     ap.learnInstance(f, labels.get(d), learningWeight);
                     if (labels.get(d).equals("0"))
                         negInstances++;
@@ -160,7 +160,7 @@ public class Train {
     public static void trainAC(ArrayList<String> trainSentencesInCONLLFormat,
                                ArrayList<String> devSentencesInCONLLFormat, HashSet<String> labelSet, IndexMap indexMap,
                                int numberOfTrainingIterations, String piModelPath, String aiModelPath, String acModelPath,
-                               int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures,int numOfACFeatures,
+                               int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
                                int aiMaxBeamSize, int acMaxBeamSize,
                                boolean isModelBuiltOnEntireTrainData, double aiCoefficient,
                                String trainPDAutoLabelsPath, String pdModelDir, boolean usePI, boolean supplement, boolean weightedLearning)
@@ -181,7 +181,7 @@ public class Train {
             int dataSize = 0;
             int s = 0;
 
-            for (int sID=0; sID< trainSentencesInCONLLFormat.size() ; sID++) {
+            for (int sID = 0; sID < trainSentencesInCONLLFormat.size(); sID++) {
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sID), indexMap);
                 int[] depLabels = sentence.getDepLabels();
                 int[] sourceDepLabels = sentence.getSourceDepLabels();
@@ -195,7 +195,7 @@ public class Train {
                     int wIdx = (int) featVectors.get(d).second;
                     Object[] f = (Object[]) featVectors.get(d).first;
                     //double learningWeight = (weightedLearning)? sentence.getCompletenessDegree():1;
-                    double learningWeight = (weightedLearning)? ((depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5):1;
+                    double learningWeight = (weightedLearning) ? ((depLabels[wIdx] == sourceDepLabels[wIdx]) ? 1 : 0.5) : 1;
                     ap.learnInstance(f, labels.get(d), learningWeight);
                     dataSize++;
                 }
@@ -214,12 +214,12 @@ public class Train {
             String tempOutputFile = ProjectConstants.TMP_DIR + "AC_dev_output_" + iter;
             String tempOutputFile_w_projected_info = ProjectConstants.TMP_DIR + "AC_dev_output_w_projected_info_" + iter;
 
-            AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath): null;
+            AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath) : null;
             Decoder argumentDecoder = new Decoder(piClassifier, AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
 
             argumentDecoder.decode(indexMap, devSentencesInCONLLFormat, aiMaxBeamSize, acMaxBeamSize,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, tempOutputFile,
-                    tempOutputFile_w_projected_info,aiCoefficient, pdModelDir, usePI, supplement);
+                    tempOutputFile_w_projected_info, aiCoefficient, pdModelDir, usePI, supplement);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());
@@ -262,7 +262,7 @@ public class Train {
                 Object[] featVector = FeatureExtractor.extractAIFeatures(goldPIdx, wordIdx,
                         sentence, numOfFeatures, indexMap, false, 0); //sentence object must have pd auto labels now
                 String label = (argLabel.equals("")) ? "0" : "1";
-                featVectors.add(new Pair(featVector,wordIdx));
+                featVectors.add(new Pair(featVector, wordIdx));
                 labels.add(label);
             }
         }

@@ -24,7 +24,7 @@ public class PAs {
             //nothing about this predicate has seen before
             Predicate pr = new Predicate();
             pr.setPredicateIndex(predicateIndex);
-            if (predicateGoldLabel!= null)
+            if (predicateGoldLabel != null)
                 pr.setPredicateGoldLabel(predicateGoldLabel);
             PA pa = new PA(pr, new ArrayList<Argument>());
             predicateArguments.add(pa);
@@ -33,7 +33,7 @@ public class PAs {
             PA currentPA = predicateArguments.get(predicateSeq);
             Predicate pr = new Predicate();
             pr.setPredicateIndex(predicateIndex);
-            if (predicateGoldLabel!= null)
+            if (predicateGoldLabel != null)
                 pr.setPredicateGoldLabel(predicateGoldLabel);
             currentPA.set(pr);
         } else if (predicateArguments.size() < predicateSeq) {
@@ -98,7 +98,7 @@ public class PAs {
         return predArgDepTuples;
     }
 
-    public void addPA(PA pa){
+    public void addPA(PA pa) {
         predicateArguments.add(pa);
     }
 
