@@ -49,7 +49,8 @@ public class Pipeline {
 
 
         Properties properties = new Properties(trainFile, devFile, testFile, clusterFile, modelDir, outputDir, numOfPartitions,
-                maxNumOfPITrainingIterations, maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
+                maxNumOfPITrainingIterations, maxNumOfPDTrainingIterations, maxNumOfAITrainingIterations, maxNumOfACTrainingIterations,
+                maxNumOfRerankerTrainingIterations,
                 numOfAIBeamSize, numOfACBeamSize, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
                 reranker, steps, modelsToBeTrained, aiCoefficient, pi, supplementOriginalLabels, weightedLearning);
         try {

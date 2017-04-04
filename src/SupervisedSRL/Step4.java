@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * Created by Maryam Aminian on 10/21/16.
  */
 public class Step4 {
-    public static void predictPILabels (Properties properties) throws Exception{
+    public static void predictPILabels(Properties properties) throws Exception {
         if (!properties.getSteps().contains(4))
             return;
         predictPILabels4EntireData(properties);
@@ -19,8 +19,7 @@ public class Step4 {
             predictPILabels4Partitions(properties);
     }
 
-    public static void predictPILabels4EntireData (Properties properties) throws Exception
-    {
+    public static void predictPILabels4EntireData(Properties properties) throws Exception {
         if (!properties.getSteps().contains(4))
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 4.1 -- Predicting Predicate of Train/dev data\n>>>>>>>>>>>>>\n");
@@ -46,8 +45,7 @@ public class Step4 {
         PI.predict(testSentences, indexMap, piModelPath, numOfPIFeatures, testPILabelsPath);
     }
 
-    public static void predictPILabels4Partitions (Properties properties) throws Exception
-    {
+    public static void predictPILabels4Partitions(Properties properties) throws Exception {
         if (!properties.getSteps().contains(4) || !properties.useReranker())
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 4.2 -- Predicting Predicate of Train/dev data partitions\n>>>>>>>>>>>>>\n");
@@ -57,7 +55,7 @@ public class Step4 {
         IndexMap indexMap = IO.load(indexMapPath);
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
+            System.out.println("\n>>>>>>>>\nPART " + devPartIdx + "\n>>>>>>>>\n");
             String piModelPath = properties.getPartitionPiModelPath(devPartIdx);
             String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
             String devFilePath = properties.getPartitionDevDataPath(devPartIdx);

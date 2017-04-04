@@ -4,11 +4,13 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 import SupervisedSRL.Reranker.RerankerInstanceItem;
 import SupervisedSRL.Reranker.RerankerPool;
-import SupervisedSRL.Strcutures.*;
+import SupervisedSRL.Strcutures.IndexMap;
+import SupervisedSRL.Strcutures.Pair;
+import SupervisedSRL.Strcutures.Prediction4Reranker;
+import SupervisedSRL.Strcutures.Properties;
 import ml.AveragedPerceptron;
 import util.IO;
 
-import java.awt.image.AreaAveragingScaleFilter;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ public class Step9 {
         boolean usePI = properties.usePI();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            System.out.println("PART "+ devPartIdx);
+            System.out.println("PART " + devPartIdx);
             String rerankerInstanceFilePath = properties.getRerankerInstancesFilePath(devPartIdx);
             String aiModelPath4Partition = properties.getPartitionAIModelPath(devPartIdx);
             String acModelPath4Partition = properties.getPartitionACModelPath(devPartIdx);
@@ -63,7 +65,8 @@ public class Step9 {
     }
 
     private static void generateRerankerInstances4ThisPartition(AveragedPerceptron piClassifier, AveragedPerceptron aiClassifier,
-            AveragedPerceptron acClassifier, ArrayList<String> devSentences, HashMap<Object, Integer>[] rerankerFeatureMap,
+                                                                AveragedPerceptron acClassifier, ArrayList<String> devSentences, HashMap<Object,
+            Integer>[] rerankerFeatureMap,
                                                                 IndexMap indexMap, HashMap<String, Integer> globalReverseLabelMap,
                                                                 int aiBeamSize, int acBeamSize, int numOfPIFeatures,
                                                                 int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures,
@@ -99,12 +102,15 @@ public class Step9 {
 
                     for (int j = 0; j < acCandids4thisAiCandid.size(); j++) {
                         Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
-                        rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractFinalRerankerFeatures(pIdx, pLabel, devSentence, aiCandid, acCandid,
-                                numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, localClassifierLabelMap, globalReverseLabelMap, rerankerFeatureMap), "0"), false);
+                        rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractFinalRerankerFeatures(pIdx, pLabel,
+                                devSentence, aiCandid, acCandid,
+                                numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, localClassifierLabelMap, globalReverseLabelMap,
+                                rerankerFeatureMap), "0"), false);
                     }
                 }
                 //add gold assignment to the pool
-                rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractRerankerFeatures4GoldAssignment(pIdx, devSentence, goldMap4ThisPredicate,
+                rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractRerankerFeatures4GoldAssignment(pIdx,
+                        devSentence, goldMap4ThisPredicate,
                         numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, globalReverseLabelMap, rerankerFeatureMap), "1"), true);
                 writer.writeObject(rerankerPool);
                 writer.flush();

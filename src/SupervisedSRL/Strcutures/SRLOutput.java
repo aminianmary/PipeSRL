@@ -8,12 +8,13 @@ public class SRLOutput {
     String sentence_w_projected_info;
     Double confidenceScore;
 
-    public SRLOutput(){
-        sentence ="";
-        sentence_w_projected_info="";
-        confidenceScore =0.0;
+    public SRLOutput() {
+        sentence = "";
+        sentence_w_projected_info = "";
+        confidenceScore = 0.0;
     }
-    public SRLOutput(String sen, String sen2, double score){
+
+    public SRLOutput(String sen, String sen2, double score) {
         sentence = sen;
         sentence_w_projected_info = sen2;
         confidenceScore = score;

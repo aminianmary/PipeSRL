@@ -52,7 +52,8 @@ public class RerankerInstanceGenerator {
             int aiLabel = (argMap.containsKey(wordIdx)) ? 1 : 0;
             int acLabel = (argMap.containsKey(wordIdx)) ? argMap.get(wordIdx) : -1;
             Object[] aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfAIFeats, indexMap, true, aiLabel);
-            Object[] acFeats = (acLabel == -1) ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true, acLabel);
+            Object[] acFeats = (acLabel == -1) ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true,
+                    acLabel);
             addToRerankerFeats(rerankerFeatureVector, aiFeats, 0, rerankerFeatureMap, false, numOfAIFeats);
             addToRerankerFeats(rerankerFeatureVector, acFeats, aiFeats.length, rerankerFeatureMap, false, numOfAIFeats);
         }
@@ -124,7 +125,8 @@ public class RerankerInstanceGenerator {
             int acLabel = (goldMap.containsKey(wordIdx)) ? goldMap.get(wordIdx) : -1;
 
             Object[] aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfAIFeats, indexMap, true, aiLabel);
-            Object[] acFeats = acLabel == -1 ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true, acLabel);
+            Object[] acFeats = acLabel == -1 ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true,
+                    acLabel);
 
             addToRerankerFeats(rerankerFeatureVector, aiFeats, 0, rerankerFeatureMap, false, numOfAIFeats);
             addToRerankerFeats(rerankerFeatureVector, acFeats, numOfAIFeats, rerankerFeatureMap, false, numOfAIFeats);

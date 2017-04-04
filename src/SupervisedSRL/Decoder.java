@@ -12,7 +12,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Created by Maryam Aminian on 5/24/16.
@@ -42,15 +45,16 @@ public class Decoder {
 
     public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
                        int aiMaxBeamSize, int acMaxBeamSize, int numOfPIFeatures, int numOfPDFeatures,
-                       int numOfAIFeatures, int numOfACFeatures, String outputFile,String outputFileWithSourceInfo, double aiCoefficient,
+                       int numOfAIFeatures, int numOfACFeatures, String outputFile, String outputFileWithSourceInfo, double aiCoefficient,
                        String pdModelDir, boolean usePI, boolean supplement) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
         BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
-        BufferedWriter outputWithProjectedInfoWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFileWithSourceInfo), "UTF-8"));
-        BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+".score"), "UTF-8"));
+        BufferedWriter outputWithProjectedInfoWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFileWithSourceInfo),
+                "UTF-8"));
+        BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile + ".score"), "UTF-8"));
 
         for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
             if (d % 1000 == 0)
@@ -63,10 +67,10 @@ public class Decoder {
                     aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures,
                     numOfACFeatures, false, aiCoefficient, pdModelDir, usePI);
 
-            SRLOutput output = IO.generateCompleteOutputSentenceInCoNLLFormat(sentence, devSentence,prediction,supplement);
+            SRLOutput output = IO.generateCompleteOutputSentenceInCoNLLFormat(sentence, devSentence, prediction, supplement);
             outputWriter.write(output.getSentence());
             outputWithProjectedInfoWriter.write(output.getSentence_w_projected_info());
-            outputScoresWriter.write(d+"\t"+ output.getConfidenceScore() +"\n");
+            outputScoresWriter.write(d + "\t" + output.getConfidenceScore() + "\n");
         }
         System.out.println(devSentencesInCONLLFormat.size());
         long endTime = System.currentTimeMillis();
@@ -92,17 +96,16 @@ public class Decoder {
 
         for (int wordIdx = 0; wordIdx < sentence.getLength(); wordIdx++) {
             boolean isPredicate = false;
-            if (usePI){
+            if (usePI) {
                 //automatic predicate identification
                 Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
                 String piPrediction = piClassifier.predict(featureVector);
                 if (piPrediction.equals("1"))
                     isPredicate = true;
-            }else
-            {
-               //gold predicate indices
+            } else {
+                //gold predicate indices
                 if (goldPredicateIndices.contains(wordIdx))
-                   isPredicate = true;
+                    isPredicate = true;
             }
 
             if (isPredicate) {
@@ -155,8 +158,8 @@ public class Decoder {
                 String piPrediction = piClassifier.predict(featureVector);
                 if (piPrediction.equals("1"))
                     isPredicate = true;
-            }else{
-                if(goldPredicateIndices.contains(wordIdx))
+            } else {
+                if (goldPredicateIndices.contains(wordIdx))
                     isPredicate = true;
             }
 
@@ -182,7 +185,8 @@ public class Decoder {
 
                 //having pd label, set pSense in the sentence
                 sentence.setPDAutoLabels4ThisPredicate(pIdx, pLabel);
-                ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize, numOfAIFeatures);
+                ArrayList<Pair<Double, ArrayList<Integer>>> aiCandidates = getBestAICandidates(sentence, pIdx, indexMap, aiMaxBeamSize,
+                        numOfAIFeatures);
                 ArrayList<ArrayList<Pair<Double, ArrayList<Integer>>>> acCandidates = getBestACCandidates(sentence,
                         pIdx, indexMap, aiCandidates, acMaxBeamSize, numOfACFeatures, aiCoefficient);
 

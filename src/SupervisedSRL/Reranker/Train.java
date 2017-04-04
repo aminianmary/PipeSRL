@@ -63,10 +63,10 @@ public class Train {
             int numOfPDFeatures = properties.getNumOfPDFeatures();
             int numOfAIFeatures = properties.getNumOfAIFeatures();
             int numOfACFeatures = properties.getNumOfACFeatures();
-            int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
+            int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
             int aiMaxBeamSize = properties.getNumOfAIBeamSize();
             int acMaxBeamSize = properties.getNumOfACBeamSize();
-            String outputFile = properties.getOutputFilePathDev() + "_"+iter;
+            String outputFile = properties.getOutputFilePathDev() + "_" + iter;
             String pdModelDir = properties.getPdModelDir();
             HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 
@@ -77,7 +77,7 @@ public class Train {
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
             reverseLabelMap.put("0", reverseLabelMap.size());
-            double f1= Evaluation.evaluate(outputFile, devSentences, indexMap, reverseLabelMap);
+            double f1 = Evaluation.evaluate(outputFile, devSentences, indexMap, reverseLabelMap);
 
             if (f1 > bestFScore) {
                 noImprovement = 0;

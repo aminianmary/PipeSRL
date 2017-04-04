@@ -2,16 +2,12 @@ package Tests;
 
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.PD.PD;
-import SupervisedSRL.PD.PredicateLexiconEntry;
 import SupervisedSRL.Pipeline;
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.Pair;
 import org.junit.Test;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.util.*;
 
 /**
  * Created by monadiab on 8/4/16.
@@ -307,7 +303,7 @@ public class FeatureExtractionTest {
 
      */
     @Test
-    public void testPathFeatures() throws Exception{
+    public void testPathFeatures() throws Exception {
         writeConllText();
         writeClusterFile();
         int aiFeatLength = Pipeline.numOfAIFeatures;
@@ -329,15 +325,15 @@ public class FeatureExtractionTest {
                 (map.str2int("PMOD") << 1 | 0);
 
         String expectedPOSPath_6_11 = (map.str2int("VB") << 1 | 0) + "\t" + (map.str2int("VBN") << 1 | 0) + "\t" +
-                (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NNS")) ;
+                (map.str2int("IN") << 1 | 0) + "\t" + (map.str2int("NNS"));
 
         String expectedDepPath_8_1 = (map.str2int("ADV") << 1 | 1) + "\t" + (map.str2int("VC") << 1 | 1) + "\t" +
                 (map.str2int("VC") << 1 | 1) + "\t" + (map.str2int("SBJ") << 1 | 0) + "\t" + (map.str2int("NMOD") << 1 | 0)
-                + "\t" + (map.str2int("NMOD") << 1 | 0) ;
+                + "\t" + (map.str2int("NMOD") << 1 | 0);
 
         String expectedPOSPath_8_1 = (map.str2int("IN") << 1 | 1) + "\t" + (map.str2int("VBN") << 1 | 1) + "\t" +
-                (map.str2int("VB") << 1 | 1) + "\t" + (map.str2int("MD") << 1 | 0 ) + "\t" + (map.str2int("NN") << 1 | 0 )
-                + "\t" + (map.str2int("NN") << 1 | 0 ) + "\t" + (map.str2int("DT")) ;
+                (map.str2int("VB") << 1 | 1) + "\t" + (map.str2int("MD") << 1 | 0) + "\t" + (map.str2int("NN") << 1 | 0)
+                + "\t" + (map.str2int("NN") << 1 | 0) + "\t" + (map.str2int("DT"));
 
         String expectedDepPath_1_1 = "";
         String expectedPOSPath_1_1 = Integer.toString(map.str2int("DT"));

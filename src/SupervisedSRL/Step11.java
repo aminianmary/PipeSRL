@@ -31,7 +31,7 @@ public class Step11 {
         int numOfPDFeatures = properties.getNumOfPDFeatures();
         int numOfAIFeatures = properties.getNumOfAIFeatures();
         int numOfACFeatures = properties.getNumOfACFeatures();
-        int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
+        int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
         int aiMaxBeamSize = properties.getNumOfAIBeamSize();
         int acMaxBeamSize = properties.getNumOfACBeamSize();
         String testOutputFile = properties.getOutputFilePathTest();
@@ -45,11 +45,13 @@ public class Step11 {
                     reranker, indexMap, rerankerFeatureMap);
             /*
             System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
-            decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
+            decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize,
+            acMaxBeamSize,
                     devOutputFile, aiCoefficient, pdModelDir, usePI, supplement);
             */
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
-            decoder.decode(testSentences, numOfPIFeatures, numOfPDFeatures,numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
+            decoder.decode(testSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize,
+                    acMaxBeamSize,
                     testOutputFile, aiCoefficient, pdModelDir, usePI, supplement);
         } else {
             SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(piClassifier, aiClassifier, acClassifier);
@@ -60,7 +62,7 @@ public class Step11 {
             */
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, testOutputFile,testOutputFile_w_projected_info,aiCoefficient, pdModelDir,usePI, supplement);
+                    numOfAIFeatures, numOfACFeatures, testOutputFile, testOutputFile_w_projected_info, aiCoefficient, pdModelDir, usePI, supplement);
         }
     }
 }

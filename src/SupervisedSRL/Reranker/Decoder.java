@@ -3,9 +3,9 @@ package SupervisedSRL.Reranker;
 import SentenceStruct.Argument;
 import SentenceStruct.PA;
 import SentenceStruct.Sentence;
+import SentenceStruct.simplePA;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Pair;
-import SentenceStruct.simplePA;
 import SupervisedSRL.Strcutures.Prediction4Reranker;
 import SupervisedSRL.Strcutures.SRLOutput;
 import ml.AveragedPerceptron;
@@ -30,7 +30,8 @@ public class Decoder {
     IndexMap indexMap;
     HashMap<Object, Integer>[] rerankerFeatureMap;
 
-    public Decoder(AveragedPerceptron piClassifier,AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier, RerankerAveragedPerceptron reranker,
+    public Decoder(AveragedPerceptron piClassifier, AveragedPerceptron aiClassifier, AveragedPerceptron acClassifier, RerankerAveragedPerceptron
+            reranker,
                    IndexMap indexMap, HashMap<Object, Integer>[] featureMap) {
         this.piClassifier = piClassifier;
         this.aiClasssifier = aiClassifier;
@@ -44,17 +45,18 @@ public class Decoder {
         return reranker.argmax(pool, true);
     }
 
-    public void decode(ArrayList<String> testSentences, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
+    public void decode(ArrayList<String> testSentences, int numOfPIFeatures, int numOfPDFeatures, int numOfAIFeatures, int numOfACFeatures, int
+            numOfGlobalFeatures,
                        int aiMaxBeamSize, int acMaxBeamSize, String outputFile, double aiCoefficient,
                        String pdModelDir, boolean usePI, boolean supplement) throws Exception {
 
         SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(this.piClassifier, this.aiClasssifier, this.acClasssifier);
         BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
-        BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile +".score"), "UTF-8"));
+        BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile + ".score"), "UTF-8"));
 
         for (int senIdx = 0; senIdx < testSentences.size(); senIdx++) {
-            if (senIdx%1000 ==0)
-                System.out.println(senIdx+"/"+ testSentences.size());
+            if (senIdx % 1000 == 0)
+                System.out.println(senIdx + "/" + testSentences.size());
 
             Sentence testSentence = new Sentence(testSentences.get(senIdx), indexMap);
             HashMap<Integer, HashMap<Integer, Integer>> goldMap = getGoldArgLabelMap(testSentence, acClasssifier.getReverseLabelMap());
@@ -71,7 +73,7 @@ public class Decoder {
                     testSentences.get(senIdx), prediction4ThisSentence, supplement);
 
             outputWriter.write(output.getSentence());
-            outputScoresWriter.write(senIdx+ "\t"+ output.getConfidenceScore()+"\n");
+            outputScoresWriter.write(senIdx + "\t" + output.getConfidenceScore() + "\n");
         }
         outputWriter.flush();
         outputWriter.close();
@@ -104,8 +106,10 @@ public class Decoder {
                     acCandidateIndex++;
                     acCandidateIndexInfo.put(acCandidateIndex, new Pair<Integer, Integer>(i, j));
                     Pair<Double, ArrayList<Integer>> acCandid = acCandids4thisAiCandid.get(j);
-                    rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractFinalRerankerFeatures(pIdx, pLabel, testSentence, aiCandid, acCandid,
-                            numOfAIFeatures, numOfACFeatures,numOfGlobalFeatures,  indexMap, acClasssifier.getLabelMap(), acClasssifier.getReverseLabelMap(), rerankerFeatureMap), "0"), false);
+                    rerankerPool.addInstance(new RerankerInstanceItem(RerankerInstanceGenerator.extractFinalRerankerFeatures(pIdx, pLabel,
+                            testSentence, aiCandid, acCandid,
+                            numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, indexMap, acClasssifier.getLabelMap(), acClasssifier
+                                    .getReverseLabelMap(), rerankerFeatureMap), "0"), false);
                 }
             }
 

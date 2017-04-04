@@ -38,7 +38,7 @@ public class Step8 {
         RerankerFeatureMap rerankerFeatureMap = new RerankerFeatureMap(numOfAIFeatures + numOfGlobalFeatures);
 
         for (int devPart = 0; devPart < numOfPartitions; devPart++) {
-            System.out.println("PART "+devPart);
+            System.out.println("PART " + devPart);
 
             String aiModelPath4Partition = properties.getPartitionAIModelPath(devPart);
             String acModelPath4Partition = properties.getPartitionACModelPath(devPart);
@@ -47,7 +47,7 @@ public class Step8 {
             AveragedPerceptron aiClassifier = IO.load(aiModelPath4Partition);
             AveragedPerceptron acClassifier = IO.load(acModelPath4Partition);
             AveragedPerceptron piClassifier = IO.load(piModelPath4Partition);
-            Decoder decoder = new Decoder(piClassifier,aiClassifier, acClassifier);
+            Decoder decoder = new Decoder(piClassifier, aiClassifier, acClassifier);
             String[] localClassifierLabelMap = acClassifier.getLabelMap();
             ArrayList<String> devSentences = IO.load(properties.getPartitionDevDataPath(devPart));
 

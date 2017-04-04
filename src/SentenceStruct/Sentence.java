@@ -3,7 +3,6 @@ package SentenceStruct;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ProjectConstants;
 
-import java.lang.Object;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +13,7 @@ import java.util.TreeSet;
  */
 public class Sentence {
 
+    HashMap<Integer, HashSet<Integer>> undecidedArgs; //keeps set of undecided arguments for each predicate
     private int[] depHeads;
     private int[] depLabels;
     private int[] words;
@@ -30,8 +30,7 @@ public class Sentence {
     private boolean[] isArgument;
     private int numOfDirectComponents;
     private int numOfLabeledDirectComponents;
-    HashMap<Integer, HashSet<Integer>> undecidedArgs; //keeps set of undecided arguments for each predicate
-                                                      //NOTE: the key is predicate sequence, not predicate index
+    //NOTE: the key is predicate sequence, not predicate index
     //info projected from source sentence
     private int[] sourcePosTags;
     private int[] sourceHeadPosTags;
@@ -127,7 +126,7 @@ public class Sentence {
                         if (!argumentType.equals("?")) {
                             predicateArguments.setArgument(associatedPredicateSeq, index, argumentType);
                             isArgument[index] = true;
-                        }else {
+                        } else {
                             if (!undecidedArgs.containsKey(associatedPredicateSeq)) {
                                 HashSet<Integer> temp = new HashSet<>();
                                 temp.add(index);
@@ -143,7 +142,7 @@ public class Sentence {
 
         //finding number of annotated direct components
         //note: labeled components are words for them projection has not returned "?"
-        for (int i=0; i< numTokens; i++){
+        for (int i = 0; i < numTokens; i++) {
             if (isDirectComponent(i, indexMap)) {
                 numOfDirectComponents++;
                 if (!fillPredicate[i].equals("?"))
@@ -156,62 +155,62 @@ public class Sentence {
         Object[] pathInfo = getPath(predIndex, argIndex);
         ArrayList<Integer> pathDepLabels = (ArrayList<Integer>) pathInfo[1];
         ArrayList<Integer> pathDirections = (ArrayList<Integer>) pathInfo[3];
-        ArrayList<Integer> depPath= new ArrayList<>();
+        ArrayList<Integer> depPath = new ArrayList<>();
 
-        for (int i=0; i< pathDepLabels.size(); i++)
+        for (int i = 0; i < pathDepLabels.size(); i++)
             if (pathDepLabels.get(i) != -1)
                 depPath.add(pathDepLabels.get(i) << 1 | pathDirections.get(i));
         return depPath;
     }
 
-    public ArrayList<Integer> getPOSPath(int predIndex, int argIndex){
+    public ArrayList<Integer> getPOSPath(int predIndex, int argIndex) {
         Object[] pathInfo = getPath(predIndex, argIndex);
         ArrayList<Integer> pathPOSTags = (ArrayList<Integer>) pathInfo[2];
         ArrayList<Integer> pathDirections = (ArrayList<Integer>) pathInfo[3];
         int commonIndex = findCommonIndex((ArrayList<Integer>) pathInfo[1]);
-        assert commonIndex!= -1;
-        ArrayList<Integer> posPath= new ArrayList<>();
+        assert commonIndex != -1;
+        ArrayList<Integer> posPath = new ArrayList<>();
 
-        for (int i=0; i< commonIndex; i++)
+        for (int i = 0; i < commonIndex; i++)
             posPath.add(pathPOSTags.get(i) << 1 | pathDirections.get(i));
-        for (int j= commonIndex ; j< pathPOSTags.size()-1 ; j++)
-            posPath.add(pathPOSTags.get(j) << 1 | pathDirections.get(j+1));
-        posPath.add(pathPOSTags.get(pathPOSTags.size()-1));
+        for (int j = commonIndex; j < pathPOSTags.size() - 1; j++)
+            posPath.add(pathPOSTags.get(j) << 1 | pathDirections.get(j + 1));
+        posPath.add(pathPOSTags.get(pathPOSTags.size() - 1));
 
         return posPath;
     }
 
-    public Object[] getPath(int predIndex, int argIndex){
-        int up =0;
-        int down =1;
-        ArrayList<Integer> predPath=pathToRoot(predIndex);
-        ArrayList<Integer> argPath=pathToRoot(argIndex);
+    public Object[] getPath(int predIndex, int argIndex) {
+        int up = 0;
+        int down = 1;
+        ArrayList<Integer> predPath = pathToRoot(predIndex);
+        ArrayList<Integer> argPath = pathToRoot(argIndex);
 
-        ArrayList<Integer> finalPathWordIndices=new ArrayList<>();
-        ArrayList<Integer> finalPathDepLabels=new ArrayList<>();
-        ArrayList<Integer> finalPathPOS=new ArrayList<>();
-        ArrayList<Integer> finalPathDirections=new ArrayList<>();
+        ArrayList<Integer> finalPathWordIndices = new ArrayList<>();
+        ArrayList<Integer> finalPathDepLabels = new ArrayList<>();
+        ArrayList<Integer> finalPathPOS = new ArrayList<>();
+        ArrayList<Integer> finalPathDirections = new ArrayList<>();
 
 
-        int commonIndex=0;
-        int min=(predPath.size()<argPath.size()?predPath.size():argPath.size());
-        for(int i=0;i<min;++i) {
-            if(predPath.get(i)==argPath.get(i)){ //Always true at root (ie first index)
-                commonIndex=i;
+        int commonIndex = 0;
+        int min = (predPath.size() < argPath.size() ? predPath.size() : argPath.size());
+        for (int i = 0; i < min; ++i) {
+            if (predPath.get(i) == argPath.get(i)) { //Always true at root (ie first index)
+                commonIndex = i;
             }
         }
-        for(int j=predPath.size()-1;j>=commonIndex;--j){
-            int wordIdx= predPath.get(j);
+        for (int j = predPath.size() - 1; j >= commonIndex; --j) {
+            int wordIdx = predPath.get(j);
             finalPathWordIndices.add(wordIdx);
-            if (j==commonIndex)
+            if (j == commonIndex)
                 finalPathDepLabels.add(-1);
             else
                 finalPathDepLabels.add(depLabels[wordIdx]);
             finalPathPOS.add(posTags[wordIdx]);
             finalPathDirections.add(down);
         }
-        for(int j=commonIndex+1;j<argPath.size();++j){
-            int wordIdx= argPath.get(j);
+        for (int j = commonIndex + 1; j < argPath.size(); ++j) {
+            int wordIdx = argPath.get(j);
             finalPathWordIndices.add(wordIdx);
             finalPathDepLabels.add(depLabels[wordIdx]);
             finalPathPOS.add(posTags[wordIdx]);
@@ -220,23 +219,22 @@ public class Sentence {
         return new Object[]{finalPathWordIndices, finalPathDepLabels, finalPathPOS, finalPathDirections};
     }
 
-    public  ArrayList<Integer> pathToRoot(int wordIndex){
+    public ArrayList<Integer> pathToRoot(int wordIndex) {
         ArrayList<Integer> path;
-        if(wordIndex == 0){
+        if (wordIndex == 0) {
             //Root element
-            path=new ArrayList<Integer>();
+            path = new ArrayList<Integer>();
             path.add(wordIndex);
             return path;
         }
-        path=pathToRoot(depHeads[wordIndex]);
+        path = pathToRoot(depHeads[wordIndex]);
         path.add(wordIndex);
         return path;
     }
 
-    public Integer findCommonIndex (ArrayList<Integer> pathDepLabels)
-    {
-        for (int i=0; i< pathDepLabels.size(); i++)
-            if (pathDepLabels.get(i) ==-1)
+    public Integer findCommonIndex(ArrayList<Integer> pathDepLabels) {
+        for (int i = 0; i < pathDepLabels.size(); i++)
+            if (pathDepLabels.get(i) == -1)
                 return i;
         return -1;
     }
@@ -312,30 +310,30 @@ public class Sentence {
         return predicatesInfo;
     }
 
-    public ArrayList<Predicate> getPredicates () {
+    public ArrayList<Predicate> getPredicates() {
         ArrayList<Predicate> predicates = new ArrayList<>();
-        for (PA pa: predicateArguments.getPredicateArgumentsAsArray())
+        for (PA pa : predicateArguments.getPredicateArgumentsAsArray())
             predicates.add(pa.getPredicate());
         return predicates;
     }
 
     public ArrayList<Integer> getPredicatesIndices() {
         ArrayList<Integer> predicateIndices = new ArrayList<>();
-        for (PA pa: predicateArguments.getPredicateArgumentsAsArray())
+        for (PA pa : predicateArguments.getPredicateArgumentsAsArray())
             predicateIndices.add(pa.getPredicate().getIndex());
         return predicateIndices;
     }
 
-    public void setPDAutoLabels (HashMap<Integer, String> pdAutoLabels){
+    public void setPDAutoLabels(HashMap<Integer, String> pdAutoLabels) {
         assert pdAutoLabels.size() == predicateArguments.getPredicateArgumentsAsArray().size();
-        for (PA pa: predicateArguments.getPredicateArgumentsAsArray()){
+        for (PA pa : predicateArguments.getPredicateArgumentsAsArray()) {
             int pIdx = pa.getPredicate().getIndex();
             assert pdAutoLabels.containsKey(pIdx);
             pa.getPredicate().setPredicateAutoLabel(pdAutoLabels.get(pIdx));
         }
     }
 
-    public void setPDAutoLabels4ThisPredicate (int pIdx, String pdLabel){
+    public void setPDAutoLabels4ThisPredicate(int pIdx, String pdLabel) {
         ArrayList<Integer> goldPredicateIndices = getPredicatesIndices();
         if (goldPredicateIndices.contains(pIdx)) {
             //in case we use PI (PI tp) or gold predicate indices
@@ -343,31 +341,33 @@ public class Sentence {
                 if (pa.getPredicate().getIndex() == pIdx)
                     pa.getPredicate().setPredicateAutoLabel(pdLabel);
             }
-        }else{
+        } else {
             //in case we use PI (PI fp) --> we need to add this predicate to the sentence
             Predicate p = new Predicate();
             p.setPredicateIndex(pIdx);
             p.setPredicateAutoLabel(pdLabel);
-            PA  pa = new PA(p, new ArrayList<Argument>());
+            PA pa = new PA(p, new ArrayList<Argument>());
             predicateArguments.addPA(pa);
         }
     }
 
-    public int getLength (){return words.length;}
+    public int getLength() {
+        return words.length;
+    }
 
     public String[] getFillPredicate() {
         return fillPredicate;
     }
 
-    public HashMap<Integer, simplePA> getPAMap(){
+    public HashMap<Integer, simplePA> getPAMap() {
         HashMap<Integer, simplePA> paMap = new HashMap<>();
-        ArrayList<PA> predicateArguments= getPredicateArguments().getPredicateArgumentsAsArray();
-        for (PA pa: predicateArguments) {
+        ArrayList<PA> predicateArguments = getPredicateArguments().getPredicateArgumentsAsArray();
+        for (PA pa : predicateArguments) {
             int pIdx = pa.getPredicate().getIndex();
             String pLabel = pa.getPredicate().getPredicateGoldLabel();
             HashMap<Integer, String> argMap = new HashMap<>();
 
-            for (Argument a: pa.getArguments())
+            for (Argument a : pa.getArguments())
                 argMap.put(a.getIndex(), a.getType());
 
             simplePA spa = new simplePA(pLabel, argMap);
@@ -376,7 +376,7 @@ public class Sentence {
         return paMap;
     }
 
-    public boolean isDirectComponent (int wordIdx, IndexMap indexMap) throws Exception{
+    public boolean isDirectComponent(int wordIdx, IndexMap indexMap) throws Exception {
         if (indexMap.int2str(posTags[wordIdx]).equals(ProjectConstants.VERB) ||
                 indexMap.int2str(posTags[depHeads[wordIdx]]).equals(ProjectConstants.VERB))
             return true;
@@ -387,7 +387,7 @@ public class Sentence {
         if (numOfDirectComponents == 0)
             return 1;
         else
-            return (double) numOfLabeledDirectComponents/numOfDirectComponents;
+            return (double) numOfLabeledDirectComponents / numOfDirectComponents;
     }
 
     public HashMap<Integer, HashSet<Integer>> getUndecidedArgs() {

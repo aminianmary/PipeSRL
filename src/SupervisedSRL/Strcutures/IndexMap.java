@@ -167,7 +167,7 @@ public class IndexMap implements Serializable {
         return cluster;
     }
 
-    public int get4ClusterId(String str){
+    public int get4ClusterId(String str) {
         String word = str;
         int fullClusterID = getFullClusterId(word);
         if (fullClusterID == unknownClusterIdx)

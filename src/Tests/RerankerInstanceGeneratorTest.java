@@ -3,7 +3,6 @@ package Tests;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Reranker.RerankerInstanceGenerator;
 import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.RerankerFeatureMap;
 import org.junit.Test;
 import util.IO;
 
@@ -130,9 +129,10 @@ public class RerankerInstanceGeneratorTest {
     public void testRerankerFeatureVector() throws Exception {
         writeConllText();
         writeClusterFile();
-        IndexMap indexMap = new IndexMap(tmpFilePath,clusterFilePath);
-        Sentence sentence = new Sentence(IO.readCoNLLFile(tmpFilePath).get(0),indexMap);
-        HashMap<String, Integer> globalReverseLabelMap = IO.load("/Users/monadiab/Codes/IdeaProjects/SRL/sample_data/models/AC.model_reverseLabelMap");
+        IndexMap indexMap = new IndexMap(tmpFilePath, clusterFilePath);
+        Sentence sentence = new Sentence(IO.readCoNLLFile(tmpFilePath).get(0), indexMap);
+        HashMap<String, Integer> globalReverseLabelMap = IO.load("/Users/monadiab/Codes/IdeaProjects/SRL/sample_data/models/AC" +
+                ".model_reverseLabelMap");
         //RerankerFeatureMap rfm=  IO.load("/Users/monadiab/Codes/IdeaProjects/SRL/sample_data/models/reranker.featureMap");
         //HashMap<Integer, HashMap<Integer, Integer>> goldMap = RerankerInstanceGenerator.getGoldArgLabelMap(sentence, globalReverseLabelMap);
         //HashMap<Integer, Integer>[] rerankerFeatureVector =

@@ -4,8 +4,6 @@ import SentenceStruct.Sentence;
 import SentenceStruct.simplePA;
 import SupervisedSRL.Strcutures.Pair;
 import SupervisedSRL.Strcutures.SRLOutput;
-import apple.laf.JRSUIUtils;
-import sun.util.resources.cldr.zh.CalendarData_zh_Hans_HK;
 
 import java.io.*;
 import java.util.*;
@@ -135,10 +133,10 @@ public class IO {
 
         String[] inputSentenceFillPreds = inputSentence.getFillPredicate();
         HashMap<Integer, HashSet<Integer>> inputSentenceUndecidedArgs = inputSentence.getUndecidedArgs();
-        Pair o =  createFinalLabeledOutput(inputSentence, prediction,
+        Pair o = createFinalLabeledOutput(inputSentence, prediction,
                 inputSentenceFillPreds, inputSentenceUndecidedArgs, supplement);
 
-        TreeMap<Integer, simplePA>  finalLabels = (TreeMap<Integer, simplePA>) o.first;
+        TreeMap<Integer, simplePA> finalLabels = (TreeMap<Integer, simplePA>) o.first;
         double overlap = (double) o.second;
 
         for (int wordIdx = 0; wordIdx < sentenceForOutput.size(); wordIdx++) {
@@ -146,7 +144,7 @@ public class IO {
             finalSentence += sentenceForOutput.get(wordIdx) + "\t";  //filling fields 0-11
             finalSentence_w_projected_info += sentenceForOutput_w_projected_info.get(wordIdx) + "\t";  //filling fields 0-14
 
-            int realWordIdx = wordIdx +1 ;
+            int realWordIdx = wordIdx + 1;
 
             if (finalLabels.containsKey(realWordIdx)) {
                 simplePA simplePA = finalLabels.get(realWordIdx);
@@ -155,7 +153,7 @@ public class IO {
 
                 finalSentence_w_projected_info += "Y\t"; //filed 14
                 finalSentence_w_projected_info += simplePA.getPredicateLabel(); //field 15
-            }else {
+            } else {
                 finalSentence += "_\t"; //filed 12
                 finalSentence += "_"; //field 13
 
@@ -170,8 +168,7 @@ public class IO {
                     finalSentence += "\t" + finalLabels.get(pIdx).getArgumentLabels().get(realWordIdx);
                     finalSentence_w_projected_info += "\t" + finalLabels.get(pIdx).getArgumentLabels().get(realWordIdx);
 
-                }
-                else {
+                } else {
                     finalSentence += "\t_";
                     finalSentence_w_projected_info += "\t_";
                 }
@@ -182,7 +179,7 @@ public class IO {
         finalSentence += "\n";
         finalSentence_w_projected_info += "\n";
 
-        return new SRLOutput(finalSentence, finalSentence_w_projected_info ,overlap);
+        return new SRLOutput(finalSentence, finalSentence_w_projected_info, overlap);
     }
 
     public static String formatString2Conll(String input) {
@@ -211,9 +208,9 @@ public class IO {
                 fieldsForOutput += fields[k] + "\t";
                 fieldsForOutput_w_projected_info += fields[k] + "\t";
             }
-            fieldsForOutput_w_projected_info += fields[12]+"\t";
-            fieldsForOutput_w_projected_info += fields[13]+"\t";
-            fieldsForOutput_w_projected_info += fields[14]+"\t";
+            fieldsForOutput_w_projected_info += fields[12] + "\t";
+            fieldsForOutput_w_projected_info += fields[13] + "\t";
+            fieldsForOutput_w_projected_info += fields[14] + "\t";
             sentenceForOutput.add(fieldsForOutput.trim());
             sentenceForOutput_w_projected_info.add(fieldsForOutput_w_projected_info.trim());
         }
@@ -226,13 +223,13 @@ public class IO {
      * @param prediction predictions made by SRL
      * @param supplement a boolean argument specifying if we need to supplement predicted labels to the original ones or not!
      */
-    public static Pair createFinalLabeledOutput (Sentence inputSentence,
-                                                                       TreeMap<Integer, simplePA> prediction,
-                                                                       String[] fillPredicates,
-                                                                       HashMap<Integer, HashSet<Integer>> undecidedArgs,
-                                                                       boolean supplement){
+    public static Pair createFinalLabeledOutput(Sentence inputSentence,
+                                                TreeMap<Integer, simplePA> prediction,
+                                                String[] fillPredicates,
+                                                HashMap<Integer, HashSet<Integer>> undecidedArgs,
+                                                boolean supplement) {
         TreeMap<Integer, simplePA> output = new TreeMap<>(inputSentence.getPAMap());  //contains neither "_", nor "?"
-        int overlap =0;
+        int overlap = 0;
         int totalNumOfPredictedDependencies = 0;
 
         if (supplement) {
@@ -257,8 +254,8 @@ public class IO {
                                 String pArgLabel = prediction.get(ppIdx).getArgumentLabels().get(pArgIdx);
                                 output.get(ppIdx).getArgumentLabels().put(pArgIdx, pArgLabel);
                             }
-                        }else{
-                           String pALabel = prediction.get(ppIdx).getArgumentLabels().get(pArgIdx);
+                        } else {
+                            String pALabel = prediction.get(ppIdx).getArgumentLabels().get(pArgIdx);
                             String previousALabel = output.get(ppIdx).getArgumentLabels().get(pArgIdx);
 
                             if (pALabel.equals(previousALabel))
@@ -267,12 +264,11 @@ public class IO {
                     }
                 }
             }
-        }else
-        {
+        } else {
             for (int ppIdx : prediction.keySet()) {
                 totalNumOfPredictedDependencies += prediction.get(ppIdx).getArgumentLabels().size();
                 //for each predicted predicate
-                if (output.containsKey(ppIdx)){
+                if (output.containsKey(ppIdx)) {
                     String pPLabel = prediction.get(ppIdx).getPredicateLabel();
                     String previousPLabel = output.get(ppIdx).getPredicateLabel();
 
@@ -289,8 +285,8 @@ public class IO {
             output = prediction;
         }
         double overlapScore = 0;
-        if (totalNumOfPredictedDependencies !=0)
-            overlapScore =((double) overlap)/totalNumOfPredictedDependencies;
+        if (totalNumOfPredictedDependencies != 0)
+            overlapScore = ((double) overlap) / totalNumOfPredictedDependencies;
         return new Pair<>(output, overlapScore);
     }
 
@@ -324,11 +320,11 @@ public class IO {
         return true;
     }
 
-    public static HashMap<Integer, String>[] getDisambiguatedPredicatesFromOutput (String output, int numOfSentences) throws IOException {
+    public static HashMap<Integer, String>[] getDisambiguatedPredicatesFromOutput(String output, int numOfSentences) throws IOException {
 
         HashMap<Integer, String>[] disambiguatedPredicates = new HashMap[numOfSentences];
         ArrayList<String> sentences = readCoNLLFile(output);
-        for (int senID =0 ; senID < sentences.size(); senID++){
+        for (int senID = 0; senID < sentences.size(); senID++) {
             HashMap<Integer, String> disambiguatedPredicates4ThisSentence = new HashMap<>();
             String sentence = sentences.get(senID);
             String[] tokens = sentence.trim().split("\n");

@@ -26,7 +26,8 @@ public class EvaluatePDOnDev {
         ArrayList<String> goldEvalSentences = IO.readCoNLLFile(evalData);
         HashMap<Integer, String>[] evalDataPredicatePredictions = (!readPredictionsFromOutputFile) ?
                 (HashMap<Integer, String>[]) IO.load(evalDataPredicatePredictionsFilePath) :
-                IO.getDisambiguatedPredicatesFromOutput(evalDataPredicatePredictionsFilePath, goldEvalSentences.size());;
+                IO.getDisambiguatedPredicatesFromOutput(evalDataPredicatePredictionsFilePath, goldEvalSentences.size());
+        ;
 
         Evaluation.evaluatePD(trainSentences, devSentences, goldEvalSentences, evalDataPredicatePredictions, indexMap, numOfPDFeaturs);
     }

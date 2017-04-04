@@ -13,9 +13,8 @@ import java.util.HashSet;
  * Created by monadiab on 9/9/16.
  */
 public class RerankerFeatureMap implements Serializable {
-    private static final long serialVersionUID = 1L;
-
     public static final int unseenFeatureIndex = 0;
+    private static final long serialVersionUID = 1L;
     HashMap<Object, Integer>[] featureMap;
     HashSet<Object>[] seenFeatures;
     private int numOfSeenFeatures;
@@ -73,7 +72,8 @@ public class RerankerFeatureMap implements Serializable {
             int aiLabel = (goldArgMap.containsKey(wordIdx)) ? 1 : 0;
             int acLabel = (goldArgMap.containsKey(wordIdx)) ? goldArgMap.get(wordIdx) : -1;
             Object[] aiFeats = FeatureExtractor.extractAIFeatures(pIdx, wordIdx, sentence, numOfAIFeats, indexMap, true, aiLabel);
-            Object[] acFeats = acLabel == -1 ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true, acLabel);
+            Object[] acFeats = acLabel == -1 ? null : FeatureExtractor.extractACFeatures(pIdx, wordIdx, sentence, numOfACFeats, indexMap, true,
+                    acLabel);
             updateSeenRerankerFeatures(aiFeats, 0);
             updateSeenRerankerFeatures(acFeats, 0);
         }

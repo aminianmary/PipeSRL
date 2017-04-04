@@ -1,6 +1,5 @@
 package SupervisedSRL;
 
-import SupervisedSRL.PD.PD;
 import SupervisedSRL.PI.PI;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Properties;
@@ -21,7 +20,7 @@ public class Step3 {
             buildPIModel4TrainPartitions(properties);
     }
 
-    public static void buildPIModel4EntireTrainData(Properties properties) throws Exception{
+    public static void buildPIModel4EntireTrainData(Properties properties) throws Exception {
         if (!properties.getSteps().contains(3))
             return;
         System.out.println("\n>>>>>>>>>>>>>\nStep 3.1 -- Building PI models on entire data\n>>>>>>>>>>>>>\n");
@@ -51,7 +50,7 @@ public class Step3 {
         boolean weightedLearning = properties.isWeightedLearning();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
-            System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");
+            System.out.println("\n>>>>>>>>\nPART " + devPartIdx + "\n>>>>>>>>\n");
             String piModelPath = properties.getPartitionPiModelPath(devPartIdx);
             String trainFilePath = properties.getPartitionTrainDataPath(devPartIdx);
             String devFilePath = properties.getPartitionDevDataPath(devPartIdx);

@@ -24,19 +24,19 @@ public class Predicate {
         return predicateAutoLabel;
     }
 
-    public String getPredicateGoldLabel() {
-        return predicateGoldLabel;
+    public void setPredicateAutoLabel(String predicateAutoLabel) {
+        this.predicateAutoLabel = predicateAutoLabel;
     }
 
-    public void setPredicateIndex(int predicateIndex) {
-        this.predicateIndex = predicateIndex;
+    public String getPredicateGoldLabel() {
+        return predicateGoldLabel;
     }
 
     public void setPredicateGoldLabel(String predicateGoldLabel) {
         this.predicateGoldLabel = predicateGoldLabel;
     }
 
-    public void setPredicateAutoLabel(String predicateAutoLabel) {
-        this.predicateAutoLabel = predicateAutoLabel;
+    public void setPredicateIndex(int predicateIndex) {
+        this.predicateIndex = predicateIndex;
     }
 }
