@@ -111,14 +111,9 @@ public class AveragedPerceptron implements Serializable {
 
     private void updateWeight(int label, int featIndex, Object feature, double change) {
         if (!weights[featIndex].containsKey(feature)) {
-            double[] tempArray1 = new double[1];
-            tempArray1[0] = change;
-            CompactArray subWeights = new CompactArray(label, tempArray1);
+            CompactArray subWeights = new CompactArray(label, change);
             weights[featIndex].put(feature, subWeights);
-
-            double[] tempArray2 = new double[1];
-            tempArray2[0] = iteration * change;
-            CompactArray avgSubWeights = new CompactArray(label, tempArray2);
+            CompactArray avgSubWeights = new CompactArray(label, iteration * change);
             avgWeights[featIndex].put(feature, avgSubWeights);
         } else {
             CompactArray subWeights = weights[featIndex].get(feature);
@@ -143,9 +138,8 @@ public class AveragedPerceptron implements Serializable {
         for (int f = 0; f < features.length; f++) {
             if (map[f].containsKey(features[f])) {
                 CompactArray w = map[f].get(features[f]);
-                int offset = w.getOffset();
-                for (int i = 0; i < w.length(); i++)
-                    score[i + offset] += w.getArray()[i];
+                for (int i : w.keyset())
+                    score[i] += w.value(i);
             }
         }
 
@@ -165,9 +159,8 @@ public class AveragedPerceptron implements Serializable {
         for (int f = 0; f < features.length; f++) {
             if (avgWeights[f].containsKey(features[f])) {
                 CompactArray w = avgWeights[f].get(features[f]);
-                int offset = w.getOffset();
-                for (int i = 0; i < w.length(); i++)
-                    score[i + offset] += w.getArray()[i];
+                for (int i : w.keyset())
+                    score[i] += w.value(i);
             }
         }
 
@@ -212,13 +205,14 @@ public class AveragedPerceptron implements Serializable {
         for (int f = 0; f < weights.length; f++) {
             newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
-                double[] w = weights[f].get(feat).getArray();
-                double[] aw = avgWeights[f].get(feat).getArray();
-                double[] naw = new double[w.length];
-                for (int i = 0; i < w.length; i++) {
-                    naw[i] = w[i] - (aw[i] / iteration);
+                HashMap<Integer, Double> w = weights[f].get(feat).getArray();
+                HashMap<Integer, Double> aw = avgWeights[f].get(feat).getArray();
+                HashMap<Integer, Double> naw = new HashMap<>();
+
+                for (int i : w.keySet()) {
+                    naw.put(i, w.get(i) - (aw.get(i) / iteration));
                 }
-                CompactArray nawCompact = new CompactArray(weights[f].get(feat).getOffset(), naw);
+                CompactArray nawCompact = new CompactArray(naw);
                 newAvgMap[f].put(feat, nawCompact);
             }
         }
@@ -238,13 +232,14 @@ public class AveragedPerceptron implements Serializable {
         for (int f = 0; f < weights.length; f++) {
             newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
-                double[] w = weights[f].get(feat).getArray();
-                double[] aw = avgWeights[f].get(feat).getArray();
-                double[] naw = new double[w.length];
-                for (int i = 0; i < w.length; i++) {
-                    naw[i] = w[i] - (aw[i] / iteration);
+                HashMap<Integer, Double> w = weights[f].get(feat).getArray();
+                HashMap<Integer, Double> aw = avgWeights[f].get(feat).getArray();
+                HashMap<Integer, Double> naw = new HashMap<>();
+
+                for (int i : w.keySet()) {
+                    naw.put(i, w.get(i) - (aw.get(i) / iteration));
                 }
-                CompactArray nawCompact = new CompactArray(weights[f].get(feat).getOffset(), naw);
+                CompactArray nawCompact = new CompactArray(naw);
                 newAvgMap[f].put(feat, nawCompact);
             }
         }

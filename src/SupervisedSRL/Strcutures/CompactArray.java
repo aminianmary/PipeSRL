@@ -1,6 +1,8 @@
 package SupervisedSRL.Strcutures;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Created by Mohammad Sadegh Rasooli.
@@ -11,48 +13,34 @@ import java.io.Serializable;
  */
 
 public class CompactArray implements Serializable {
-    double[] array;
-    int offset;
+    HashMap<Integer, Double> array;
 
-    public CompactArray(int offset, double[] array) {
-        this.offset = offset;
+    public CompactArray(HashMap<Integer, Double> array) {
         this.array = array;
     }
 
-    public void expandArray(int index, double value) {
-        if (index < offset + array.length && index >= offset) {
-            array[index - offset] += value;
-        } else if (index < offset) {  //expand from left
-            int gap = offset - index;
-            int newSize = gap + array.length;
-            double[] newArray = new double[newSize];
-            newArray[0] = value;
-            for (int i = 0; i < array.length; i++) {
-                newArray[gap + i] = array[i];
-            }
-            this.offset = index;
-            this.array = newArray;
-        } else {
-            int gap = index - (array.length + offset - 1);
-            int newSize = array.length + gap;
-            double[] newArray = new double[newSize];
-            newArray[newSize - 1] = value;
-            for (int i = 0; i < array.length; i++) {
-                newArray[i] = array[i];
-            }
-            this.array = newArray;
-        }
+    public CompactArray(int index, double initValue) {
+        array = new HashMap<>();
+        array.put(index, initValue);
     }
 
-    public double[] getArray() {
+    public void expandArray(int index, double value) {
+        if (array.containsKey(index))
+            value += array.get(index);
+        array.put(index, value);
+    }
+
+    public HashMap<Integer, Double> getArray() {
         return array;
     }
 
-    public int getOffset() {
-        return offset;
+    public Set<Integer> keyset() {
+        return array.keySet();
     }
 
-    public int length() {
-        return array.length;
+    ;
+
+    public double value(int i) {
+        return array.containsKey(i) ? array.get(i) : 0;
     }
 }
