@@ -65,7 +65,6 @@ public class AveragedPerceptron implements Serializable {
         gz.close();
         reader.close();
         return new AveragedPerceptron(newAvgWeight, labelMap, reverseLabelMap);
-
     }
 
     public HashMap<Object, CompactArray>[] getWeights() {
@@ -88,11 +87,11 @@ public class AveragedPerceptron implements Serializable {
         return reverseLabelMap;
     }
 
-    public void learnInstance(Object[] features, String label, double completeness) {
+    public void learnInstance(Object[] features, String label, double loss) {
         int argmax = argmax(features, false);
         int gold = reverseLabelMap.get(label);
         if (argmax != gold) {
-            updateWeight(argmax, gold, features, completeness);
+            updateWeight(argmax, gold, features, loss);
             if (reverseLabelMap.size() == 2)
                 confusionMatrix[argmax][gold]++;
         } else {
@@ -103,10 +102,10 @@ public class AveragedPerceptron implements Serializable {
         iteration++;
     }
 
-    private void updateWeight(int argmax, int gold, Object[] features, double completeness) {
+    private void updateWeight(int argmax, int gold, Object[] features, double loss) {
         for (int i = 0; i < features.length; i++) {
-            updateWeight(argmax, i, features[i], -1 * completeness);
-            updateWeight(gold, i, features[i], 1 * completeness);
+            updateWeight(argmax, i, features[i], -loss);
+            updateWeight(gold, i, features[i], loss);
         }
     }
 
