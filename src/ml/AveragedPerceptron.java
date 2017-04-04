@@ -30,11 +30,11 @@ public class AveragedPerceptron implements Serializable {
         avgWeights = new HashMap[featureTemplateSize];
 
         for (int i = 0; i < featureTemplateSize; i++) {
-            weights[i] = new HashMap<Object, CompactArray>();
-            avgWeights[i] = new HashMap<Object, CompactArray>();
+            weights[i] = new HashMap<>();
+            avgWeights[i] = new HashMap<>();
         }
         labelMap = new String[possibleLabels.size()];
-        reverseLabelMap = new HashMap<String, Integer>();
+        reverseLabelMap = new HashMap<>();
         int i = 0;
         for (String label : possibleLabels) {
             labelMap[i] = label;
@@ -211,7 +211,7 @@ public class AveragedPerceptron implements Serializable {
         HashMap<Object, CompactArray>[] newAvgMap = new HashMap[weights.length];
 
         for (int f = 0; f < weights.length; f++) {
-            newAvgMap[f] = new HashMap<Object, CompactArray>();
+            newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
                 double[] w = weights[f].get(feat).getArray();
                 double[] aw = avgWeights[f].get(feat).getArray();
@@ -237,7 +237,7 @@ public class AveragedPerceptron implements Serializable {
         HashMap<Object, CompactArray>[] newAvgMap = new HashMap[weights.length];
 
         for (int f = 0; f < weights.length; f++) {
-            newAvgMap[f] = new HashMap<Object, CompactArray>();
+            newAvgMap[f] = new HashMap<>();
             for (Object feat : weights[f].keySet()) {
                 double[] w = weights[f].get(feat).getArray();
                 double[] aw = avgWeights[f].get(feat).getArray();
