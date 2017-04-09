@@ -15,7 +15,7 @@ import java.util.HashSet;
 public class PI {
 
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
-                               IndexMap indexMap, int maxNumberOfTrainingIterations, String PIModelPath,
+                             IndexMap indexMap, int maxNumberOfTrainingIterations, String PIModelPath,
                              int numOfPIFeatures, boolean weightedLearning) throws Exception {
 
         HashSet<String> labelSet = new HashSet<String>();
@@ -32,7 +32,10 @@ public class PI {
                 if (sIdx % 1000 ==0)
                     System.out.print(sIdx+"...");
                 Sentence sentence = new Sentence(trainSentencesInCONLLFormat.get(sIdx), indexMap);
-                double completeness = (weightedLearning)? sentence.getCompletenessDegree() :1;
+                int[] sentenceSourceDepLabels = sentence.getSourceDepLabels();
+                int[] sentenceDepLabels = sentence.getDepLabels();
+
+                //double learningWeight = (weightedLearning)? sentence.getCompletenessDegree() :1;
                 ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
                 String[] sentenceFillPredicate = sentence.getFillPredicate();
 
@@ -41,7 +44,9 @@ public class PI {
                     {
                         String label = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
                         Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                        ap.learnInstance(featureVector, label, completeness);
+                        double learningWeight = (weightedLearning)?
+                                ((sentenceDepLabels[wordIdx] == sentenceSourceDepLabels[wordIdx])? 1: 0.5):1;
+                        ap.learnInstance(featureVector, label, learningWeight);
                     }
                 }
             }

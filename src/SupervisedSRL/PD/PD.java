@@ -41,7 +41,7 @@ public class PD {
         for (int plem : trainPLexicon.keySet()) {
             HashSet<String> possibleLabels = new HashSet<>(trainPLexicon.get(plem).keySet());
             AveragedPerceptron ap = new AveragedPerceptron(possibleLabels, numOfPDFeatures);
-            double completeness =1;
+            double learningWeight =1;
             double bestAcc = 0;
             int noImprovement = 0;
             boolean savedModel4ThisLemma = false;
@@ -50,7 +50,7 @@ public class PD {
 
                 for (String label: trainPLexicon.get(plem).keySet()) {
                     for (Object[] instance : trainPLexicon.get(plem).get(label)) {
-                        ap.learnInstance(instance, label, completeness);
+                        ap.learnInstance(instance, label, learningWeight);
                     }
                 }
                 //making prediction on dev instances of this plem

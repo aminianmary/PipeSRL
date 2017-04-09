@@ -13,7 +13,6 @@ import java.util.TreeSet;
  * Created by Maryam Aminian on 12/9/15.
  */
 public class Sentence {
-
     private int[] depHeads;
     private int[] depLabels;
     private int[] words;
@@ -35,6 +34,19 @@ public class Sentence {
     //info projected from source sentence
     private int[] sourcePosTags;
     private int[] sourceHeadPosTags;
+
+    public int[] getSourceDepLabels() {
+        return sourceDepLabels;
+    }
+
+    public int[] getSourcePosTags() {
+        return sourcePosTags;
+    }
+
+    public int[] getSourceHeadPosTags() {
+        return sourceHeadPosTags;
+    }
+
     private int[] sourceDepLabels;
 
 
