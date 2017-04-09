@@ -3,9 +3,6 @@ package util;
 import SentenceStruct.Sentence;
 import SentenceStruct.simplePA;
 import SupervisedSRL.Strcutures.SRLOutput;
-import apple.laf.JRSUIUtils;
-import sun.util.resources.cldr.zh.CalendarData_zh_Hans_HK;
-
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
