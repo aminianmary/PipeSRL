@@ -26,6 +26,7 @@ public class Step11 {
         AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(properties.getPiModelPath()) : null;
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
         String pdModelDir = properties.getPdModelDir();
+        ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
         ArrayList<String> testSentences = IO.readCoNLLFile(properties.getTestFile());
         int numOfPIFeatures = properties.getNumOfPIFeatures();
         int numOfPDFeatures = properties.getNumOfPDFeatures();
@@ -34,7 +35,9 @@ public class Step11 {
         int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
         int aiMaxBeamSize = properties.getNumOfAIBeamSize();
         int acMaxBeamSize = properties.getNumOfACBeamSize();
+        String devOutputFile = properties.getOutputFilePathDev();
         String testOutputFile = properties.getOutputFilePathTest();
+        String testOutputFile_w_projected_info = properties.getOutputFilePathTest_w_projected_info();
         double aiCoefficient = properties.getAiCoefficient();
 
         if (properties.useReranker()) {
@@ -59,7 +62,7 @@ public class Step11 {
             */
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, testOutputFile,aiCoefficient, pdModelDir,usePI, supplement);
+                    numOfAIFeatures,numOfACFeatures, testOutputFile,testOutputFile_w_projected_info,aiCoefficient, pdModelDir,usePI, supplement);
         }
     }
 }
