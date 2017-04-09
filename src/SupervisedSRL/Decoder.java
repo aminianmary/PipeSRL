@@ -42,13 +42,14 @@ public class Decoder {
 
     public void decode(IndexMap indexMap, ArrayList<String> devSentencesInCONLLFormat,
                        int aiMaxBeamSize, int acMaxBeamSize, int numOfPIFeatures, int numOfPDFeatures,
-                       int numOfAIFeatures, int numOfACFeatures, String outputFile, double aiCoefficient,
+                       int numOfAIFeatures, int numOfACFeatures, String outputFile,String outputFileWithSourceInfo, double aiCoefficient,
                        String pdModelDir, boolean usePI, boolean supplement) throws Exception {
 
         DecimalFormat format = new DecimalFormat("##.00");
         System.out.println("Decoding started (on dev data)...");
         long startTime = System.currentTimeMillis();
         BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
+        BufferedWriter outputWithProjectedInfoWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFileWithSourceInfo), "UTF-8"));
         BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+".score"), "UTF-8"));
 
         for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
@@ -64,6 +65,7 @@ public class Decoder {
 
             SRLOutput output = IO.generateCompleteOutputSentenceInCoNLLFormat(sentence, devSentence,prediction,supplement);
             outputWriter.write(output.getSentence());
+            outputWithProjectedInfoWriter.write(output.getSentence_w_projected_info());
             outputScoresWriter.write(d+"\t"+ output.getConfidenceScore() +"\n");
         }
         System.out.println(devSentencesInCONLLFormat.size());
@@ -71,6 +73,8 @@ public class Decoder {
         System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
         outputWriter.flush();
         outputWriter.close();
+        outputWithProjectedInfoWriter.flush();
+        outputWithProjectedInfoWriter.close();
         outputScoresWriter.flush();
         outputScoresWriter.close();
     }
@@ -96,9 +100,9 @@ public class Decoder {
                     isPredicate = true;
             }else
             {
-               //gold predicate indices
+                //gold predicate indices
                 if (goldPredicateIndices.contains(wordIdx))
-                   isPredicate = true;
+                    isPredicate = true;
             }
 
             if (isPredicate) {

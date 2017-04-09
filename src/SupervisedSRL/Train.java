@@ -42,8 +42,8 @@ public class Train {
         if (modelsToBeTrained.contains("AC")){
             System.out.print("\n>>>> Training AC >>>>\n");
             trainAC(trainSentencesInCONLLFormat, devSentencesInCONLLFormat, argLabels, indexMap, numberOfACTrainingIterations,
-                piModelPath, aiModelPath, acModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures,
-                aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath,
+                    piModelPath, aiModelPath, acModelPath, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures,
+                    aiMaxBeamSize, acMaxBeamSize, isModelBuiltOnEntireTrainData, aiCoefficient, trainPDAutoLabelsPath,
                     pdModelDir, usePI, supplement, weightedLearning);
             System.out.print("\nDone!...\n");
 
@@ -198,17 +198,19 @@ public class Train {
             System.out.println("****** DEV RESULTS ******");
             //instead of loading model from file, we just calculate the average weights
             String tempOutputFile = ProjectConstants.TMP_DIR + "AC_dev_output_" + iter;
+            String tempOutputFile_w_projected_info = ProjectConstants.TMP_DIR + "AC_dev_output_w_projected_info_" + iter;
+
             AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath): null;
             Decoder argumentDecoder = new Decoder(piClassifier, AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
 
             argumentDecoder.decode(indexMap, devSentencesInCONLLFormat, aiMaxBeamSize, acMaxBeamSize,
-                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, tempOutputFile, aiCoefficient,
-                    pdModelDir, usePI, supplement);
+                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, tempOutputFile,
+                    tempOutputFile_w_projected_info,aiCoefficient, pdModelDir, usePI, supplement);
 
             HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());
 
-            double f1 = Evaluation.evaluate(tempOutputFile, devSentencesInCONLLFormat, indexMap, reverseLabelMap);
+            double f1 = Evaluation.evaluate(tempOutputFile_w_projected_info, devSentencesInCONLLFormat, indexMap, reverseLabelMap);
             if (f1 >= bestFScore) {
                 noImprovement = 0;
                 bestFScore = f1;
@@ -235,7 +237,6 @@ public class Train {
         sentence.setPDAutoLabels(pdAutoLabels); //set pd auto labels
         ArrayList<PA> goldPAs = sentence.getPredicateArguments().getPredicateArgumentsAsArray();
         int[] sentenceWords = sentence.getWords();
-        String[] sentenceFillPred = sentence.getFillPredicate();
 
         for (PA pa : goldPAs) {
             int goldPIdx = pa.getPredicate().getIndex();
