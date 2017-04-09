@@ -112,40 +112,47 @@ public class Train {
             endTime = System.currentTimeMillis();
             System.out.println("Total time for this iteration " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
-            //making prediction over dev sentences
-            System.out.println("****** DEV RESULTS ******");
-            //instead of loading model from file, we just calculate the average weights
-            AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath) : null;
-            Decoder argumentDecoder = new Decoder(piClassifier, ap.calculateAvgWeights(), "AI");
-            //ai confusion matrix
-            int[][] aiConfusionMatrix = new int[2][2];
-            aiConfusionMatrix[0][0] = 0;
-            aiConfusionMatrix[0][1] = 0;
-            aiConfusionMatrix[1][0] = 0;
-            aiConfusionMatrix[1][1] = 0;
+            if (devSentencesInCONLLFormat.size() !=0){
+                //making prediction over dev sentences
+                System.out.println("****** DEV RESULTS ******");
+                //instead of loading model from file, we just calculate the average weights
+                AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath) : null;
+                Decoder argumentDecoder = new Decoder(piClassifier, ap.calculateAvgWeights(), "AI");
+                //ai confusion matrix
+                int[][] aiConfusionMatrix = new int[2][2];
+                aiConfusionMatrix[0][0] = 0;
+                aiConfusionMatrix[0][1] = 0;
+                aiConfusionMatrix[1][0] = 0;
+                aiConfusionMatrix[1][1] = 0;
 
-            for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
-                Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap);
-                HashMap<Integer, simplePA> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
-                        numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, pdModelDir, usePI);
+                for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
+                    Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(d), indexMap);
+                    HashMap<Integer, simplePA> prediction = argumentDecoder.predictAI(sentence, indexMap, aiMaxBeamSize,
+                            numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, pdModelDir, usePI);
 
-                //we do evaluation for each sentence and update confusion matrix right here
-                aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
-            }
-            double f1 = Evaluation.computePrecisionRecall(aiConfusionMatrix);
-            if (f1 >= bestFScore) {
-                noImprovement = 0;
-                bestFScore = f1;
-                System.out.print("\nSaving the new model...");
-                ModelInfo.saveModel(ap, aiModelPath);
-                System.out.println("Done!");
-            } else {
-                noImprovement++;
-                if (noImprovement > 5) {
-                    System.out.print("\nEarly stopping...");
-                    break;
+                    //we do evaluation for each sentence and update confusion matrix right here
+                    aiConfusionMatrix = Evaluation.evaluateAI4ThisSentence(sentence, prediction, aiConfusionMatrix);
+                }
+                double f1 = Evaluation.computePrecisionRecall(aiConfusionMatrix);
+                if (f1 >= bestFScore) {
+                    noImprovement = 0;
+                    bestFScore = f1;
+                    System.out.print("\nSaving the new model...");
+                    ModelInfo.saveModel(ap, aiModelPath);
+                    System.out.println("Done!");
+                } else {
+                    noImprovement++;
+                    if (noImprovement > 5) {
+                        System.out.print("\nEarly stopping...");
+                        break;
+                    }
                 }
             }
+        }
+        if (devSentencesInCONLLFormat.size()==0){
+            System.out.print("\nSaving the model...");
+            ModelInfo.saveModel(ap, aiModelPath);
+            System.out.println("Done!");
         }
     }
 
@@ -195,37 +202,46 @@ public class Train {
             endTime = System.currentTimeMillis();
             System.out.println("Total time of this iteration: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
 
-            System.out.println("****** DEV RESULTS ******");
-            //instead of loading model from file, we just calculate the average weights
-            String tempOutputFile = ProjectConstants.TMP_DIR + "AC_dev_output_" + iter;
-            String tempOutputFile_w_projected_info = ProjectConstants.TMP_DIR + "AC_dev_output_w_projected_info_" + iter;
+            if (devSentencesInCONLLFormat.size()!=0){
+                System.out.println("****** DEV RESULTS ******");
+                //instead of loading model from file, we just calculate the average weights
+                String tempOutputFile = ProjectConstants.TMP_DIR + "AC_dev_output_" + iter;
+                String tempOutputFile_w_projected_info = ProjectConstants.TMP_DIR + "AC_dev_output_w_projected_info_" + iter;
 
-            AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath): null;
-            Decoder argumentDecoder = new Decoder(piClassifier, AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
+                AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(piModelPath): null;
+                Decoder argumentDecoder = new Decoder(piClassifier, AveragedPerceptron.loadModel(aiModelPath), ap.calculateAvgWeights());
 
-            argumentDecoder.decode(indexMap, devSentencesInCONLLFormat, aiMaxBeamSize, acMaxBeamSize,
-                    numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, tempOutputFile,
-                    tempOutputFile_w_projected_info,aiCoefficient, pdModelDir, usePI, supplement);
+                argumentDecoder.decode(indexMap, devSentencesInCONLLFormat, aiMaxBeamSize, acMaxBeamSize,
+                        numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, tempOutputFile,
+                        tempOutputFile_w_projected_info,aiCoefficient, pdModelDir, usePI, supplement);
 
-            HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
-            reverseLabelMap.put("0", reverseLabelMap.size());
+                HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
+                reverseLabelMap.put("0", reverseLabelMap.size());
 
-            double f1 = Evaluation.evaluate(tempOutputFile_w_projected_info, devSentencesInCONLLFormat, indexMap, reverseLabelMap);
-            if (f1 >= bestFScore) {
-                noImprovement = 0;
-                bestFScore = f1;
-                System.out.print("\nSaving final model...");
-                ModelInfo.saveModel(ap, acModelPath);
-                if (isModelBuiltOnEntireTrainData)
-                    IO.write(ap.getReverseLabelMap(), acModelPath + ProjectConstants.GLOBAL_REVERSE_LABEL_MAP);
-                System.out.println("Done!");
-            } else {
-                noImprovement++;
-                if (noImprovement > 5) {
-                    System.out.print("\nEarly stopping...");
-                    break;
+                double f1 = Evaluation.evaluate(tempOutputFile_w_projected_info, devSentencesInCONLLFormat, indexMap, reverseLabelMap);
+                if (f1 >= bestFScore) {
+                    noImprovement = 0;
+                    bestFScore = f1;
+                    System.out.print("\nSaving final model...");
+                    ModelInfo.saveModel(ap, acModelPath);
+                    if (isModelBuiltOnEntireTrainData)
+                        IO.write(ap.getReverseLabelMap(), acModelPath + ProjectConstants.GLOBAL_REVERSE_LABEL_MAP);
+                    System.out.println("Done!");
+                } else {
+                    noImprovement++;
+                    if (noImprovement > 5) {
+                        System.out.print("\nEarly stopping...");
+                        break;
+                    }
                 }
             }
+        }
+        if (devSentencesInCONLLFormat.size()==0){
+            System.out.print("\nSaving final model...");
+            ModelInfo.saveModel(ap, acModelPath);
+            if (isModelBuiltOnEntireTrainData)
+                IO.write(ap.getReverseLabelMap(), acModelPath + ProjectConstants.GLOBAL_REVERSE_LABEL_MAP);
+            System.out.println("Done!");
         }
     }
 

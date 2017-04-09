@@ -51,43 +51,49 @@ public class PI {
                 }
             }
             System.out.print(trainSentencesInCONLLFormat.size()+"\n\n");
+            if (devSentencesInCONLLFormat.size()!=0){
+                //making prediction on dev data using the model trained in this iter
+                AveragedPerceptron decodeAp = ap.calculateAvgWeights();
+                int correct = 0;
+                int total = 0;
 
-            //making prediction on dev data using the model trained in this iter
-            AveragedPerceptron decodeAp = ap.calculateAvgWeights();
-            int correct = 0;
-            int total = 0;
+                for (int sIdx = 0; sIdx < devSentencesInCONLLFormat.size(); sIdx++) {
+                    if (sIdx % 1000 ==0)
+                        System.out.print(sIdx+"...");
+                    Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(sIdx), indexMap);
+                    ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
 
-            for (int sIdx = 0; sIdx < devSentencesInCONLLFormat.size(); sIdx++) {
-                if (sIdx % 1000 ==0)
-                    System.out.print(sIdx+"...");
-                Sentence sentence = new Sentence(devSentencesInCONLLFormat.get(sIdx), indexMap);
-                ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
-
-                for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
-                    total++;
-                    Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                    String goldLabel = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
-                    String prediction = decodeAp.predict(featureVector);
-                    if (goldLabel.equals(prediction))
-                        correct++;
+                    for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {
+                        total++;
+                        Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
+                        String goldLabel = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
+                        String prediction = decodeAp.predict(featureVector);
+                        if (goldLabel.equals(prediction))
+                            correct++;
+                    }
+                }
+                System.out.print(devSentencesInCONLLFormat.size()+"\n");
+                double acc = (double) correct / total;
+                System.out.print("Accuracy: "+ acc +"\n");
+                if (acc > bestAcc) {
+                    noImprovement = 0;
+                    bestAcc = acc;
+                    System.out.print("\nSaving final model...");
+                    ModelInfo.saveModel(ap, PIModelPath);
+                    System.out.println("Done!");
+                } else {
+                    noImprovement++;
+                    if (noImprovement > 5) {
+                        System.out.print("\nEarly stopping...");
+                        break;
+                    }
                 }
             }
-            System.out.print(devSentencesInCONLLFormat.size()+"\n");
-            double acc = (double) correct / total;
-            System.out.print("Accuracy: "+ acc +"\n");
-            if (acc > bestAcc) {
-                noImprovement = 0;
-                bestAcc = acc;
-                System.out.print("\nSaving final model...");
-                ModelInfo.saveModel(ap, PIModelPath);
-                System.out.println("Done!");
-            } else {
-                noImprovement++;
-                if (noImprovement > 5) {
-                    System.out.print("\nEarly stopping...");
-                    break;
-                }
-            }
+        }
+        if (devSentencesInCONLLFormat.size()==0){
+            System.out.print("\nSaving final model...");
+            ModelInfo.saveModel(ap, PIModelPath);
+            System.out.println("Done!");
         }
     }
 

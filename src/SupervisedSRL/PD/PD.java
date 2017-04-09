@@ -48,52 +48,58 @@ public class PD {
 
             for (int i = 0; i < maxNumberOfTrainingIterations; i++) {
 
-                for (String label: trainPLexicon.get(plem).keySet()) {
+                for (String label : trainPLexicon.get(plem).keySet()) {
                     for (Object[] instance : trainPLexicon.get(plem).get(label)) {
                         ap.learnInstance(instance, label, learningWeight);
                     }
                 }
-                //making prediction on dev instances of this plem
-                if (devPLexicon.containsKey(plem)){
-                    //seen in dev data
-                    AveragedPerceptron decodeAp = ap.calculateAvgWeights();
-                    int correct =0;
-                    int total =0;
+                if (devPLexicon.size()!=0) {
+                    //making prediction on dev instances of this plem
+                    if (devPLexicon.containsKey(plem)) {
+                        //seen in dev data
+                        AveragedPerceptron decodeAp = ap.calculateAvgWeights();
+                        int correct = 0;
+                        int total = 0;
 
-                    for (String goldLabel: devPLexicon.get(plem).keySet()) {
-                        for (Object[] instance: devPLexicon.get(plem).get(goldLabel)){
-                            String prediction = decodeAp.predict(instance);
-                            total++;
-                            if (prediction.equals(goldLabel))
-                                correct++;
-                        }
-                    }
-                    double acc = (double) correct/total;
-                    if (acc > bestAcc) {
-                        noImprovement = 0;
-                        bestAcc = acc;
-                        ap.saveModel(modelDir + "/" + plem);
-                        savedModel4ThisLemma = true;
-                    } else {
-                        if (bestAcc == 0) {
-                            ap.saveModel(modelDir + "/" + plem);
-                            savedModel4ThisLemma = true;
-                        }
-                        else {
-                            noImprovement++;
-                            if (noImprovement > 5) {
-                                break;
+                        for (String goldLabel : devPLexicon.get(plem).keySet()) {
+                            for (Object[] instance : devPLexicon.get(plem).get(goldLabel)) {
+                                String prediction = decodeAp.predict(instance);
+                                total++;
+                                if (prediction.equals(goldLabel))
+                                    correct++;
                             }
                         }
-                    }
-                }else{
-                    if (i >= maxNumOfPDIterations4UnseenPredicates) {
-                        ap.saveModel(modelDir + "/" + plem);
-                        savedModel4ThisLemma = true;
-                        break;
+                        double acc = (double) correct / total;
+                        if (acc > bestAcc) {
+                            noImprovement = 0;
+                            bestAcc = acc;
+                            ap.saveModel(modelDir + "/" + plem);
+                            savedModel4ThisLemma = true;
+                        } else {
+                            if (bestAcc == 0) {
+                                ap.saveModel(modelDir + "/" + plem);
+                                savedModel4ThisLemma = true;
+                            } else {
+                                noImprovement++;
+                                if (noImprovement > 5) {
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        if (i >= maxNumOfPDIterations4UnseenPredicates) {
+                            ap.saveModel(modelDir + "/" + plem);
+                            savedModel4ThisLemma = true;
+                            break;
+                        }
                     }
                 }
             }
+            if (devPLexicon.size()==0){
+                ap.saveModel(modelDir + "/" + plem);
+                savedModel4ThisLemma = true;
+            }
+
             if (savedModel4ThisLemma == true)
                 numOfSavedModelFiles++;
         }

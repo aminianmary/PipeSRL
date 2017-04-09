@@ -24,6 +24,7 @@ public class Train {
         int numOfTrainingIterations = properties.getMaxNumOfRerankerTrainingIterations();
         String rerankerModelPath = properties.getRerankerModelPath();
         double aiCoefficient = properties.getAiCoefficient();
+        ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
 
         RerankerAveragedPerceptron ap = new RerankerAveragedPerceptron(numOfFeatures(properties));
         double bestFScore = 0;
@@ -50,48 +51,55 @@ public class Train {
                 System.out.println("Part " + devPart + " done!");
             }
 
-            System.out.print("Making prediction on Dev data...");
-            boolean usePI = properties.usePI();
-            boolean supplement = properties.supplementOriginalLabels();
-            HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
-            AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(properties.getPiModelPath()) : null;
-            AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
-            AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
-            IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-            ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
-            int numOfPIFeatures = properties.getNumOfPIFeatures();
-            int numOfPDFeatures = properties.getNumOfPDFeatures();
-            int numOfAIFeatures = properties.getNumOfAIFeatures();
-            int numOfACFeatures = properties.getNumOfACFeatures();
-            int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
-            int aiMaxBeamSize = properties.getNumOfAIBeamSize();
-            int acMaxBeamSize = properties.getNumOfACBeamSize();
-            String outputFile = properties.getOutputFilePathDev() + "_"+iter;
-            String pdModelDir = properties.getPdModelDir();
-            HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
+            if (devSentences.size() > 0) {
+                System.out.print("Making prediction on Dev data...");
+                boolean usePI = properties.usePI();
+                boolean supplement = properties.supplementOriginalLabels();
+                HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
+                AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(properties.getPiModelPath()) : null;
+                AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
+                AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
+                IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
+                int numOfPIFeatures = properties.getNumOfPIFeatures();
+                int numOfPDFeatures = properties.getNumOfPDFeatures();
+                int numOfAIFeatures = properties.getNumOfAIFeatures();
+                int numOfACFeatures = properties.getNumOfACFeatures();
+                int numOfGlobalFeatures = properties.getNumOfGlobalFeatures();
+                int aiMaxBeamSize = properties.getNumOfAIBeamSize();
+                int acMaxBeamSize = properties.getNumOfACBeamSize();
+                String outputFile = properties.getOutputFilePathDev() + "_" + iter;
+                String pdModelDir = properties.getPdModelDir();
+                HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
 
-            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(piClassifier, aiClassifier,
-                    acClassifier, ap, indexMap, rerankerFeatureMap);
-            decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                    aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdModelDir, usePI, supplement);
+                SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(piClassifier, aiClassifier,
+                        acClassifier, ap, indexMap, rerankerFeatureMap);
+                decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
+                        aiMaxBeamSize, acMaxBeamSize, outputFile, aiCoefficient, pdModelDir, usePI, supplement);
 
-            HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
-            reverseLabelMap.put("0", reverseLabelMap.size());
-            double f1= Evaluation.evaluate(outputFile, devSentences, indexMap, reverseLabelMap);
+                HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
+                reverseLabelMap.put("0", reverseLabelMap.size());
+                double f1 = Evaluation.evaluate(outputFile, devSentences, indexMap, reverseLabelMap);
 
-            if (f1 > bestFScore) {
-                noImprovement = 0;
-                bestFScore = f1;
-                System.out.print("\nSaving the new model...");
-                ap.saveModel(rerankerModelPath);
-                System.out.println("Done!");
-            } else {
-                noImprovement++;
-                if (noImprovement > 2) {
-                    System.out.print("\nEarly stopping...");
-                    break;
+                if (f1 > bestFScore) {
+                    noImprovement = 0;
+                    bestFScore = f1;
+                    System.out.print("\nSaving the new model...");
+                    ap.saveModel(rerankerModelPath);
+                    System.out.println("Done!");
+                } else {
+                    noImprovement++;
+                    if (noImprovement > 2) {
+                        System.out.print("\nEarly stopping...");
+                        break;
+                    }
                 }
             }
+        }
+        if (devSentences.size() ==0)
+        {
+            System.out.print("\nSaving the new model...");
+            ap.saveModel(rerankerModelPath);
+            System.out.println("Done!");
         }
     }
 

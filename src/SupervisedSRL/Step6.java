@@ -41,8 +41,10 @@ public class Step6 {
 
         System.out.print("\nMaking predictions on train data...\n");
         PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
-        System.out.print("\nMaking predictions on dev data...\n");
-        PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+        if (devSentences.size()>0) {
+            System.out.print("\nMaking predictions on dev data...\n");
+            PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+        }
         System.out.print("\nMaking predictions on test data...\n");
         PD.predict(testSentences, indexMap, pdModelDir, numOfPDFeatures, testPDAutoLabelsPath);
     }
@@ -69,8 +71,10 @@ public class Step6 {
 
             System.out.print("\nMaking predictions on train data...\n");
             PD.predict(trainSentences, indexMap, pdModelDir, numOfPDFeatures, trainPDAutoLabelsPath);
-            System.out.print("\nMaking predictions on dev data...\n");
-            PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+            if (devSentences.size()>0) {
+                System.out.print("\nMaking predictions on dev data...\n");
+                PD.predict(devSentences, indexMap, pdModelDir, numOfPDFeatures, devPDAutoLabelsPath);
+            }
         }
     }
 }

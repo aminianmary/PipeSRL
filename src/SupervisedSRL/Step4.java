@@ -40,8 +40,10 @@ public class Step4 {
 
         System.out.print("\nMaking predictions on train data...\n");
         PI.predict(trainSentences, indexMap, piModelPath, numOfPIFeatures, trainPILabelsPath);
-        System.out.print("\nMaking predictions on dev data...\n");
-        PI.predict(devSentences, indexMap, piModelPath, numOfPIFeatures, devPILabelsPath);
+        if (devSentences.size()>0) {
+            System.out.print("\nMaking predictions on dev data...\n");
+            PI.predict(devSentences, indexMap, piModelPath, numOfPIFeatures, devPILabelsPath);
+        }
         System.out.print("\nMaking predictions on test data...\n");
         PI.predict(testSentences, indexMap, piModelPath, numOfPIFeatures, testPILabelsPath);
     }
