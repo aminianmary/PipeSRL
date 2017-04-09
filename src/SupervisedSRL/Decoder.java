@@ -50,7 +50,7 @@ public class Decoder {
         long startTime = System.currentTimeMillis();
         BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
         BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+".score"), "UTF-8"));
-        BufferedWriter outputWSourceWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+"_w_projected_info"),
+        BufferedWriter outputWSourceWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+ProjectConstants.PROJECTED_INFO_SUFFIX),
                 "UTF-8"));
 
         for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {

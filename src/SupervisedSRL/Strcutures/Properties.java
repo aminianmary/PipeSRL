@@ -100,7 +100,7 @@ public class Properties {
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient;
         this.outputFilePathTest_w_projected_info = outputDir + ProjectConstants.OUTPUT_FILE_TEST + "."+ reranker +
                 ".AIF_"+numOfAIFeatures + ".ACF_"+numOfACFeatures +".AIB_"+ numOfAIBeamSize +".ACB_"+ numOfACBeamSize+"."+aiCoefficient+
-                ProjectConstants.PROJECTED_INFO_PREFIX;
+                ProjectConstants.PROJECTED_INFO_SUFFIX;
         this.useReranker = useReranker;
         this.usePI = pi;
         this.supplementOriginalLabels = supplementOriginalLabels;
