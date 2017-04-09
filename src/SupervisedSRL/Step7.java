@@ -43,7 +43,7 @@ public class Step7 {
         String modelsToBeTrained = properties.getModelsToBeTrained();
         boolean usePI = properties.usePI();
         boolean supplement = properties.supplementOriginalLabels();
-        boolean weightedLearning = properties.isWeightedLearning();
+        String weightedLearning = properties.isWeightedLearning();
 
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
@@ -74,7 +74,7 @@ public class Step7 {
         String modelsToBeTrained = properties.getModelsToBeTrained();
         boolean usePI = properties.usePI();
         boolean supplement= properties.supplementOriginalLabels();
-        boolean weightedLearning = properties.isWeightedLearning();
+        String weightedLearning = properties.isWeightedLearning();
 
         for (int devPartIdx = 0; devPartIdx < numOfPartitions; devPartIdx++) {
             System.out.println("\n>>>>>>>>\nPART "+devPartIdx+"\n>>>>>>>>\n");

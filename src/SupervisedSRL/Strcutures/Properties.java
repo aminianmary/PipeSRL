@@ -42,7 +42,7 @@ public class Properties {
     private boolean useReranker;
     private boolean usePI;
     private boolean supplementOriginalLabels;
-    private boolean weightedLearning;
+    private String weightedLearning;
     private ArrayList<Integer> steps;
     private String modelsToBeTrained;
     private double aiCoefficient;
@@ -60,7 +60,7 @@ public class Properties {
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures,
                       int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
                       boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient,
-                      boolean pi, boolean supplementOriginalLabels, boolean weightedLearning) {
+                      boolean pi, boolean supplementOriginalLabels, String weightedLearning) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -273,7 +273,7 @@ public class Properties {
         return numOfPIFeatures;
     }
 
-    public boolean isWeightedLearning() {
+    public String isWeightedLearning() {
         return weightedLearning;
     }
 
@@ -393,8 +393,7 @@ public class Properties {
             System.out.print("Projected Labels are supplemented with predictions\n");
         else
             System.out.print("Projected Labels are NOT supplemented with predictions\n");
-        if (weightedLearning)
-            System.out.print("Uses weighted Averaged Perceptron\n");
+        System.out.print("Weighted learning option: "+weightedLearning+"\n");
         if (useReranker)
             System.out.print("Reranker USED\n****************************\n");
         else

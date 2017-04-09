@@ -16,7 +16,7 @@ public class PI {
 
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
                              IndexMap indexMap, int maxNumberOfTrainingIterations, String PIModelPath,
-                             int numOfPIFeatures, boolean weightedLearning) throws Exception {
+                             int numOfPIFeatures, String weightedLearning) throws Exception {
 
         HashSet<String> labelSet = new HashSet<String>();
         labelSet.add("1");
@@ -44,8 +44,12 @@ public class PI {
                     {
                         String label = (goldPredicateIndices.contains(wordIdx)) ? "1" : "0";
                         Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
-                        double learningWeight = (weightedLearning)?
-                                ((sentenceDepLabels[wordIdx] == sentenceSourceDepLabels[wordIdx])? 1: 0.5):1;
+                        double learningWeight = 1;
+                        if (weightedLearning.equals("dep"))
+                            learningWeight = (sentenceDepLabels[wordIdx] == sentenceSourceDepLabels[wordIdx])? 1: 0.5;
+                        else if (weightedLearning.equals("sparse"))
+                            learningWeight = sentence.getCompletenessDegree();
+
                         ap.learnInstance(featureVector, label, learningWeight);
                     }
                 }
