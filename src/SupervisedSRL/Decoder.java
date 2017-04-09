@@ -50,6 +50,8 @@ public class Decoder {
         long startTime = System.currentTimeMillis();
         BufferedWriter outputWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
         BufferedWriter outputScoresWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+".score"), "UTF-8"));
+        BufferedWriter outputWSourceWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile+"_w_projected_info"),
+                "UTF-8"));
 
         for (int d = 0; d < devSentencesInCONLLFormat.size(); d++) {
             if (d % 1000 == 0)
@@ -64,6 +66,7 @@ public class Decoder {
 
             SRLOutput output = IO.generateCompleteOutputSentenceInCoNLLFormat(sentence, devSentence,prediction,supplement);
             outputWriter.write(output.getSentence());
+            outputWSourceWriter.write(output.getSentence_w_projected_info());
             outputScoresWriter.write(d+"\t"+ output.getConfidenceScore() +"\n");
         }
         System.out.println(devSentencesInCONLLFormat.size());
@@ -71,6 +74,8 @@ public class Decoder {
         System.out.println("Total time for decoding: " + format.format(((endTime - startTime) / 1000.0) / 60.0));
         outputWriter.flush();
         outputWriter.close();
+        outputWSourceWriter.flush();
+        outputWSourceWriter.close();
         outputScoresWriter.flush();
         outputScoresWriter.close();
     }

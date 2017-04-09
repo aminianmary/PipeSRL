@@ -222,7 +222,7 @@ public class Train {
             HashMap<String, Integer> reverseLabelMap = new HashMap<>(ap.getReverseLabelMap());
             reverseLabelMap.put("0", reverseLabelMap.size());
 
-            double f1 = Evaluation.evaluate(tempOutputFile, devSentencesInCONLLFormat, indexMap, reverseLabelMap);
+            double f1 = Evaluation.evaluate(tempOutputFile+"_w_projected_info", devSentencesInCONLLFormat, indexMap, reverseLabelMap);
             if (f1 >= bestFScore) {
                 noImprovement = 0;
                 bestFScore = f1;
