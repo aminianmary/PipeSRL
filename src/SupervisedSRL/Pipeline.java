@@ -45,7 +45,7 @@ public class Pipeline {
         boolean reranker = Boolean.parseBoolean(args[17]);
         boolean pi = Boolean.parseBoolean(args[18]);
         boolean supplementOriginalLabels = Boolean.parseBoolean(args[19]);
-        String weightedLearning = args[20]; //values: "", "sparse", "dep"
+        String weightedLearning = args[20]; //values: "", "sparse", "dep","sdep"
 
 
         Properties properties = new Properties(trainFile, devFile, testFile, clusterFile, modelDir, outputDir, numOfPartitions,

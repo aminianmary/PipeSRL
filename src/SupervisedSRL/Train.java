@@ -98,6 +98,11 @@ public class Train {
                         learningWeight = (depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5;
                     else if (weightedLearning.equals("sparse"))
                         learningWeight = sentence.getCompletenessDegree();
+                    else if (weightedLearning.equals("sdep")){
+                        double depWeight = (depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5;
+                        double sparsityWeight = sentence.getCompletenessDegree();
+                        learningWeight = 2 * (depWeight*sparsityWeight)/(depWeight+sparsityWeight);
+                    }
 
                     ap.learnInstance(f, labels.get(d), learningWeight);
                     if (labels.get(d).equals("0"))
@@ -206,10 +211,16 @@ public class Train {
                     int wIdx = (int) featVectors.get(d).second;
                     Object[] f = (Object[]) featVectors.get(d).first;
                     double learningWeight = 1;
+
                     if (weightedLearning.equals("dep"))
                         learningWeight= (depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5;
                     else if (weightedLearning.equals("sparse"))
                         learningWeight = sentence.getCompletenessDegree();
+                    else if (weightedLearning.equals("sdep")){
+                        double depWeight = (depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5;
+                        double sparsityWeight = sentence.getCompletenessDegree();
+                        learningWeight = 2 * (depWeight*sparsityWeight)/(depWeight+sparsityWeight);
+                    }
 
                     ap.learnInstance(f, labels.get(d), learningWeight);
                     dataSize++;
