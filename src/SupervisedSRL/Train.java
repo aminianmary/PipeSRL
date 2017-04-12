@@ -109,7 +109,7 @@ public class Train {
                         String targetDepLabel = indexMap.int2str(depLabels[wIdx]);
                         double w1 = 0.5;
                         double w2 = 0.5;
-                        if (!sourceDepLabel.equals("NULL")) {
+                        if (!sourceDepLabel.equals("NULL") && !targetDepLabel.equals("NULL")) {
                             w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
                             w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
                         }
@@ -238,7 +238,7 @@ public class Train {
                         String targetDepLabel = indexMap.int2str(depLabels[wIdx]);
                         double w1 = 0.5;
                         double w2 = 0.5;
-                        if (!sourceDepLabel.equals("NULL")) {
+                        if (!sourceDepLabel.equals("NULL") && !targetDepLabel.equals("NULL")) {
                             w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
                             w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
                         }
