@@ -88,11 +88,11 @@ public class AveragedPerceptron implements Serializable {
         return reverseLabelMap;
     }
 
-    public void learnInstance(Object[] features, String label, double completeness) {
+    public void learnInstance(Object[] features, String label, double weight) {
         int argmax = argmax(features, false);
         int gold = reverseLabelMap.get(label);
         if (argmax != gold) {
-            updateWeight(argmax, gold, features, completeness);
+            updateWeight(argmax, gold, features, weight);
             if (reverseLabelMap.size() == 2)
                 confusionMatrix[argmax][gold]++;
         } else {

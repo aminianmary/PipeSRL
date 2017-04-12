@@ -347,4 +347,15 @@ public class IO {
         }
         return disambiguatedPredicates;
     }
+
+    public static HashMap<String, Double> loadConfusionMatrix (String path) throws IOException{
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF-8"));
+        String line2read ="";
+        HashMap<String, Double> confusionMatrx = new HashMap<>();
+        while ((line2read= reader.readLine())!= null){
+            String[] splitLine = line2read.split("\t");
+            confusionMatrx.put(splitLine[0], Double.parseDouble(splitLine[2]));
+        }
+        return confusionMatrx;
+    }
 }

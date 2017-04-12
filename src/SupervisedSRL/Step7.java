@@ -5,6 +5,8 @@ import SupervisedSRL.Strcutures.Properties;
 import util.IO;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Created by Maryam Aminian on 9/9/16.
@@ -44,15 +46,15 @@ public class Step7 {
         boolean usePI = properties.usePI();
         boolean supplement = properties.supplementOriginalLabels();
         String weightedLearning = properties.isWeightedLearning();
+        String confusionMatrixPath = properties.getConfusionMatrixPath();
 
         ArrayList<String> trainSentences = IO.readCoNLLFile(trainFilePath);
         ArrayList<String> devSentences = IO.readCoNLLFile(devFilePath);
-
         IndexMap indexMap = IO.load(indexMapPath);
         boolean isModelBuiltOnEntireTrainData = true;
         Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                 numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning);
+                aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning, confusionMatrixPath);
     }
 
     public static void buildModel4Partitions(Properties properties) throws Exception {
@@ -88,10 +90,11 @@ public class Step7 {
             ArrayList<String> devSentences = IO.load(devFilePath);
             boolean isModelBuiltOnEntireTrainData = false;
             String trainPDAutoLabelsPath = properties.getPartitionTrainPDAutoLabelsPath(devPartIdx);
+            String confusionMatrixPath = properties.getConfusionMatrixPath();
 
             Train.train(trainSentences, devSentences, piModelPath, aiModelPath, acModelPath, indexMap, maxAITrainingIters,maxACTrainingIters,
                     numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, aiBeamSize, acBeamSize, isModelBuiltOnEntireTrainData,
-                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning);
+                    aiCoefficient, modelsToBeTrained, trainPDAutoLabelsPath, pdModelDir, usePI, supplement, weightedLearning, confusionMatrixPath);
         }
     }
 

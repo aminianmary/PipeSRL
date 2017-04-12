@@ -2,13 +2,10 @@ package SupervisedSRL;
 
 import SentenceStruct.Argument;
 import SentenceStruct.PA;
-import SupervisedSRL.Strcutures.Pair;
+import SupervisedSRL.Strcutures.*;
 import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
-import SupervisedSRL.Strcutures.IndexMap;
-import SupervisedSRL.Strcutures.ModelInfo;
 import SentenceStruct.simplePA;
-import SupervisedSRL.Strcutures.ProjectConstants;
 import ml.AveragedPerceptron;
 import util.IO;
 
@@ -22,6 +19,8 @@ import java.util.List;
  * Created by Maryam Aminian on 5/23/16.
  */
 public class Train {
+    public static HashMap<String, Double> confusionMatrix;
+
     public static void train(ArrayList<String> trainSentencesInCONLLFormat,
                              ArrayList<String> devSentencesInCONLLFormat, String piModelPath,
                              String aiModelPath, String acModelPath, IndexMap indexMap,
@@ -30,8 +29,10 @@ public class Train {
                              int aiMaxBeamSize, int acMaxBeamSize, boolean isModelBuiltOnEntireTrainData,
                              double aiCoefficient, String modelsToBeTrained,
                              String trainPDAutoLabelsPath, String pdModelDir,
-                             boolean usePI, boolean supplement, String weightedLearning) throws Exception {
+                             boolean usePI, boolean supplement, String weightedLearning,
+                             String confusionMatrixPath) throws Exception {
 
+        confusionMatrix = IO.loadConfusionMatrix(confusionMatrixPath);
         HashSet<String> argLabels = IO.obtainLabels(trainSentencesInCONLLFormat);
         if (modelsToBeTrained.contains("AI")) {
             System.out.print("\n>>>> Training AI >>>>\n");
@@ -102,6 +103,13 @@ public class Train {
                         double depWeight = (depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5;
                         double sparsityWeight = sentence.getCompletenessDegree();
                         learningWeight = 2 * (depWeight*sparsityWeight)/(depWeight+sparsityWeight);
+                    }
+                    else if (weightedLearning.equals("cm")){
+                        String sourceDepLabel = indexMap.int2str(sourceDepLabels[wIdx]);
+                        String targetDepLabel = indexMap.int2str(depLabels[wIdx]);
+                        double w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
+                        double w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
+                        learningWeight = (w1 + w2)/2;
                     }
 
                     ap.learnInstance(f, labels.get(d), learningWeight);
@@ -220,6 +228,13 @@ public class Train {
                         double depWeight = (depLabels[wIdx]== sourceDepLabels[wIdx])?1:0.5;
                         double sparsityWeight = sentence.getCompletenessDegree();
                         learningWeight = 2 * (depWeight*sparsityWeight)/(depWeight+sparsityWeight);
+                    }
+                    else if (weightedLearning.equals("cm")){
+                        String sourceDepLabel = indexMap.int2str(sourceDepLabels[wIdx]);
+                        String targetDepLabel = indexMap.int2str(depLabels[wIdx]);
+                        double w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
+                        double w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
+                        learningWeight = (w1 + w2)/2;
                     }
 
                     ap.learnInstance(f, labels.get(d), learningWeight);

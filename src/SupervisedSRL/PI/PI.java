@@ -3,21 +3,24 @@ import SentenceStruct.Sentence;
 import SupervisedSRL.Features.FeatureExtractor;
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.ModelInfo;
+import SupervisedSRL.Strcutures.ProjectConstants;
 import ml.AveragedPerceptron;
 import util.IO;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
  * Created by Maryam Aminian on 10/21/16.
  */
 public class PI {
+    public static HashMap<String, Double> confusionMatrix;
 
     public static void train(ArrayList<String> trainSentencesInCONLLFormat, ArrayList<String> devSentencesInCONLLFormat,
                              IndexMap indexMap, int maxNumberOfTrainingIterations, String PIModelPath,
-                             int numOfPIFeatures, String weightedLearning) throws Exception {
-
+                             int numOfPIFeatures, String weightedLearning, String confusionMatrixPath) throws Exception {
+        confusionMatrix = IO.loadConfusionMatrix(confusionMatrixPath);
         HashSet<String> labelSet = new HashSet<String>();
         labelSet.add("1");
         labelSet.add("0");
@@ -53,6 +56,13 @@ public class PI {
                             double depWeight = (sentenceDepLabels[wordIdx] == sentenceSourceDepLabels[wordIdx])? 1: 0.5;
                             double sparsityWeight = sentence.getCompletenessDegree();
                             learningWeight = 2 * (depWeight*sparsityWeight)/(depWeight+sparsityWeight);
+                        }
+                        else if (weightedLearning.equals("cm")){
+                            String sourceDepLabel = indexMap.int2str(sentenceDepLabels[wordIdx]);
+                            String targetDepLabel = indexMap.int2str(sentenceSourceDepLabels[wordIdx]);
+                            double w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
+                            double w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
+                            learningWeight = (w1 + w2)/2;
                         }
 
                         ap.learnInstance(featureVector, label, learningWeight);

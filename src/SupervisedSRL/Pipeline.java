@@ -46,12 +46,13 @@ public class Pipeline {
         boolean pi = Boolean.parseBoolean(args[18]);
         boolean supplementOriginalLabels = Boolean.parseBoolean(args[19]);
         String weightedLearning = args[20]; //values: "", "sparse", "dep","sdep"
+        String confusionMatrixPath = args[21];
 
 
         Properties properties = new Properties(trainFile, devFile, testFile, clusterFile, modelDir, outputDir, numOfPartitions,
                 maxNumOfPITrainingIterations, maxNumOfPDTrainingIterations,maxNumOfAITrainingIterations,maxNumOfACTrainingIterations, maxNumOfRerankerTrainingIterations,
                 numOfAIBeamSize, numOfACBeamSize, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures,
-                reranker, steps, modelsToBeTrained, aiCoefficient, pi, supplementOriginalLabels, weightedLearning);
+                reranker, steps, modelsToBeTrained, aiCoefficient, pi, supplementOriginalLabels, weightedLearning, confusionMatrixPath);
         try {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);

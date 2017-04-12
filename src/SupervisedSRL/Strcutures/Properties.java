@@ -52,6 +52,7 @@ public class Properties {
     private String trainPILabelsPath;
     private String devPILabelsPath;
     private String testPILabelsPath;
+    private String confusionMatrixPath;
 
 
     public Properties(String trainFile, String devFile, String testFile, String clusterFile, String modelDir, String outputDir,
@@ -60,7 +61,7 @@ public class Properties {
                       int numOfAIBeamSize, int numOfACBeamSize, int numOfPIFeatures, int numOfPDFeatures,
                       int numOfAIFeatures, int numOfACFeatures, int numOfGlobalFeatures,
                       boolean useReranker, String steps, String modelsToBeTrained, double aiCoefficient,
-                      boolean pi, boolean supplementOriginalLabels, String weightedLearning) {
+                      boolean pi, boolean supplementOriginalLabels, String weightedLearning, String cm) {
         this.numOfGlobalFeatures = numOfGlobalFeatures;
         this.trainFile = trainFile;
         this.devFile = devFile;
@@ -114,6 +115,7 @@ public class Properties {
         this.trainPILabelsPath = modelDir + ProjectConstants.TRAIN_PI_LABELS;
         this.devPILabelsPath = modelDir + ProjectConstants.DEV_PI_LABELS;
         this.testPILabelsPath = modelDir + ProjectConstants.TEST_PI_LABELS;
+        this.confusionMatrixPath= cm;
         printModelProperties();
     }
 
@@ -279,6 +281,10 @@ public class Properties {
 
     public String getPartitionTrainDataPath(int devPartIdx) {
         return partitionPrefix + devPartIdx + ProjectConstants.PARTITION_TRAIN_DATA;
+    }
+
+    public String getConfusionMatrixPath() {
+        return confusionMatrixPath;
     }
 
     public String getPartitionDevDataPath(int devPartIdx) {
