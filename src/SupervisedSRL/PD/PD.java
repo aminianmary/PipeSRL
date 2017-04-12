@@ -81,7 +81,7 @@ public class PD {
                                 savedModel4ThisLemma = true;
                             } else {
                                 noImprovement++;
-                                if (noImprovement > 5) {
+                                if (noImprovement > 2) {
                                     break;
                                 }
                             }

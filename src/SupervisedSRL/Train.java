@@ -159,7 +159,7 @@ public class Train {
                     System.out.println("Done!");
                 } else {
                     noImprovement++;
-                    if (noImprovement > 5) {
+                    if (noImprovement > 2) {
                         System.out.print("\nEarly stopping...");
                         break;
                     }
@@ -262,7 +262,7 @@ public class Train {
                     System.out.println("Done!");
                 } else {
                     noImprovement++;
-                    if (noImprovement > 5) {
+                    if (noImprovement > 2) {
                         System.out.print("\nEarly stopping...");
                         break;
                     }

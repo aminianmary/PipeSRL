@@ -145,7 +145,7 @@ public class Decoder {
         TreeMap<Integer, Prediction4Reranker> predictedAIACCandidates = new TreeMap<Integer, Prediction4Reranker>();
         int[] sentenceLemmas = sentence.getLemmas();
         String[] sentenceLemmas_str = sentence.getLemmas_str();
-        ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices();
+        ArrayList<Integer> goldPredicateIndices = sentence.getPredicatesIndices(); // no predicate ID
         String[] labelMap = acClassifier.getLabelMap();
 
         for (int wordIdx = 1; wordIdx < sentence.getLength(); wordIdx++) {

@@ -92,7 +92,7 @@ public class PI {
                     System.out.println("Done!");
                 } else {
                     noImprovement++;
-                    if (noImprovement > 5) {
+                    if (noImprovement > 2) {
                         System.out.print("\nEarly stopping...");
                         break;
                     }
