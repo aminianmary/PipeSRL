@@ -107,9 +107,12 @@ public class Train {
                     else if (weightedLearning.equals("cm")){
                         String sourceDepLabel = indexMap.int2str(sourceDepLabels[wIdx]);
                         String targetDepLabel = indexMap.int2str(depLabels[wIdx]);
-                        System.out.print("Sen: "+ sID +"\t"+ sourceDepLabel+"-"+targetDepLabel );
-                        double w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
-                        double w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
+                        double w1 = 0.5;
+                        double w2 = 0.5;
+                        if (!sourceDepLabel.equals("NULL")) {
+                            w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
+                            w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
+                        }
                         learningWeight = (w1 + w2)/2;
                     }
 
@@ -233,8 +236,12 @@ public class Train {
                     else if (weightedLearning.equals("cm")){
                         String sourceDepLabel = indexMap.int2str(sourceDepLabels[wIdx]);
                         String targetDepLabel = indexMap.int2str(depLabels[wIdx]);
-                        double w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
-                        double w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
+                        double w1 = 0.5;
+                        double w2 = 0.5;
+                        if (!sourceDepLabel.equals("NULL")) {
+                            w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
+                            w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
+                        }
                         learningWeight = (w1 + w2)/2;
                     }
 
