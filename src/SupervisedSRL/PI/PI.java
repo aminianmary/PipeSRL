@@ -62,7 +62,9 @@ public class PI {
                             String targetDepLabel = indexMap.int2str(sentenceSourceDepLabels[wordIdx]);
                             double w1 = 0.5;
                             double w2 = 0.5;
-                            if (!sourceDepLabel.equals("NULL") && !targetDepLabel.equals("NULL")) {
+                            if (!sourceDepLabel.equals("NULL") && !targetDepLabel.equals("NULL") &&
+                                    confusionMatrix.containsKey(sourceDepLabel+"-"+targetDepLabel) &&
+                                    confusionMatrix.containsKey(targetDepLabel+"-"+sourceDepLabel)) {
                                 w1 = confusionMatrix.get(sourceDepLabel+"-"+targetDepLabel);
                                 w2 = confusionMatrix.get(targetDepLabel+"-"+sourceDepLabel);
                             }
