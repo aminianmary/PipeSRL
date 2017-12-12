@@ -10,7 +10,7 @@ import SupervisedSRL.Strcutures.ModelInfo;
 import ml.AveragedPerceptron;
 import util.IO;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -111,6 +111,7 @@ public class PD {
                                                       String modelDir, int numOfPDFeatures, String path2SavePredictions)
             throws Exception{
         HashMap<Integer, String>[] pdPredictions = new HashMap[sentencesInCONLLFormat.size()];
+        ArrayList<Integer> sentenceLen = new ArrayList<>();
         int total =0;
         int correct=0;
 
@@ -119,6 +120,7 @@ public class PD {
                 System.out.print(d+"...");
 
             Sentence sentence = new Sentence(sentencesInCONLLFormat.get(d), indexMap);
+            sentenceLen.add(sentence.getLength());
             HashMap<Integer, String> goldPredicateLabelMap = sentence.getPredicatesGoldLabelMap();
             pdPredictions[d] =predict4ThisSentence(sentence, indexMap, modelDir, numOfPDFeatures);
             assert goldPredicateLabelMap.size() == pdPredictions[d].size();
@@ -134,6 +136,7 @@ public class PD {
         double acc = ((double) correct/total) *100;
         System.out.print("PD Accuracy: " + acc);
         IO.write(pdPredictions, path2SavePredictions);
+        writePredication(pdPredictions, sentenceLen,path2SavePredictions + ".plain");
     }
 
 
@@ -207,6 +210,25 @@ public class PD {
             }
         }
         return pLexicon;
+    }
+
+    public static void writePredication (HashMap<Integer, String>[] preds, ArrayList<Integer> senLengh ,String filePath) throws IOException{
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+        for(int iSen=0; iSen< preds.length; iSen++){
+            HashMap<Integer, String> pSen = preds[iSen];
+            String s = "";
+            for(int iWord =1; iWord< senLengh.get(iSen); iWord++){
+                s += iWord;
+                if (pSen.containsKey(iWord))
+                    s+= "\tY\t"+pSen.get(iWord)+'\n';
+                else
+                    s+= "\t_\t_\n";
+            }
+            s+= "\n";
+            writer.write(s);
+        }
+        writer.flush();
+        writer.close();
     }
 
 }
