@@ -59,12 +59,13 @@ public class Pipeline {
             Step3.trainPIModel(properties);
             Step5.trainPDModel(properties);
             Step6.predictPDLabels(properties);
-            Step7.trainAIAICModels(properties);
-            Step8.buildRerankerFeatureMap(properties);
-            Step9.generateRerankerInstances(properties);
-            Step10.trainRerankerModel(properties);
-            Step11.decode(properties);
-            Step12.evaluate(properties);
+            Step7.predictPILabels(properties);
+            Step8.trainAIAICModels(properties);
+            Step9.buildRerankerFeatureMap(properties);
+            Step10.generateRerankerInstances(properties);
+            Step11.trainRerankerModel(properties);
+            Step12.decode(properties);
+            Step13.evaluate(properties);
         } catch (Exception e) {
             e.printStackTrace();
         }

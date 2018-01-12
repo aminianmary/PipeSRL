@@ -2,6 +2,8 @@ package SupervisedSRL;
 
 import SupervisedSRL.Strcutures.IndexMap;
 import SupervisedSRL.Strcutures.Properties;
+import ml.AveragedPerceptron;
+import ml.RerankerAveragedPerceptron;
 import util.IO;
 
 import java.util.ArrayList;
@@ -12,17 +14,55 @@ import java.util.HashMap;
  */
 public class Step12 {
 
-    public static void evaluate(Properties properties) throws Exception {
+    public static void decode(Properties properties)
+            throws Exception {
         if (!properties.getSteps().contains(12))
             return;
-        System.out.println("\n>>>>>>>>>>>>>\nStep 12 -- Evaluation\n>>>>>>>>>>>>>\n");
-        HashMap<String, Integer> globalReverseLabelMap = IO.load(properties.getGlobalReverseLabelMapPath());
-        String testOutputFile = properties.getOutputFilePathTest_w_projected_info();
+        System.out.println("\n>>>>>>>>>>>>>\nStep 12 -- Decoding\n>>>>>>>>>>>>>\n");
+        boolean usePI = properties.usePI();
+        boolean supplement = properties.supplementOriginalLabels();
+        AveragedPerceptron aiClassifier = AveragedPerceptron.loadModel(properties.getAiModelPath());
+        AveragedPerceptron acClassifier = AveragedPerceptron.loadModel(properties.getAcModelPath());
+        AveragedPerceptron piClassifier = (usePI) ? AveragedPerceptron.loadModel(properties.getPiModelPath()) : null;
         IndexMap indexMap = IO.load(properties.getIndexMapFilePath());
-        ArrayList<String> testGoldSentences = IO.readCoNLLFile(properties.getTestFile());
-        HashMap<String, Integer> reverseLabelMap = new HashMap<String, Integer>(globalReverseLabelMap);
-        reverseLabelMap.put("0", reverseLabelMap.size());
-        System.out.println("Evaluating test output >>>>>>\n");
-        Evaluation.evaluate(testOutputFile, testGoldSentences, indexMap, reverseLabelMap);
+        String pdModelDir = properties.getPdModelDir();
+        ArrayList<String> devSentences = IO.readCoNLLFile(properties.getDevFile());
+        ArrayList<String> testSentences = IO.readCoNLLFile(properties.getTestFile());
+        int numOfPIFeatures = properties.getNumOfPIFeatures();
+        int numOfPDFeatures = properties.getNumOfPDFeatures();
+        int numOfAIFeatures = properties.getNumOfAIFeatures();
+        int numOfACFeatures = properties.getNumOfACFeatures();
+        int numOfGlobalFeatures= properties.getNumOfGlobalFeatures();
+        int aiMaxBeamSize = properties.getNumOfAIBeamSize();
+        int acMaxBeamSize = properties.getNumOfACBeamSize();
+        String devOutputFile = properties.getOutputFilePathDev();
+        String testOutputFile = properties.getOutputFilePathTest();
+        String testOutputFile_w_projected_info = properties.getOutputFilePathTest_w_projected_info();
+        double aiCoefficient = properties.getAiCoefficient();
+
+        if (properties.useReranker()) {
+            HashMap<Object, Integer>[] rerankerFeatureMap = IO.load(properties.getRerankerFeatureMapPath());
+            RerankerAveragedPerceptron reranker = RerankerAveragedPerceptron.loadModel(properties.getRerankerModelPath());
+            SupervisedSRL.Reranker.Decoder decoder = new SupervisedSRL.Reranker.Decoder(piClassifier, aiClassifier, acClassifier,
+                    reranker, indexMap, rerankerFeatureMap);
+            /*
+            System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
+            decoder.decode(devSentences, numOfPIFeatures, numOfPDFeatures, numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
+                    devOutputFile, aiCoefficient, pdModelDir, usePI, supplement);
+            */
+            System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
+            decoder.decode(testSentences, numOfPIFeatures, numOfPDFeatures,numOfAIFeatures, numOfACFeatures, numOfGlobalFeatures, aiMaxBeamSize, acMaxBeamSize,
+                    testOutputFile, aiCoefficient, pdModelDir, usePI, supplement);
+        } else {
+            SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(piClassifier, aiClassifier, acClassifier);
+            /*
+            System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
+            decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
+                    numOfAIFeatures,numOfACFeatures, devOutputFile,aiCoefficient, pdModelDir, usePI, supplement);
+            */
+            System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
+            decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
+                    numOfAIFeatures,numOfACFeatures, testOutputFile,testOutputFile_w_projected_info,aiCoefficient, pdModelDir,usePI, supplement);
+        }
     }
 }

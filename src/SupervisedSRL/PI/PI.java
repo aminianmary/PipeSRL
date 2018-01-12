@@ -7,6 +7,10 @@ import SupervisedSRL.Strcutures.ProjectConstants;
 import ml.AveragedPerceptron;
 import util.IO;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -126,6 +130,7 @@ public class PI {
                                 String PIModelPath, int numOfPIFeatures, String path2SavePredictions) throws Exception {
         HashSet<Integer>[] PIPredictions = new HashSet[evalSentencesInCONLLFormat.size()];
         AveragedPerceptron classifier = IO.load(PIModelPath);
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path2SavePredictions+".plain")));
 
         for (int senIdx =0 ; senIdx < evalSentencesInCONLLFormat.size(); senIdx++){
             HashSet<Integer> prediction4ThisSentence = new HashSet<>();
@@ -134,12 +139,17 @@ public class PI {
             for (int wordIdx =0; wordIdx< sentence.getLength(); wordIdx++){
                 Object[] featureVector = FeatureExtractor.extractPIFeatures(wordIdx, sentence, numOfPIFeatures, indexMap);
                 String prediction = classifier.predict(featureVector);
-                if (prediction.equals("1"))
+                if (prediction.equals("1")) {
                     prediction4ThisSentence.add(wordIdx);
+                    writer.write("Y\n");
+                }
             }
+            writer.write('\n');
             PIPredictions[senIdx] = prediction4ThisSentence;
         }
         IO.write(PIPredictions, path2SavePredictions);
+        writer.flush();
+        writer.close();
     }
 
 }
