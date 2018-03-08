@@ -40,7 +40,6 @@ public class IO {
                     sentence = new StringBuilder();
                 } else {
                     sentence.append(line2read);
-                    sentence.append("\n");
                 }
             }
             return sentences;

@@ -111,10 +111,10 @@ public class Properties {
         this.modelsToBeTrained = modelsToBeTrained;
         this.trainPDLabelsPath = modelDir + ProjectConstants.TRAIN_AUTO_PD_LABELS;
         this.devPDLabelsPath = modelDir + ProjectConstants.DEV_AUTO_PD_LABELS;
-        this.testPDLabelsPath = modelDir + ProjectConstants.TEST_AUTO_PD_LABELS;
+        this.testPDLabelsPath = outputDir + ProjectConstants.TEST_AUTO_PD_LABELS;
         this.trainPILabelsPath = modelDir + ProjectConstants.TRAIN_PI_LABELS;
         this.devPILabelsPath = modelDir + ProjectConstants.DEV_PI_LABELS;
-        this.testPILabelsPath = modelDir + ProjectConstants.TEST_PI_LABELS;
+        this.testPILabelsPath = outputDir + ProjectConstants.TEST_PI_LABELS;
         this.confusionMatrixPath= cm;
         printModelProperties();
     }
