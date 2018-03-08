@@ -39,7 +39,7 @@ public class IO {
                         sentences.add(senText);
                     sentence = new StringBuilder();
                 } else {
-                    sentence.append(line2read);
+                    sentence.append(line2read+"\n");
                 }
             }
             return sentences;
