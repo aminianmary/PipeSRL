@@ -129,7 +129,7 @@ public class PI {
     public static void predict (ArrayList<String> evalSentencesInCONLLFormat, IndexMap indexMap,
                                 String PIModelPath, int numOfPIFeatures, String path2SavePredictions) throws Exception {
         HashSet<Integer>[] PIPredictions = new HashSet[evalSentencesInCONLLFormat.size()];
-        AveragedPerceptron classifier = IO.load(PIModelPath);
+        AveragedPerceptron classifier = AveragedPerceptron.loadModel(PIModelPath);
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path2SavePredictions+".plain")));
 
         for (int senIdx =0 ; senIdx < evalSentencesInCONLLFormat.size(); senIdx++){
