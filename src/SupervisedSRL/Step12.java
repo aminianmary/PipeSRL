@@ -55,11 +55,6 @@ public class Step12 {
                     testOutputFile, aiCoefficient, pdModelDir, usePI, supplement);
         } else {
             SupervisedSRL.Decoder decoder = new SupervisedSRL.Decoder(piClassifier, aiClassifier, acClassifier);
-            /*
-            System.out.println("\n>>>>>>>> Decoding Development Data >>>>>>>>\n");
-            decoder.decode(indexMap, devSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
-                    numOfAIFeatures,numOfACFeatures, devOutputFile,aiCoefficient, pdModelDir, usePI, supplement);
-            */
             System.out.println("\n>>>>>>>> Decoding Evaluation Data >>>>>>>>\n");
             decoder.decode(indexMap, testSentences, aiMaxBeamSize, acMaxBeamSize, numOfPIFeatures, numOfPDFeatures,
                     numOfAIFeatures,numOfACFeatures, testOutputFile,testOutputFile_w_projected_info,aiCoefficient, pdModelDir,usePI, supplement);
