@@ -57,8 +57,8 @@ public class Pipeline {
             Step1.buildIndexMap(properties);
             Step2.buildTrainDataPartitions(properties);
             Step3.trainPIModel(properties);
+            Step4.predictPILabels(properties);
             Step5.trainPDModel(properties);
-            Step6.predictPILabels(properties);
             Step7.predictPDLabels(properties);
             Step8.trainAIAICModels(properties);
             Step9.buildRerankerFeatureMap(properties);
